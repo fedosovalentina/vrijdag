@@ -7,6 +7,7 @@ import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/localization/locale_resolution.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
+import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 
 /// Root widget: Material shell, localization, bootstrap placeholder.
 class VrijdagApp extends StatelessWidget {
@@ -23,10 +24,7 @@ class VrijdagApp extends StatelessWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       localeResolutionCallback: resolveAppLocale,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2D5016)),
-        useMaterial3: true,
-      ),
+      theme: buildVrijdagTheme(),
       home: const _BootstrapScreen(),
     );
   }
