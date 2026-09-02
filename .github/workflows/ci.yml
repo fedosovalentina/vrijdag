@@ -1,0 +1,72 @@
+# Vrijdag CI
+#
+# The Flutter and migration jobs are intentionally guarded: the app does not exist yet.
+# They activate automatically once app/pubspec.yaml and supabase/migrations/*.sql
+# are present, so the pipeline grows with the project instead of being bolted on later.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  detect:
+    name: Detect project state
+    runs-on: ubuntu-latest
+    outputs:
+      has_app: ${{ steps.check.outputs.has_app }}
+      has_migrations: ${{ steps.check.outputs.has_migrations }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: check
+        run: |
+          if [ -f app/pubspec.yaml ]; then
+            echo "has_app=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_app=false" >> "$GITHUB_OUTPUT"
+          fi
+          if ls supabase/migrations/*.sql >/dev/null 2>&1; then
+            echo "has_migrations=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "has_migrations=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  flutter:
+    name: Flutter — format, analyze, test
+    needs: detect
+    if: needs.detect.outputs.has_app == 'true'
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+      - run: dart format --set-exit-if-changed .
+      - run: dart analyze --fatal-infos
+      - run: flutter test
+
+  localization:
+    name: Localization completeness
+    needs: detect
+    if: needs.detect.outputs.has_app == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tools/check-localization.sh
+
+  database:
+    name: Database safety checks
+    needs: detect
+    if: needs.detect.outputs.has_migrations == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: ./tools/check-rls.sh

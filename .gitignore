@@ -1,0 +1,131 @@
+# ---------------------------------------------------------------------------
+# Vrijdag — repository ignore rules
+# Keep this file boring and explicit. When in doubt, ignore it.
+#
+# This is the public source repository. Product docs, backlog, ADRs, and other
+# internal writing live locally but are not published — see the "Internal
+# documentation" section below.
+# ---------------------------------------------------------------------------
+
+# --- Internal documentation (local only, not published) --------------------
+docs/
+AGENTS.md
+CONTRIBUTING.md
+tools/check-doc-links.sh
+.cursor/
+
+# --- Secrets & environment -------------------------------------------------
+.env
+.env.*
+!.env.example
+*.env
+secrets/
+*.pem
+*.p12
+*.key
+*.keystore
+*.jks
+service-account*.json
+google-services.json
+GoogleService-Info.plist
+supabase/.temp/
+supabase/.branches/
+
+# --- OS --------------------------------------------------------------------
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# --- Editors & tooling -----------------------------------------------------
+.idea/
+*.iml
+*.iws
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+!.vscode/launch.json
+*.swp
+*.swo
+*~
+.history/
+
+# --- Dart / Flutter --------------------------------------------------------
+.dart_tool/
+.packages
+.pub-cache/
+.pub/
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+.metadata
+coverage/
+*.g.dart.bak
+doc/api/
+
+# --- iOS -------------------------------------------------------------------
+**/ios/Pods/
+**/ios/.symlinks/
+**/ios/Flutter/App.framework
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/Flutter/Generated.xcconfig
+**/ios/Flutter/ephemeral/
+**/ios/Flutter/flutter_export_environment.sh
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+*.ipa
+*.dSYM.zip
+*.mobileprovision
+
+# --- Android ---------------------------------------------------------------
+**/android/.gradle/
+**/android/captures/
+**/android/gradlew
+**/android/gradlew.bat
+**/android/gradle-wrapper.jar
+**/android/local.properties
+**/android/key.properties
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+*.apk
+*.aab
+
+# --- Web / Node (docs tooling, workers, edge functions) --------------------
+node_modules/
+dist/
+.next/
+.wrangler/
+.turbo/
+npm-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# --- Python (data/ETL scripts, if any) -------------------------------------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+
+# --- Data dumps & scratch --------------------------------------------------
+*.log
+tmp/
+.tmp/
+scratch/
+*.local.*
+data/raw/
+data/cache/
+!data/raw/.gitkeep
+
+# --- Design exports (binaries do not belong in git) ------------------------
+*.sketch
+*.fig
+*.psd
+design/exports/
