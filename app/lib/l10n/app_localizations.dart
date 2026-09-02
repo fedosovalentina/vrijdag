@@ -157,6 +157,24 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Omgevingsskelet gereed.'**
   String get bootstrapStatusReady;
+
+  /// Shows the active build-time environment on the bootstrap screen.
+  ///
+  /// In nl, this message translates to:
+  /// **'Omgeving: {environment}'**
+  String bootstrapEnvironment(String environment);
+
+  /// Supabase initialized successfully at startup.
+  ///
+  /// In nl, this message translates to:
+  /// **'Supabase-client gereed.'**
+  String get bootstrapSupabaseConnected;
+
+  /// Supabase URL or publishable key missing for this build.
+  ///
+  /// In nl, this message translates to:
+  /// **'Supabase niet geconfigureerd.'**
+  String get bootstrapSupabaseUnavailable;
 }
 
 class _AppLocalizationsDelegate

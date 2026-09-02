@@ -38,4 +38,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bootstrapStatusReady => 'Environment scaffold ready.';
+
+  @override
+  String bootstrapEnvironment(String environment) {
+    return 'Environment: $environment';
+  }
+
+  @override
+  String get bootstrapSupabaseConnected => 'Supabase client ready.';
+
+  @override
+  String get bootstrapSupabaseUnavailable => 'Supabase not configured.';
 }

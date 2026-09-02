@@ -38,4 +38,15 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get bootstrapStatusReady => 'Omgevingsskelet gereed.';
+
+  @override
+  String bootstrapEnvironment(String environment) {
+    return 'Omgeving: $environment';
+  }
+
+  @override
+  String get bootstrapSupabaseConnected => 'Supabase-client gereed.';
+
+  @override
+  String get bootstrapSupabaseUnavailable => 'Supabase niet geconfigureerd.';
 }

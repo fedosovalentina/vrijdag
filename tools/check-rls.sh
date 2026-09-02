@@ -1,26 +1,90 @@
 #!/usr/bin/env bash
 #
-# Database safety checks. These are the mechanism that keeps DEC-009 true after everyone
-# has stopped thinking about it.
+# Database safety checks (DEC-009, F-001 AC-6 / AC-7).
 #
-#   1. Every table in the `app` schema has row-level security enabled.
-#   2. The `vrijdag_importer` role holds no grants on the `app` schema.
+#   1. Every table in `app` has row-level security enabled.
+#   2. `vrijdag_importer` holds no grants on `app`.
+#   3. `vrijdag_importer` cannot read or write `app` tables.
 #
 # Runs against a throwaway local database with all migrations applied.
-# Implemented as part of F-001 (docs/backlog/features/F-001-project-setup.md).
-#
-# Reference query for check 1:
-#
-#   select c.relname
-#   from pg_class c
-#   join pg_namespace n on n.oid = c.relnamespace
-#   where n.nspname = 'app' and c.relkind = 'r' and not c.relrowsecurity;
-#
-# Any row returned is a failure.
+# Requires: Docker, Supabase CLI.
 
 set -euo pipefail
 
-echo "check-rls.sh is not implemented yet."
-echo "It is part of F-001 — project and environment setup."
-echo "See docs/backlog/features/F-001-project-setup.md"
-exit 1
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+cd "$ROOT"
+
+if ! command -v supabase >/dev/null 2>&1; then
+  echo "check-rls.sh: Supabase CLI is required."
+  echo "Install: https://supabase.com/docs/guides/cli/getting-started"
+  exit 1
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  echo "check-rls.sh: Docker is required for the local database."
+  exit 1
+fi
+
+echo "check-rls.sh: applying migrations to local database…"
+supabase db reset --local --yes >/dev/null
+
+DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
+
+psql_check() {
+  psql "$DB_URL" -v ON_ERROR_STOP=1 -At "$@"
+}
+
+if ! command -v psql >/dev/null 2>&1; then
+  echo "check-rls.sh: psql is required."
+  exit 1
+fi
+
+echo "check-rls.sh: (1/3) app tables without RLS…"
+UNRLS="$(psql_check -c "
+  select c.relname
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname = 'app'
+    and c.relkind = 'r'
+    and not c.relrowsecurity;
+")"
+
+if [[ -n "$UNRLS" ]]; then
+  echo "FAIL: app tables without row-level security:"
+  echo "$UNRLS"
+  exit 1
+fi
+
+echo "check-rls.sh: (2/3) importer grants on app schema…"
+APP_GRANTS="$(psql_check -c "
+  select count(*)
+  from information_schema.role_table_grants g
+  join pg_namespace n on n.nspname = g.table_schema
+  where g.grantee = 'vrijdag_importer'
+    and g.table_schema = 'app';
+")"
+
+if [[ "$APP_GRANTS" != "0" ]]; then
+  echo "FAIL: vrijdag_importer has grants on app tables ($APP_GRANTS)."
+  exit 1
+fi
+
+SCHEMA_PRIV="$(psql_check -c "
+  select count(*)
+  from information_schema.usage_privileges
+  where grantee = 'vrijdag_importer'
+    and object_schema = 'app';
+")"
+
+if [[ "$SCHEMA_PRIV" != "0" ]]; then
+  echo "FAIL: vrijdag_importer has usage on app schema."
+  exit 1
+fi
+
+echo "check-rls.sh: (3/3) importer cannot access app.schema_version…"
+if psql_check -c "set role vrijdag_importer; select 1 from app.schema_version;" >/dev/null 2>&1; then
+  echo "FAIL: vrijdag_importer can read app.schema_version."
+  exit 1
+fi
+
+echo "check-rls.sh: all checks passed."

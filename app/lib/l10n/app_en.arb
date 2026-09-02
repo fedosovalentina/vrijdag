@@ -9,5 +9,8 @@
   "commonDelete": "Delete",
   "commonRetry": "Retry",
   "bootstrapFoundationMessage": "Technical foundation for F-001. Day screen and data follow in later features.",
-  "bootstrapStatusReady": "Environment scaffold ready."
+  "bootstrapStatusReady": "Environment scaffold ready.",
+  "bootstrapEnvironment": "Environment: {environment}",
+  "bootstrapSupabaseConnected": "Supabase client ready.",
+  "bootstrapSupabaseUnavailable": "Supabase not configured."
 }

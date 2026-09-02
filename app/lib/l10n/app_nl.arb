@@ -39,5 +39,22 @@
   "bootstrapStatusReady": "Omgevingsskelet gereed.",
   "@bootstrapStatusReady": {
     "description": "Status line on the bootstrap screen when the scaffold is ready."
+  },
+  "bootstrapEnvironment": "Omgeving: {environment}",
+  "@bootstrapEnvironment": {
+    "description": "Shows the active build-time environment on the bootstrap screen.",
+    "placeholders": {
+      "environment": {
+        "type": "String"
+      }
+    }
+  },
+  "bootstrapSupabaseConnected": "Supabase-client gereed.",
+  "@bootstrapSupabaseConnected": {
+    "description": "Supabase initialized successfully at startup."
+  },
+  "bootstrapSupabaseUnavailable": "Supabase niet geconfigureerd.",
+  "@bootstrapSupabaseUnavailable": {
+    "description": "Supabase URL or publishable key missing for this build."
   }
 }

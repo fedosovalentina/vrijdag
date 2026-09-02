@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:vrijdag/l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/localization/locale_resolution.dart';
+import 'package:vrijdag/core/supabase/supabase_client.dart';
+import 'package:vrijdag/l10n/app_localizations.dart';
 
 /// Root widget: Material shell, localization, bootstrap placeholder.
 class VrijdagApp extends StatelessWidget {
@@ -27,12 +30,21 @@ class VrijdagApp extends StatelessWidget {
   }
 }
 
-class _BootstrapScreen extends StatelessWidget {
+class _BootstrapScreen extends ConsumerWidget {
   const _BootstrapScreen();
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = context.l10n;
+    final config = ref.watch(appConfigProvider);
+    final supabaseReady = ref.watch(supabaseReadyProvider);
+
+    final supabaseStatus =
+        config.supabaseUrl.isEmpty || config.supabasePublishableKey.isEmpty
+        ? l10n.bootstrapSupabaseUnavailable
+        : supabaseReady
+        ? l10n.bootstrapSupabaseConnected
+        : l10n.bootstrapSupabaseUnavailable;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.commonAppName)),
@@ -52,6 +64,10 @@ class _BootstrapScreen extends StatelessWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              Text(l10n.bootstrapEnvironment(config.environment.label)),
+              const SizedBox(height: 8),
+              Text(supabaseStatus),
+              const SizedBox(height: 16),
               Text(
                 l10n.bootstrapStatusReady,
                 style: Theme.of(context).textTheme.bodySmall,
