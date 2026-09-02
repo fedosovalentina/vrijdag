@@ -100,7 +100,8 @@ tools/      Developer scripts (localization checks, database safety)
 
 ## Status
 
-Early development. The Flutter project and database migrations are not in this repository yet.
+Early development. The Flutter client and Supabase migrations live in this repository.
+See `app/` and `supabase/` for the current scaffold.
 
 ## Contributing
 
