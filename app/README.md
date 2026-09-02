@@ -1,36 +1,44 @@
 # app — Vrijdag Flutter client
 
-iOS first, Android-ready, web later.
+iOS first, Android buildable but unreleased.
 
-**The Flutter project has not been created yet.** This directory holds the agreed folder
-structure so that the first `flutter create` lands in the right shape.
+## Run locally
+
+```bash
+cd app
+flutter pub get
+flutter run
+```
+
+Requires Flutter stable (see `flutter --version`). Local Supabase comes in a later F-001 phase
+(`supabase start` from the repo root).
 
 ## Structure
 
 ```text
 lib/
-  core/         infrastructure — no feature knows why it exists
-  shared/       reusable widgets, theme, formatters, extensions
-  features/     one folder per feature, each with data / domain / presentation
+  main.dart           entry — ProviderScope
+  app.dart            root widget
+  core/               infrastructure
+  shared/             theme, widgets, formatters
+  features/           feature-first: data / domain / presentation
 test/
-  unit/         domain logic
-  widget/       screen states (loading, empty, quiet, stale, error)
-  golden/       visual regression
-integration_test/
+  unit/
+  widget/
+  golden/
 ```
 
-## Layer rules
+State management: **Riverpod** only.
 
-1. `domain` imports nothing from `data`, `presentation`, or Flutter itself.
+## Rules
+
+1. `domain` imports nothing from `data`, `presentation`, or Flutter.
 2. A feature may not import another feature's `data` or `presentation`.
-3. No user-visible string is hardcoded — every string is a localization key with `nl` and `en`.
-4. No platform branching outside `core/platform`.
+3. No user-visible string literals once ARB lands (F-090) — use localization keys.
+4. Platform branching only in `core/platform`.
+5. Secrets never in the client bundle.
 
-## Getting started (once the project exists)
+## Current status
 
-```bash
-supabase start          # from the repository root
-supabase db reset       # migrations + seed
-flutter pub get
-flutter run
-```
+**F-001 Phase 1:** project skeleton + Riverpod + bootstrap screen. Auth, Supabase client,
+Sentry, PostHog, ARB, and TestFlight upload follow in later F-001 phases.

@@ -7,12 +7,23 @@
 # documentation" section below.
 # ---------------------------------------------------------------------------
 
-# --- Internal documentation (local only, not published) --------------------
+# --- Private / non-app (local only — never publish) ------------------------
+# Public repo may contain only application source and thin operational README.
+# Product docs, process, backlog, ADRs, agent instructions, planning tools,
+# and any generated reports stay on disk and out of git.
 docs/
 AGENTS.md
 CONTRIBUTING.md
-tools/check-doc-links.sh
 .cursor/
+.githooks/
+tools/check-doc-links.sh
+tools/project-status.py
+tools/install-git-hooks.sh
+reports/
+scratch/
+*.status.txt
+project-status*.md
+project-status*.txt
 
 # --- Secrets & environment -------------------------------------------------
 .env
