@@ -49,4 +49,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get bootstrapSupabaseUnavailable => 'Supabase niet geconfigureerd.';
+
+  @override
+  String get bootstrapTestCrash => 'Testcrash';
 }

@@ -175,6 +175,12 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Supabase niet geconfigureerd.'**
   String get bootstrapSupabaseUnavailable;
+
+  /// Debug control that sends a deliberate crash to error reporting.
+  ///
+  /// In nl, this message translates to:
+  /// **'Testcrash'**
+  String get bootstrapTestCrash;
 }
 
 class _AppLocalizationsDelegate

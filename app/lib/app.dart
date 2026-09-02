@@ -1,5 +1,7 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/localization/locale_resolution.dart';
@@ -72,6 +74,14 @@ class _BootstrapScreen extends ConsumerWidget {
                 l10n.bootstrapStatusReady,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              if (kDebugMode && !config.isProduction) ...[
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () =>
+                      ref.read(errorReporterProvider).triggerTestCrash(),
+                  child: Text(l10n.bootstrapTestCrash),
+                ),
+              ],
             ],
           ),
         ),

@@ -12,5 +12,6 @@
   "bootstrapStatusReady": "Environment scaffold ready.",
   "bootstrapEnvironment": "Environment: {environment}",
   "bootstrapSupabaseConnected": "Supabase client ready.",
-  "bootstrapSupabaseUnavailable": "Supabase not configured."
+  "bootstrapSupabaseUnavailable": "Supabase not configured.",
+  "bootstrapTestCrash": "Test crash"
 }

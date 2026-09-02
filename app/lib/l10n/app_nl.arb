@@ -56,5 +56,9 @@
   "bootstrapSupabaseUnavailable": "Supabase niet geconfigureerd.",
   "@bootstrapSupabaseUnavailable": {
     "description": "Supabase URL or publishable key missing for this build."
+  },
+  "bootstrapTestCrash": "Testcrash",
+  "@bootstrapTestCrash": {
+    "description": "Debug control that sends a deliberate crash to error reporting."
   }
 }

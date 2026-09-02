@@ -2,9 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:vrijdag/app.dart';
+import 'package:vrijdag/core/analytics/noop_analytics.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/app_config.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/config/vrijdag_env.dart';
+import 'package:vrijdag/core/errors/noop_error_reporter.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 
 void main() {
@@ -25,6 +28,8 @@ void main() {
             ),
           ),
           supabaseReadyProvider.overrideWithValue(true),
+          errorReporterProvider.overrideWithValue(NoopErrorReporter()),
+          analyticsProvider.overrideWithValue(NoopAnalytics()),
         ],
         child: const VrijdagApp(locale: Locale('nl')),
       ),
@@ -54,6 +59,8 @@ void main() {
             ),
           ),
           supabaseReadyProvider.overrideWithValue(false),
+          errorReporterProvider.overrideWithValue(NoopErrorReporter()),
+          analyticsProvider.overrideWithValue(NoopAnalytics()),
         ],
         child: const VrijdagApp(locale: Locale('en')),
       ),
