@@ -1,0 +1,43 @@
+{
+  "@@locale": "nl",
+  "commonAppName": "Vrijdag",
+  "@commonAppName": {
+    "description": "Application name shown in the shell and system UI."
+  },
+  "commonToday": "Vandaag",
+  "@commonToday": {
+    "description": "Label for the current day."
+  },
+  "commonTomorrow": "Morgen",
+  "@commonTomorrow": {
+    "description": "Label for the next day."
+  },
+  "commonYesterday": "Gisteren",
+  "@commonYesterday": {
+    "description": "Label for the previous day."
+  },
+  "commonCancel": "Annuleren",
+  "@commonCancel": {
+    "description": "Dismiss an action without saving."
+  },
+  "commonSave": "Opslaan",
+  "@commonSave": {
+    "description": "Confirm and persist changes."
+  },
+  "commonDelete": "Verwijderen",
+  "@commonDelete": {
+    "description": "Remove an item after explicit confirmation."
+  },
+  "commonRetry": "Opnieuw",
+  "@commonRetry": {
+    "description": "Try a failed action again."
+  },
+  "bootstrapFoundationMessage": "Technische basis voor F-001. Dag-scherm en data volgen in latere features.",
+  "@bootstrapFoundationMessage": {
+    "description": "Placeholder copy on the bootstrap screen while the app shell is being built."
+  },
+  "bootstrapStatusReady": "Omgevingsskelet gereed.",
+  "@bootstrapStatusReady": {
+    "description": "Status line on the bootstrap screen when the scaffold is ready."
+  }
+}

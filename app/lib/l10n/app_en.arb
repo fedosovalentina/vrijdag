@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "commonAppName": "Vrijdag",
+  "commonToday": "Today",
+  "commonTomorrow": "Tomorrow",
+  "commonYesterday": "Yesterday",
+  "commonCancel": "Cancel",
+  "commonSave": "Save",
+  "commonDelete": "Delete",
+  "commonRetry": "Retry",
+  "bootstrapFoundationMessage": "Technical foundation for F-001. Day screen and data follow in later features.",
+  "bootstrapStatusReady": "Environment scaffold ready."
+}

@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:vrijdag/l10n/app_localizations.dart';
+import 'package:vrijdag/core/localization/l10n.dart';
+import 'package:vrijdag/core/localization/locale_resolution.dart';
 
-/// Root application widget. Routing and theme grow here as features land.
+/// Root widget: Material shell, localization, bootstrap placeholder.
 class VrijdagApp extends StatelessWidget {
-  const VrijdagApp({super.key});
+  const VrijdagApp({super.key, this.locale});
+
+  /// Optional locale override (used in widget tests).
+  final Locale? locale;
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Vrijdag',
-      debugShowCheckedModeBanner: false,
+      locale: locale,
+      onGenerateTitle: (context) => context.l10n.commonAppName,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      localeResolutionCallback: resolveAppLocale,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF55624A),
-          brightness: Brightness.light,
-          surface: const Color(0xFFEFEBE2),
-        ),
+        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2D5016)),
         useMaterial3: true,
       ),
       home: const _BootstrapScreen(),
@@ -22,43 +27,34 @@ class VrijdagApp extends StatelessWidget {
   }
 }
 
-/// Temporary host screen until F-002 / Day view exist.
-/// Not product UI — proves the app boots under Riverpod.
 class _BootstrapScreen extends StatelessWidget {
   const _BootstrapScreen();
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
+    final l10n = context.l10n;
+
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
+      appBar: AppBar(title: Text(l10n.commonAppName)),
+      body: Center(
         child: Padding(
-          padding: const EdgeInsets.all(34),
+          padding: const EdgeInsets.all(24),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
-                'Vrijdag',
-                style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF221F1A),
-                ),
+                l10n.commonAppName,
+                style: Theme.of(context).textTheme.headlineMedium,
               ),
-              const SizedBox(height: 13),
+              const SizedBox(height: 16),
               Text(
-                'Technical foundation (F-001). Calendar screens arrive after design Task 02.',
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: const Color(0xFF56504A),
-                  height: 1.5,
-                ),
+                l10n.bootstrapFoundationMessage,
+                textAlign: TextAlign.center,
               ),
-              const Spacer(),
+              const SizedBox(height: 24),
               Text(
-                'Environment scaffold ready.',
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: const Color(0xFF6F6858),
-                ),
+                l10n.bootstrapStatusReady,
+                style: Theme.of(context).textTheme.bodySmall,
               ),
             ],
           ),

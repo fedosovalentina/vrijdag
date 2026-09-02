@@ -2,6 +2,14 @@
 # Use `dart analyze` in CI (not `flutter analyze`) when analyzer plugins are added.
 include: package:flutter_lints/flutter.yaml
 
+plugins:
+  hardcoded_strings_lint:
+    version: ^2.1.0
+    options:
+      message: "User-visible string must be in ARB — use AppLocalizations."
+    diagnostics:
+      avoid_hardcoded_strings_in_widgets: true
+
 analyzer:
   language:
     strict-casts: true
@@ -9,6 +17,7 @@ analyzer:
     strict-raw-types: true
   errors:
     invalid_annotation_target: ignore
+    unsupported_option: ignore
 
 linter:
   rules:
