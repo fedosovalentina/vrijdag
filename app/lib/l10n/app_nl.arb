@@ -121,5 +121,37 @@
   "authOrEmail": "Of met e-mail",
   "@authOrEmail": {
     "description": "Divider label between Apple and magic-link options."
+  },
+  "authDeleteAccount": "Account verwijderen",
+  "@authDeleteAccount": {
+    "description": "Opens the two-step account deletion flow."
+  },
+  "authDeleteConfirmTitle": "Account verwijderen?",
+  "@authDeleteConfirmTitle": {
+    "description": "First confirmation title for account deletion."
+  },
+  "authDeleteConfirmBody": "Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.",
+  "@authDeleteConfirmBody": {
+    "description": "First confirmation body — factual, no drama."
+  },
+  "authDeleteConfirmContinue": "Doorgaan",
+  "@authDeleteConfirmContinue": {
+    "description": "Proceed from first deletion confirmation to the final step."
+  },
+  "authDeleteFinalTitle": "Definitief verwijderen",
+  "@authDeleteFinalTitle": {
+    "description": "Second confirmation title for account deletion."
+  },
+  "authDeleteFinalBody": "Bevestig dat je dit account permanent wilt verwijderen.",
+  "@authDeleteFinalBody": {
+    "description": "Second confirmation body for account deletion."
+  },
+  "authDeleteFinalAction": "Account definitief verwijderen",
+  "@authDeleteFinalAction": {
+    "description": "Final destructive button that calls the delete-account function."
+  },
+  "authDeleteFailed": "Het account kon niet worden verwijderd. Probeer het later opnieuw.",
+  "@authDeleteFailed": {
+    "description": "Shown when the delete-account Edge Function fails."
   }
 }

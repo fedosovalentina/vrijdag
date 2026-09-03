@@ -15,5 +15,8 @@ abstract class AuthRepository {
   /// Sign in with Apple (iOS). Requires Apple capability + Supabase Apple provider.
   Future<void> signInWithApple();
 
+  /// Deletes the signed-in account via Edge Function (personal data only).
+  Future<void> deleteAccount();
+
   Future<void> signOut();
 }

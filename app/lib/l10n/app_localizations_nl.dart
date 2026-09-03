@@ -98,4 +98,31 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get authOrEmail => 'Of met e-mail';
+
+  @override
+  String get authDeleteAccount => 'Account verwijderen';
+
+  @override
+  String get authDeleteConfirmTitle => 'Account verwijderen?';
+
+  @override
+  String get authDeleteConfirmBody =>
+      'Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.';
+
+  @override
+  String get authDeleteConfirmContinue => 'Doorgaan';
+
+  @override
+  String get authDeleteFinalTitle => 'Definitief verwijderen';
+
+  @override
+  String get authDeleteFinalBody =>
+      'Bevestig dat je dit account permanent wilt verwijderen.';
+
+  @override
+  String get authDeleteFinalAction => 'Account definitief verwijderen';
+
+  @override
+  String get authDeleteFailed =>
+      'Het account kon niet worden verwijderd. Probeer het later opnieuw.';
 }

@@ -60,6 +60,8 @@ class _HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<_HomeScreen> createState() => _HomeScreenState();
 }
 
+enum _HomeMenuAction { signOut, deleteAccount }
+
 class _HomeScreenState extends ConsumerState<_HomeScreen> {
   @override
   void initState() {
@@ -92,6 +94,66 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
     }
   }
 
+  Future<void> _confirmDelete(BuildContext context) async {
+    final l10n = context.l10n;
+    final first = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.authDeleteConfirmTitle),
+          content: Text(l10n.authDeleteConfirmBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.authDeleteConfirmContinue),
+            ),
+          ],
+        );
+      },
+    );
+    if (first != true || !context.mounted) {
+      return;
+    }
+
+    final second = await showDialog<bool>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.authDeleteFinalTitle),
+          content: Text(l10n.authDeleteFinalBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: Text(l10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              child: Text(l10n.authDeleteFinalAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (second != true || !context.mounted) {
+      return;
+    }
+
+    try {
+      await ref.read(authRepositoryProvider).deleteAccount();
+    } on Object {
+      if (!context.mounted) {
+        return;
+      }
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.authDeleteFailed)));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -120,9 +182,25 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
       appBar: AppBar(
         title: Text(l10n.commonAppName),
         actions: [
-          TextButton(
-            onPressed: () => ref.read(authRepositoryProvider).signOut(),
-            child: Text(l10n.authSignOut),
+          PopupMenuButton<_HomeMenuAction>(
+            onSelected: (value) async {
+              switch (value) {
+                case _HomeMenuAction.signOut:
+                  await ref.read(authRepositoryProvider).signOut();
+                case _HomeMenuAction.deleteAccount:
+                  await _confirmDelete(context);
+              }
+            },
+            itemBuilder: (context) => [
+              PopupMenuItem(
+                value: _HomeMenuAction.signOut,
+                child: Text(l10n.authSignOut),
+              ),
+              PopupMenuItem(
+                value: _HomeMenuAction.deleteAccount,
+                child: Text(l10n.authDeleteAccount),
+              ),
+            ],
           ),
         ],
       ),

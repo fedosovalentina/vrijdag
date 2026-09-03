@@ -72,7 +72,10 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('test@example.com'), findsOneWidget);
-    expect(find.text('Uitloggen'), findsOneWidget);
     expect(find.textContaining('F-001'), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.more_vert));
+    await tester.pumpAndSettle();
+    expect(find.text('Uitloggen'), findsOneWidget);
+    expect(find.text('Account verwijderen'), findsOneWidget);
   });
 }

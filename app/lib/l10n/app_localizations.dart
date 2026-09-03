@@ -265,6 +265,54 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Of met e-mail'**
   String get authOrEmail;
+
+  /// Opens the two-step account deletion flow.
+  ///
+  /// In nl, this message translates to:
+  /// **'Account verwijderen'**
+  String get authDeleteAccount;
+
+  /// First confirmation title for account deletion.
+  ///
+  /// In nl, this message translates to:
+  /// **'Account verwijderen?'**
+  String get authDeleteConfirmTitle;
+
+  /// First confirmation body — factual, no drama.
+  ///
+  /// In nl, this message translates to:
+  /// **'Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.'**
+  String get authDeleteConfirmBody;
+
+  /// Proceed from first deletion confirmation to the final step.
+  ///
+  /// In nl, this message translates to:
+  /// **'Doorgaan'**
+  String get authDeleteConfirmContinue;
+
+  /// Second confirmation title for account deletion.
+  ///
+  /// In nl, this message translates to:
+  /// **'Definitief verwijderen'**
+  String get authDeleteFinalTitle;
+
+  /// Second confirmation body for account deletion.
+  ///
+  /// In nl, this message translates to:
+  /// **'Bevestig dat je dit account permanent wilt verwijderen.'**
+  String get authDeleteFinalBody;
+
+  /// Final destructive button that calls the delete-account function.
+  ///
+  /// In nl, this message translates to:
+  /// **'Account definitief verwijderen'**
+  String get authDeleteFinalAction;
+
+  /// Shown when the delete-account Edge Function fails.
+  ///
+  /// In nl, this message translates to:
+  /// **'Het account kon niet worden verwijderd. Probeer het later opnieuw.'**
+  String get authDeleteFailed;
 }
 
 class _AppLocalizationsDelegate

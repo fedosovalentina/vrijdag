@@ -80,6 +80,21 @@ class SupabaseAuthRepository implements AuthRepository {
   }
 
   @override
+  Future<void> deleteAccount() async {
+    final client = _client;
+    if (client == null) {
+      throw StateError('Supabase is not initialized');
+    }
+
+    final response = await client.functions.invoke('delete-account');
+    if (response.status >= 400) {
+      throw StateError('Account deletion failed (${response.status})');
+    }
+
+    await client.auth.signOut();
+  }
+
+  @override
   Future<void> signOut() => _auth.signOut();
 
   AuthSession _mapUser(User? user) {

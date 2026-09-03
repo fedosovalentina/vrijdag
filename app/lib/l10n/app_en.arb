@@ -27,5 +27,13 @@
   "authSupabaseRequired": "Supabase is required to sign in.",
   "authSignInWithApple": "Sign in with Apple",
   "authAppleFailed": "Sign in with Apple failed. Check that Apple Sign In is configured.",
-  "authOrEmail": "Or with email"
+  "authOrEmail": "Or with email",
+  "authDeleteAccount": "Delete account",
+  "authDeleteConfirmTitle": "Delete account?",
+  "authDeleteConfirmBody": "This removes your account and all personal data. World data is unaffected. This cannot be undone.",
+  "authDeleteConfirmContinue": "Continue",
+  "authDeleteFinalTitle": "Delete permanently",
+  "authDeleteFinalBody": "Confirm that you want to permanently delete this account.",
+  "authDeleteFinalAction": "Delete account permanently",
+  "authDeleteFailed": "The account could not be deleted. Try again later."
 }

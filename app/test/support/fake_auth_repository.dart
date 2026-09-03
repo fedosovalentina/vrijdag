@@ -29,6 +29,11 @@ class FakeAuthRepository implements AuthRepository {
   Future<void> signInWithApple() async {}
 
   @override
+  Future<void> deleteAccount() async {
+    emit(const AuthSignedOut());
+  }
+
+  @override
   Future<void> signOut() async {
     emit(const AuthSignedOut());
   }

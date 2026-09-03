@@ -98,4 +98,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authOrEmail => 'Or with email';
+
+  @override
+  String get authDeleteAccount => 'Delete account';
+
+  @override
+  String get authDeleteConfirmTitle => 'Delete account?';
+
+  @override
+  String get authDeleteConfirmBody =>
+      'This removes your account and all personal data. World data is unaffected. This cannot be undone.';
+
+  @override
+  String get authDeleteConfirmContinue => 'Continue';
+
+  @override
+  String get authDeleteFinalTitle => 'Delete permanently';
+
+  @override
+  String get authDeleteFinalBody =>
+      'Confirm that you want to permanently delete this account.';
+
+  @override
+  String get authDeleteFinalAction => 'Delete account permanently';
+
+  @override
+  String get authDeleteFailed =>
+      'The account could not be deleted. Try again later.';
 }
