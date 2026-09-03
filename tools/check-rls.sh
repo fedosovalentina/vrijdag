@@ -7,7 +7,8 @@
 #   3. `vrijdag_importer` cannot read or write `app` tables.
 #
 # Runs against a throwaway local database with all migrations applied.
-# Requires: Docker, Supabase CLI.
+# Requires: Docker, Supabase CLI. Uses psql inside the db container
+# (no host PostgreSQL client required).
 
 set -euo pipefail
 
@@ -28,16 +29,15 @@ fi
 echo "check-rls.sh: applying migrations to local database…"
 supabase db reset --local --yes >/dev/null
 
-DB_URL="postgresql://postgres:postgres@127.0.0.1:54322/postgres"
-
-psql_check() {
-  psql "$DB_URL" -v ON_ERROR_STOP=1 -At "$@"
-}
-
-if ! command -v psql >/dev/null 2>&1; then
-  echo "check-rls.sh: psql is required."
+DB_CONTAINER="supabase_db_vrijdag"
+if ! docker inspect "$DB_CONTAINER" >/dev/null 2>&1; then
+  echo "check-rls.sh: container $DB_CONTAINER not found. Run supabase start first."
   exit 1
 fi
+
+psql_check() {
+  docker exec -i "$DB_CONTAINER" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -At "$@"
+}
 
 echo "check-rls.sh: (1/3) app tables without RLS…"
 UNRLS="$(psql_check -c "
@@ -59,7 +59,6 @@ echo "check-rls.sh: (2/3) importer grants on app schema…"
 APP_GRANTS="$(psql_check -c "
   select count(*)
   from information_schema.role_table_grants g
-  join pg_namespace n on n.nspname = g.table_schema
   where g.grantee = 'vrijdag_importer'
     and g.table_schema = 'app';
 ")"

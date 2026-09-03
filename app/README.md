@@ -14,8 +14,16 @@ flutter pub get
 flutter run
 ```
 
-Without `--dart-define`, debug builds default to **local** with the standard
-`supabase start` URL and demo anon key.
+Without `--dart-define`, debug builds default to **local** at
+`http://127.0.0.1:54421` (see `supabase/config.toml` — ports are offset from
+the CLI defaults so another local Supabase project can keep `54321`).
+
+| Service | Port |
+| --- | --- |
+| API (Kong) | 54421 |
+| Postgres | 54422 |
+| Studio | 54423 |
+| Mailpit / Inbucket | 54424 |
 
 ## Structure
 

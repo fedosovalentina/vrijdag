@@ -1,19 +1,26 @@
 # Minimal Supabase CLI config for local development and CI checks.
 # Generated manually for F-001 — run `supabase link` when staging exists.
+#
+# Ports are offset from the CLI defaults (54321+) so this stack can run
+# alongside another local Supabase project (e.g. garage on 54321–54324).
 
 project_id = "vrijdag"
 
 [api]
 enabled = true
-port = 54321
+port = 54421
 schemas = ["public", "app", "world"]
 extra_search_path = ["public", "extensions"]
 max_rows = 1000
 
 [db]
-port = 54322
-shadow_port = 54320
+port = 54422
+shadow_port = 54420
 major_version = 15
+
+[db.pooler]
+enabled = false
+port = 54429
 
 [db.migrations]
 enabled = true
@@ -24,11 +31,16 @@ sql_paths = ["./seed.sql"]
 
 [studio]
 enabled = true
-port = 54323
+port = 54423
 
-[inbucket]
+[local_smtp]
 enabled = true
-port = 54324
+port = 54424
+
+[analytics]
+enabled = true
+port = 54427
+backend = "postgres"
 
 [storage]
 enabled = true

@@ -33,8 +33,9 @@ class AppConfig {
 
   bool get hasPosthog => posthogApiKey != null && posthogApiKey!.isNotEmpty;
 
-  /// Default Supabase stack from `supabase start` (safe to ship — not a secret).
-  static const defaultLocalSupabaseUrl = 'http://127.0.0.1:54321';
+  /// Default local API URL from `supabase/config.toml` (safe to ship — not a secret).
+  /// Offset from CLI defaults so another local Supabase project can keep 54321.
+  static const defaultLocalSupabaseUrl = 'http://127.0.0.1:54421';
 
   static const defaultLocalSupabasePublishableKey =
       'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.'
