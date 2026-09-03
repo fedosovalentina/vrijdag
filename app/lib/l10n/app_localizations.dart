@@ -445,6 +445,156 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.'**
   String get errorsOfflineBody;
+
+  /// Debug-only gallery of shared UI components.
+  ///
+  /// In nl, this message translates to:
+  /// **'Componentgalerij'**
+  String get designGalleryTitle;
+
+  /// Light theme tab in the component gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'Licht'**
+  String get designGalleryLight;
+
+  /// Dark theme tab in the component gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'Donker'**
+  String get designGalleryDark;
+
+  /// Sample weekday for DateHeader in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'woensdag'**
+  String get designGalleryWeekdaySample;
+
+  /// Sample date for DateHeader in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'3 september'**
+  String get designGalleryDateSample;
+
+  /// Sample event title in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'Werkoverleg'**
+  String get designGalleryEventTitle;
+
+  /// Sample event meta line in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'60 min'**
+  String get designGalleryEventMeta;
+
+  /// Sample opening row in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'Vrij tot 16:00'**
+  String get designGalleryOpeningTitle;
+
+  /// Sample stale badge copy in the gallery.
+  ///
+  /// In nl, this message translates to:
+  /// **'Wereldlaag bijgewerkt 3 uur geleden'**
+  String get designGalleryStaleSample;
+
+  /// Sample birthday name for gallery / fixtures.
+  ///
+  /// In nl, this message translates to:
+  /// **'Ada'**
+  String get birthdaySampleName;
+
+  /// Heading for the utilitarian birthday list.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verjaardagen'**
+  String get birthdaySectionTitle;
+
+  /// Button / screen title to create a birthday.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nieuwe verjaardag'**
+  String get birthdayNew;
+
+  /// Screen title when editing a birthday.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verjaardag bewerken'**
+  String get birthdayEdit;
+
+  /// Birthday name field label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Naam'**
+  String get birthdayNameLabel;
+
+  /// Birthday month field label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Maand'**
+  String get birthdayMonthLabel;
+
+  /// Birthday day field label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Dag'**
+  String get birthdayDayLabel;
+
+  /// Optional birth year field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Jaar (optioneel)'**
+  String get birthdayYearLabel;
+
+  /// Optional birthday notes field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Notities'**
+  String get birthdayNotesLabel;
+
+  /// Validation when birthday name is empty.
+  ///
+  /// In nl, this message translates to:
+  /// **'Voer een naam in.'**
+  String get birthdayNameRequired;
+
+  /// Validation for impossible month/day combinations.
+  ///
+  /// In nl, this message translates to:
+  /// **'Voer een geldige maand en dag in.'**
+  String get birthdayInvalidDate;
+
+  /// Generic save failure for birthdays.
+  ///
+  /// In nl, this message translates to:
+  /// **'De verjaardag kon niet worden opgeslagen.'**
+  String get birthdaySaveFailed;
+
+  /// Snack after birthday delete.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verjaardag verwijderd.'**
+  String get birthdayDeleted;
+
+  /// Empty state for the birthday list.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nog geen verjaardagen.'**
+  String get birthdayEmpty;
+
+  /// Age line when a birth year is known. Never inferred without year.
+  ///
+  /// In nl, this message translates to:
+  /// **'Leeftijd {age}'**
+  String birthdayAge(int age);
+
+  /// Shown when the birthday list fails to load.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verjaardagen konden niet worden geladen.'**
+  String get birthdayLoadFailed;
 }
 
 class _AppLocalizationsDelegate

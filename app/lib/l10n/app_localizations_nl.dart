@@ -202,4 +202,81 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get errorsOfflineBody =>
       'Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.';
+
+  @override
+  String get designGalleryTitle => 'Componentgalerij';
+
+  @override
+  String get designGalleryLight => 'Licht';
+
+  @override
+  String get designGalleryDark => 'Donker';
+
+  @override
+  String get designGalleryWeekdaySample => 'woensdag';
+
+  @override
+  String get designGalleryDateSample => '3 september';
+
+  @override
+  String get designGalleryEventTitle => 'Werkoverleg';
+
+  @override
+  String get designGalleryEventMeta => '60 min';
+
+  @override
+  String get designGalleryOpeningTitle => 'Vrij tot 16:00';
+
+  @override
+  String get designGalleryStaleSample => 'Wereldlaag bijgewerkt 3 uur geleden';
+
+  @override
+  String get birthdaySampleName => 'Ada';
+
+  @override
+  String get birthdaySectionTitle => 'Verjaardagen';
+
+  @override
+  String get birthdayNew => 'Nieuwe verjaardag';
+
+  @override
+  String get birthdayEdit => 'Verjaardag bewerken';
+
+  @override
+  String get birthdayNameLabel => 'Naam';
+
+  @override
+  String get birthdayMonthLabel => 'Maand';
+
+  @override
+  String get birthdayDayLabel => 'Dag';
+
+  @override
+  String get birthdayYearLabel => 'Jaar (optioneel)';
+
+  @override
+  String get birthdayNotesLabel => 'Notities';
+
+  @override
+  String get birthdayNameRequired => 'Voer een naam in.';
+
+  @override
+  String get birthdayInvalidDate => 'Voer een geldige maand en dag in.';
+
+  @override
+  String get birthdaySaveFailed => 'De verjaardag kon niet worden opgeslagen.';
+
+  @override
+  String get birthdayDeleted => 'Verjaardag verwijderd.';
+
+  @override
+  String get birthdayEmpty => 'Nog geen verjaardagen.';
+
+  @override
+  String birthdayAge(int age) {
+    return 'Leeftijd $age';
+  }
+
+  @override
+  String get birthdayLoadFailed => 'Verjaardagen konden niet worden geladen.';
 }

@@ -12,9 +12,11 @@ import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/auth/presentation/sign_in_screen.dart';
+import 'package:vrijdag/features/birthdays/presentation/birthdays_panel.dart';
 import 'package:vrijdag/features/calendar/presentation/today_events_panel.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
+import 'package:vrijdag/shared/widgets/component_gallery_screen.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
 /// Root widget: Material shell, localization, auth gate.
@@ -33,6 +35,8 @@ class VrijdagApp extends StatelessWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localeResolutionCallback: resolveAppLocale,
       theme: buildVrijdagTheme(),
+      darkTheme: buildVrijdagTheme(brightness: Brightness.dark),
+      themeMode: ThemeMode.system,
       home: const _AuthGate(),
     );
   }
@@ -64,7 +68,7 @@ class _HomeScreen extends ConsumerStatefulWidget {
   ConsumerState<_HomeScreen> createState() => _HomeScreenState();
 }
 
-enum _HomeMenuAction { signOut, deleteAccount }
+enum _HomeMenuAction { signOut, deleteAccount, componentGallery }
 
 class _HomeScreenState extends ConsumerState<_HomeScreen> {
   @override
@@ -195,6 +199,9 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Keep replay controller alive while signed in.
+    ref.watch(writeQueueReplayControllerProvider);
+
     final l10n = context.l10n;
     final config = ref.watch(appConfigProvider);
     final supabaseReady = ref.watch(supabaseReadyProvider);
@@ -228,6 +235,18 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
                   await _confirmSignOut(context);
                 case _HomeMenuAction.deleteAccount:
                   await _confirmDelete(context);
+                case _HomeMenuAction.componentGallery:
+                  if (!ComponentGalleryScreen.isAvailable) {
+                    return;
+                  }
+                  if (!context.mounted) {
+                    return;
+                  }
+                  await Navigator.of(context).push<void>(
+                    MaterialPageRoute(
+                      builder: (_) => const ComponentGalleryScreen(),
+                    ),
+                  );
               }
             },
             itemBuilder: (context) => [
@@ -239,6 +258,11 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
                 value: _HomeMenuAction.deleteAccount,
                 child: Text(l10n.authDeleteAccount),
               ),
+              if (ComponentGalleryScreen.isAvailable)
+                PopupMenuItem(
+                  value: _HomeMenuAction.componentGallery,
+                  child: Text(l10n.designGalleryTitle),
+                ),
             ],
           ),
         ],
@@ -276,6 +300,8 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
                     ),
                     const SizedBox(height: 24),
                     const TodayEventsPanel(),
+                    const SizedBox(height: 24),
+                    const BirthdaysPanel(),
                     if (showTestCrash) ...[
                       const SizedBox(height: 24),
                       TextButton(

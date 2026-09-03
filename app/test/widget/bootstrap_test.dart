@@ -12,9 +12,11 @@ import 'package:vrijdag/core/errors/noop_error_reporter.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
+import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 
 import '../support/fake_auth_repository.dart';
+import '../support/memory_birthdays_repository.dart';
 import '../support/memory_personal_events_repository.dart';
 import '../support/memory_write_queue.dart';
 
@@ -48,6 +50,11 @@ void main() {
       personalEventsRepositoryProvider.overrideWithValue(
         MemoryPersonalEventsRepository(),
       ),
+      birthdaysRepositoryProvider.overrideWithValue(
+        MemoryBirthdaysRepository(),
+      ),
+      isOnlineProvider.overrideWith((ref) => Stream.value(true)),
+      writeQueueReplayControllerProvider.overrideWith((ref) {}),
     ];
   }
 

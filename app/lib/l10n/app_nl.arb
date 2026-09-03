@@ -244,5 +244,108 @@
   "errorsOfflineBody": "Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.",
   "@errorsOfflineBody": {
     "description": "Explains that offline edits remain local until reconnect."
+  },
+  "designGalleryTitle": "Componentgalerij",
+  "@designGalleryTitle": {
+    "description": "Debug-only gallery of shared UI components."
+  },
+  "designGalleryLight": "Licht",
+  "@designGalleryLight": {
+    "description": "Light theme tab in the component gallery."
+  },
+  "designGalleryDark": "Donker",
+  "@designGalleryDark": {
+    "description": "Dark theme tab in the component gallery."
+  },
+  "designGalleryWeekdaySample": "woensdag",
+  "@designGalleryWeekdaySample": {
+    "description": "Sample weekday for DateHeader in the gallery."
+  },
+  "designGalleryDateSample": "3 september",
+  "@designGalleryDateSample": {
+    "description": "Sample date for DateHeader in the gallery."
+  },
+  "designGalleryEventTitle": "Werkoverleg",
+  "@designGalleryEventTitle": {
+    "description": "Sample event title in the gallery."
+  },
+  "designGalleryEventMeta": "60 min",
+  "@designGalleryEventMeta": {
+    "description": "Sample event meta line in the gallery."
+  },
+  "designGalleryOpeningTitle": "Vrij tot 16:00",
+  "@designGalleryOpeningTitle": {
+    "description": "Sample opening row in the gallery."
+  },
+  "designGalleryStaleSample": "Wereldlaag bijgewerkt 3 uur geleden",
+  "@designGalleryStaleSample": {
+    "description": "Sample stale badge copy in the gallery."
+  },
+  "birthdaySampleName": "Ada",
+  "@birthdaySampleName": {
+    "description": "Sample birthday name for gallery / fixtures."
+  },
+  "birthdaySectionTitle": "Verjaardagen",
+  "@birthdaySectionTitle": {
+    "description": "Heading for the utilitarian birthday list."
+  },
+  "birthdayNew": "Nieuwe verjaardag",
+  "@birthdayNew": {
+    "description": "Button / screen title to create a birthday."
+  },
+  "birthdayEdit": "Verjaardag bewerken",
+  "@birthdayEdit": {
+    "description": "Screen title when editing a birthday."
+  },
+  "birthdayNameLabel": "Naam",
+  "@birthdayNameLabel": {
+    "description": "Birthday name field label."
+  },
+  "birthdayMonthLabel": "Maand",
+  "@birthdayMonthLabel": {
+    "description": "Birthday month field label."
+  },
+  "birthdayDayLabel": "Dag",
+  "@birthdayDayLabel": {
+    "description": "Birthday day field label."
+  },
+  "birthdayYearLabel": "Jaar (optioneel)",
+  "@birthdayYearLabel": {
+    "description": "Optional birth year field."
+  },
+  "birthdayNotesLabel": "Notities",
+  "@birthdayNotesLabel": {
+    "description": "Optional birthday notes field."
+  },
+  "birthdayNameRequired": "Voer een naam in.",
+  "@birthdayNameRequired": {
+    "description": "Validation when birthday name is empty."
+  },
+  "birthdayInvalidDate": "Voer een geldige maand en dag in.",
+  "@birthdayInvalidDate": {
+    "description": "Validation for impossible month/day combinations."
+  },
+  "birthdaySaveFailed": "De verjaardag kon niet worden opgeslagen.",
+  "@birthdaySaveFailed": {
+    "description": "Generic save failure for birthdays."
+  },
+  "birthdayDeleted": "Verjaardag verwijderd.",
+  "@birthdayDeleted": {
+    "description": "Snack after birthday delete."
+  },
+  "birthdayEmpty": "Nog geen verjaardagen.",
+  "@birthdayEmpty": {
+    "description": "Empty state for the birthday list."
+  },
+  "birthdayAge": "Leeftijd {age}",
+  "@birthdayAge": {
+    "description": "Age line when a birth year is known. Never inferred without year.",
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "birthdayLoadFailed": "Verjaardagen konden niet worden geladen.",
+  "@birthdayLoadFailed": {
+    "description": "Shown when the birthday list fails to load."
   }
 }

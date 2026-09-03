@@ -201,4 +201,81 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get errorsOfflineBody =>
       'You are offline. Changes stay on this device until the connection returns.';
+
+  @override
+  String get designGalleryTitle => 'Component gallery';
+
+  @override
+  String get designGalleryLight => 'Light';
+
+  @override
+  String get designGalleryDark => 'Dark';
+
+  @override
+  String get designGalleryWeekdaySample => 'Wednesday';
+
+  @override
+  String get designGalleryDateSample => '3 September';
+
+  @override
+  String get designGalleryEventTitle => 'Planning conversation';
+
+  @override
+  String get designGalleryEventMeta => '60 min';
+
+  @override
+  String get designGalleryOpeningTitle => 'Free until 16:00';
+
+  @override
+  String get designGalleryStaleSample => 'World layer updated 3 hours ago';
+
+  @override
+  String get birthdaySampleName => 'Ada';
+
+  @override
+  String get birthdaySectionTitle => 'Birthdays';
+
+  @override
+  String get birthdayNew => 'New birthday';
+
+  @override
+  String get birthdayEdit => 'Edit birthday';
+
+  @override
+  String get birthdayNameLabel => 'Name';
+
+  @override
+  String get birthdayMonthLabel => 'Month';
+
+  @override
+  String get birthdayDayLabel => 'Day';
+
+  @override
+  String get birthdayYearLabel => 'Year (optional)';
+
+  @override
+  String get birthdayNotesLabel => 'Notes';
+
+  @override
+  String get birthdayNameRequired => 'Enter a name.';
+
+  @override
+  String get birthdayInvalidDate => 'Enter a valid month and day.';
+
+  @override
+  String get birthdaySaveFailed => 'The birthday could not be saved.';
+
+  @override
+  String get birthdayDeleted => 'Birthday deleted.';
+
+  @override
+  String get birthdayEmpty => 'No birthdays yet.';
+
+  @override
+  String birthdayAge(int age) {
+    return 'Age $age';
+  }
+
+  @override
+  String get birthdayLoadFailed => 'Birthdays could not be loaded.';
 }

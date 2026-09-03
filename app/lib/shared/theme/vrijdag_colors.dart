@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Autumn palette from Design Task 01 (DEC-024).
+/// Autumn light palette aliases (kept for older call sites).
 abstract final class VrijdagColors {
   static const paper = Color(0xFFF5F0E8);
   static const ink = Color(0xFF1A1A18);

@@ -7,6 +7,8 @@ import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
+import 'package:vrijdag/shared/widgets/event_row.dart';
+import 'package:vrijdag/shared/widgets/quiet_state.dart';
 
 /// Utilitarian today list until Design Task 02 lands Day chrome.
 class TodayEventsPanel extends ConsumerWidget {
@@ -44,23 +46,43 @@ class TodayEventsPanel extends ConsumerWidget {
         events.when(
           data: (items) {
             if (items.isEmpty) {
-              return Text(l10n.calendarEmptyToday);
+              return QuietState(message: l10n.calendarEmptyToday);
             }
             return Column(
               children: [
                 for (final event in items)
-                  _EventTile(
-                    event: event,
-                    onOpen: () async {
-                      await Navigator.of(context).push<bool>(
-                        MaterialPageRoute(
-                          builder: (_) => EventEditorScreen(existing: event),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: EventRow(
+                          title: event.title,
+                          timeLabel: event.isAllDay
+                              ? null
+                              : _formatTimed(event),
+                          subtitle: event.isAllDay
+                              ? l10n.calendarAllDay
+                              : (event.hasLocation ? event.location : null),
+                          kind: event.isAllDay
+                              ? EventMarkerKind.allDay
+                              : EventMarkerKind.timed,
+                          onTap: () async {
+                            await Navigator.of(context).push<bool>(
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    EventEditorScreen(existing: event),
+                              ),
+                            );
+                            ref.invalidate(todaysEventsProvider);
+                            ref.invalidate(pendingWriteCountProvider);
+                          },
                         ),
-                      );
-                      ref.invalidate(todaysEventsProvider);
-                      ref.invalidate(pendingWriteCountProvider);
-                    },
-                    onDelete: () => _deleteWithUndo(context, ref, event),
+                      ),
+                      IconButton(
+                        onPressed: () => _deleteWithUndo(context, ref, event),
+                        icon: const Icon(Icons.delete_outline),
+                        tooltip: l10n.commonDelete,
+                      ),
+                    ],
                   ),
               ],
             );
@@ -107,38 +129,6 @@ class TodayEventsPanel extends ConsumerWidget {
             ref.invalidate(pendingWriteCountProvider);
           },
         ),
-      ),
-    );
-  }
-}
-
-class _EventTile extends StatelessWidget {
-  const _EventTile({
-    required this.event,
-    required this.onOpen,
-    required this.onDelete,
-  });
-
-  final PersonalEvent event;
-  final VoidCallback onOpen;
-  final VoidCallback onDelete;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = context.l10n;
-    final subtitle = event.isAllDay ? l10n.calendarAllDay : _formatTimed(event);
-
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      title: Text(event.title),
-      subtitle: Text(
-        [subtitle, if (event.hasLocation) event.location!].join(' · '),
-      ),
-      onTap: onOpen,
-      trailing: IconButton(
-        onPressed: onDelete,
-        icon: const Icon(Icons.delete_outline),
-        tooltip: l10n.commonDelete,
       ),
     );
   }

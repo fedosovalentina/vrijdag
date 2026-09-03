@@ -62,5 +62,35 @@
       "count": {"type": "int"}
     }
   },
-  "errorsOfflineBody": "You are offline. Changes stay on this device until the connection returns."
+  "errorsOfflineBody": "You are offline. Changes stay on this device until the connection returns.",
+  "designGalleryTitle": "Component gallery",
+  "designGalleryLight": "Light",
+  "designGalleryDark": "Dark",
+  "designGalleryWeekdaySample": "Wednesday",
+  "designGalleryDateSample": "3 September",
+  "designGalleryEventTitle": "Planning conversation",
+  "designGalleryEventMeta": "60 min",
+  "designGalleryOpeningTitle": "Free until 16:00",
+  "designGalleryStaleSample": "World layer updated 3 hours ago",
+  "birthdaySampleName": "Ada",
+  "birthdaySectionTitle": "Birthdays",
+  "birthdayNew": "New birthday",
+  "birthdayEdit": "Edit birthday",
+  "birthdayNameLabel": "Name",
+  "birthdayMonthLabel": "Month",
+  "birthdayDayLabel": "Day",
+  "birthdayYearLabel": "Year (optional)",
+  "birthdayNotesLabel": "Notes",
+  "birthdayNameRequired": "Enter a name.",
+  "birthdayInvalidDate": "Enter a valid month and day.",
+  "birthdaySaveFailed": "The birthday could not be saved.",
+  "birthdayDeleted": "Birthday deleted.",
+  "birthdayEmpty": "No birthdays yet.",
+  "birthdayAge": "Age {age}",
+  "@birthdayAge": {
+    "placeholders": {
+      "age": {"type": "int"}
+    }
+  },
+  "birthdayLoadFailed": "Birthdays could not be loaded."
 }
