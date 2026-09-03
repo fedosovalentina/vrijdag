@@ -32,7 +32,7 @@ void main() {
         environment: VrijdagEnv.production,
         supabaseUrl: 'https://example.supabase.co',
         supabasePublishableKey: 'pk',
-        sentryDsn: 'https://sentry.example/1',
+        sentryDsn: 'https://abc123@o123.ingest.de.sentry.io/456',
         posthogApiKey: 'phc_test',
         posthogHost: AppConfig.defaultPosthogHost,
         appVersion: '1.0.0',
@@ -42,6 +42,21 @@ void main() {
       expect(config.telemetryAllowedWithoutConsent, isFalse);
       expect(config.hasSentry, isTrue);
       expect(config.hasPosthog, isTrue);
+    });
+
+    test('rejects README placeholder Sentry DSNs', () {
+      expect(
+        AppConfig.isUsableSentryDsn(
+          'https://YOUR_KEY@YOUR_ORG.ingest.de.sentry.io/PROJECT',
+        ),
+        isFalse,
+      );
+      expect(
+        AppConfig.isUsableSentryDsn(
+          'https://abc123@o4500000000000000.ingest.de.sentry.io/4500000000000000',
+        ),
+        isTrue,
+      );
     });
   });
 }

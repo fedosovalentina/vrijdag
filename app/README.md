@@ -83,15 +83,34 @@ flutter run \
 
 ### Local run with Sentry (AC-4)
 
-Without `SENTRY_DSN`, the bootstrap screen shows "Sentry not configured" and
-hides the test-crash button. To verify a deliberate crash reaches Sentry EU:
+Without a **real** `SENTRY_DSN`, the bootstrap screen shows "Sentry not configured"
+and hides the test-crash button. README placeholders
+(`YOUR_KEY@YOUR_ORG…/PROJECT`) are rejected on purpose.
+
+#### Create an EU Sentry project
+
+1. Open [https://sentry.io/signup/](https://sentry.io/signup/) (or log in).
+2. Create / pick an organization. Prefer **EU data residency** when offered
+   (DSN host will look like `….ingest.de.sentry.io`).
+3. Create a project: platform **Flutter**.
+4. Copy the **Client Keys (DSN)** — looks like:
+   `https://a1b2c3d4@o123456.ingest.de.sentry.io/7890123`
+   (numeric org/project ids, not the words YOUR_ORG / PROJECT).
+5. Put it in your local `.env` as `SENTRY_DSN=…` (never commit `.env`).
+
+#### Run with that DSN
 
 ```bash
-flutter run \
-  --dart-define=SENTRY_DSN=https://YOUR_KEY@YOUR_ORG.ingest.de.sentry.io/PROJECT
+# Preferred: load from .env yourself, or paste the real value once:
+flutter run -d <device-id> \
+  --dart-define=SENTRY_DSN='https://REAL_KEY@oNNNN.ingest.de.sentry.io/NNNN'
 ```
 
-Use a **EU** DSN (`ingest.de.sentry.io` or your EU region host).
+On the phone you should see **Sentry ready.** and **Test crash**. After tap,
+open Sentry → Issues within a minute: look for `F-001 deliberate test crash`
+with release `vrijdag@0.1.0+1` and environment `local`.
+
+Do **not** paste the DSN into chat or commit it.
 
 ### Bundle secret check
 

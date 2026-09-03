@@ -29,7 +29,7 @@ class AppConfig {
   /// Production waits for explicit consent (DEC-016).
   bool get telemetryAllowedWithoutConsent => !isProduction;
 
-  bool get hasSentry => sentryDsn != null && sentryDsn!.isNotEmpty;
+  bool get hasSentry => isUsableSentryDsn(sentryDsn);
 
   bool get hasPosthog => posthogApiKey != null && posthogApiKey!.isNotEmpty;
 
@@ -44,6 +44,37 @@ class AppConfig {
 
   static const defaultPosthogHost = 'https://eu.i.posthog.com';
 
+  /// Rejects empty values and README placeholders like YOUR_KEY / YOUR_ORG / PROJECT.
+  static bool isUsableSentryDsn(String? dsn) {
+    if (dsn == null || dsn.isEmpty) {
+      return false;
+    }
+    final lower = dsn.toLowerCase();
+    if (lower.contains('your_key') ||
+        lower.contains('your_org') ||
+        lower.contains('/project') ||
+        lower.contains('…') ||
+        lower.contains('...')) {
+      return false;
+    }
+    final uri = Uri.tryParse(dsn);
+    if (uri == null || !uri.hasScheme || uri.host.isEmpty) {
+      return false;
+    }
+    if (uri.scheme != 'https' && uri.scheme != 'http') {
+      return false;
+    }
+    // Real Sentry DSNs look like https://<key>@<host>/<projectId>
+    if (uri.userInfo.isEmpty || uri.pathSegments.isEmpty) {
+      return false;
+    }
+    final projectId = uri.pathSegments.last;
+    if (int.tryParse(projectId) == null) {
+      return false;
+    }
+    return true;
+  }
+
   factory AppConfig.fromEnvironment({String appVersion = '0.1.0+1'}) {
     const envRaw = String.fromEnvironment('VRIJDAG_ENV');
     const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
@@ -54,6 +85,7 @@ class AppConfig {
     const versionDefine = String.fromEnvironment('APP_VERSION');
 
     final environment = VrijdagEnv.parse(envRaw.isEmpty ? null : envRaw);
+    final resolvedSentryDsn = isUsableSentryDsn(sentryDsn) ? sentryDsn : null;
 
     return AppConfig(
       environment: environment,
@@ -65,7 +97,7 @@ class AppConfig {
           : (environment == VrijdagEnv.local
                 ? defaultLocalSupabasePublishableKey
                 : ''),
-      sentryDsn: sentryDsn.isEmpty ? null : sentryDsn,
+      sentryDsn: resolvedSentryDsn,
       posthogApiKey: posthogApiKey.isEmpty ? null : posthogApiKey,
       posthogHost: posthogHost.isNotEmpty ? posthogHost : defaultPosthogHost,
       appVersion: versionDefine.isNotEmpty ? versionDefine : appVersion,
