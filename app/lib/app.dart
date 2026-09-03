@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
@@ -14,6 +15,7 @@ import 'package:vrijdag/features/auth/presentation/sign_in_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/today_events_panel.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
+import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
 /// Root widget: Material shell, localization, auth gate.
 class VrijdagApp extends StatelessWidget {
@@ -80,7 +82,7 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
     }
 
     final language = resolveProfileLanguage(Localizations.localeOf(context));
-    final timezone = resolveDeviceTimezone();
+    final timezone = await resolveDeviceTimezoneId();
 
     try {
       await ref
@@ -127,6 +129,7 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
       }
     }
     await ref.read(authRepositoryProvider).signOut();
+    await ref.read(analyticsProvider).track(const AuthSignOutSucceeded());
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -179,6 +182,7 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
 
     try {
       await ref.read(authRepositoryProvider).deleteAccount();
+      await ref.read(analyticsProvider).track(const AuthAccountDeleted());
     } on Object {
       if (!context.mounted) {
         return;
@@ -240,44 +244,51 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
         ],
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            children: [
-              Text(
-                l10n.commonAppName,
-                style: Theme.of(context).textTheme.headlineMedium,
-              ),
-              const SizedBox(height: 16),
-              Text(
-                l10n.bootstrapFoundationMessage,
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 24),
-              Text(l10n.authSignedInAs(email)),
-              const SizedBox(height: 8),
-              Text(l10n.bootstrapEnvironment(config.environment.label)),
-              const SizedBox(height: 8),
-              Text(supabaseStatus),
-              const SizedBox(height: 8),
-              Text(sentryStatus),
-              const SizedBox(height: 16),
-              Text(
-                l10n.bootstrapStatusReady,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-              const SizedBox(height: 24),
-              const TodayEventsPanel(),
-              if (showTestCrash) ...[
-                const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () =>
-                      ref.read(errorReporterProvider).triggerTestCrash(),
-                  child: Text(l10n.bootstrapTestCrash),
+        child: Column(
+          children: [
+            const SyncPendingBanner(),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    Text(
+                      l10n.commonAppName,
+                      style: Theme.of(context).textTheme.headlineMedium,
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.bootstrapFoundationMessage,
+                      textAlign: TextAlign.center,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(l10n.authSignedInAs(email)),
+                    const SizedBox(height: 8),
+                    Text(l10n.bootstrapEnvironment(config.environment.label)),
+                    const SizedBox(height: 8),
+                    Text(supabaseStatus),
+                    const SizedBox(height: 8),
+                    Text(sentryStatus),
+                    const SizedBox(height: 16),
+                    Text(
+                      l10n.bootstrapStatusReady,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                    const SizedBox(height: 24),
+                    const TodayEventsPanel(),
+                    if (showTestCrash) ...[
+                      const SizedBox(height: 24),
+                      TextButton(
+                        onPressed: () =>
+                            ref.read(errorReporterProvider).triggerTestCrash(),
+                        child: Text(l10n.bootstrapTestCrash),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

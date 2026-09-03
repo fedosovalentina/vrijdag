@@ -52,4 +52,29 @@ class DriftWriteQueue implements WriteQueue {
         ),
     ];
   }
+
+  @override
+  Future<void> markAttempt(String id, {required String? lastError}) async {
+    final existing = await (_db.select(
+      _db.writeQueueEntries,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
+    if (existing == null) {
+      return;
+    }
+    await (_db.update(
+      _db.writeQueueEntries,
+    )..where((t) => t.id.equals(id))).write(
+      WriteQueueEntriesCompanion(
+        attempts: Value(existing.attempts + 1),
+        lastError: Value(lastError),
+      ),
+    );
+  }
+
+  @override
+  Future<void> remove(String id) {
+    return (_db.delete(
+      _db.writeQueueEntries,
+    )..where((t) => t.id.equals(id))).go();
+  }
 }

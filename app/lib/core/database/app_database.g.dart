@@ -419,16 +419,336 @@ class WriteQueueEntriesCompanion extends UpdateCompanion<WriteQueueEntry> {
   }
 }
 
+class $CachedPersonalEventsTable extends CachedPersonalEvents
+    with TableInfo<$CachedPersonalEventsTable, CachedPersonalEvent> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedPersonalEventsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _userIdMeta = const VerificationMeta('userId');
+  @override
+  late final GeneratedColumn<String> userId = GeneratedColumn<String>(
+    'user_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadJsonMeta = const VerificationMeta(
+    'payloadJson',
+  );
+  @override
+  late final GeneratedColumn<String> payloadJson = GeneratedColumn<String>(
+    'payload_json',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _cachedAtMeta = const VerificationMeta(
+    'cachedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> cachedAt = GeneratedColumn<DateTime>(
+    'cached_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, userId, payloadJson, cachedAt];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_personal_events';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedPersonalEvent> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('user_id')) {
+      context.handle(
+        _userIdMeta,
+        userId.isAcceptableOrUnknown(data['user_id']!, _userIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_userIdMeta);
+    }
+    if (data.containsKey('payload_json')) {
+      context.handle(
+        _payloadJsonMeta,
+        payloadJson.isAcceptableOrUnknown(
+          data['payload_json']!,
+          _payloadJsonMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadJsonMeta);
+    }
+    if (data.containsKey('cached_at')) {
+      context.handle(
+        _cachedAtMeta,
+        cachedAt.isAcceptableOrUnknown(data['cached_at']!, _cachedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_cachedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedPersonalEvent map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedPersonalEvent(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      userId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}user_id'],
+      )!,
+      payloadJson: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload_json'],
+      )!,
+      cachedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}cached_at'],
+      )!,
+    );
+  }
+
+  @override
+  $CachedPersonalEventsTable createAlias(String alias) {
+    return $CachedPersonalEventsTable(attachedDatabase, alias);
+  }
+}
+
+class CachedPersonalEvent extends DataClass
+    implements Insertable<CachedPersonalEvent> {
+  final String id;
+  final String userId;
+  final String payloadJson;
+  final DateTime cachedAt;
+  const CachedPersonalEvent({
+    required this.id,
+    required this.userId,
+    required this.payloadJson,
+    required this.cachedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['user_id'] = Variable<String>(userId);
+    map['payload_json'] = Variable<String>(payloadJson);
+    map['cached_at'] = Variable<DateTime>(cachedAt);
+    return map;
+  }
+
+  CachedPersonalEventsCompanion toCompanion(bool nullToAbsent) {
+    return CachedPersonalEventsCompanion(
+      id: Value(id),
+      userId: Value(userId),
+      payloadJson: Value(payloadJson),
+      cachedAt: Value(cachedAt),
+    );
+  }
+
+  factory CachedPersonalEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedPersonalEvent(
+      id: serializer.fromJson<String>(json['id']),
+      userId: serializer.fromJson<String>(json['userId']),
+      payloadJson: serializer.fromJson<String>(json['payloadJson']),
+      cachedAt: serializer.fromJson<DateTime>(json['cachedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'userId': serializer.toJson<String>(userId),
+      'payloadJson': serializer.toJson<String>(payloadJson),
+      'cachedAt': serializer.toJson<DateTime>(cachedAt),
+    };
+  }
+
+  CachedPersonalEvent copyWith({
+    String? id,
+    String? userId,
+    String? payloadJson,
+    DateTime? cachedAt,
+  }) => CachedPersonalEvent(
+    id: id ?? this.id,
+    userId: userId ?? this.userId,
+    payloadJson: payloadJson ?? this.payloadJson,
+    cachedAt: cachedAt ?? this.cachedAt,
+  );
+  CachedPersonalEvent copyWithCompanion(CachedPersonalEventsCompanion data) {
+    return CachedPersonalEvent(
+      id: data.id.present ? data.id.value : this.id,
+      userId: data.userId.present ? data.userId.value : this.userId,
+      payloadJson: data.payloadJson.present
+          ? data.payloadJson.value
+          : this.payloadJson,
+      cachedAt: data.cachedAt.present ? data.cachedAt.value : this.cachedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedPersonalEvent(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('cachedAt: $cachedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, userId, payloadJson, cachedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedPersonalEvent &&
+          other.id == this.id &&
+          other.userId == this.userId &&
+          other.payloadJson == this.payloadJson &&
+          other.cachedAt == this.cachedAt);
+}
+
+class CachedPersonalEventsCompanion
+    extends UpdateCompanion<CachedPersonalEvent> {
+  final Value<String> id;
+  final Value<String> userId;
+  final Value<String> payloadJson;
+  final Value<DateTime> cachedAt;
+  final Value<int> rowid;
+  const CachedPersonalEventsCompanion({
+    this.id = const Value.absent(),
+    this.userId = const Value.absent(),
+    this.payloadJson = const Value.absent(),
+    this.cachedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedPersonalEventsCompanion.insert({
+    required String id,
+    required String userId,
+    required String payloadJson,
+    required DateTime cachedAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       userId = Value(userId),
+       payloadJson = Value(payloadJson),
+       cachedAt = Value(cachedAt);
+  static Insertable<CachedPersonalEvent> custom({
+    Expression<String>? id,
+    Expression<String>? userId,
+    Expression<String>? payloadJson,
+    Expression<DateTime>? cachedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (userId != null) 'user_id': userId,
+      if (payloadJson != null) 'payload_json': payloadJson,
+      if (cachedAt != null) 'cached_at': cachedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedPersonalEventsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? userId,
+    Value<String>? payloadJson,
+    Value<DateTime>? cachedAt,
+    Value<int>? rowid,
+  }) {
+    return CachedPersonalEventsCompanion(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      payloadJson: payloadJson ?? this.payloadJson,
+      cachedAt: cachedAt ?? this.cachedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (userId.present) {
+      map['user_id'] = Variable<String>(userId.value);
+    }
+    if (payloadJson.present) {
+      map['payload_json'] = Variable<String>(payloadJson.value);
+    }
+    if (cachedAt.present) {
+      map['cached_at'] = Variable<DateTime>(cachedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedPersonalEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('userId: $userId, ')
+          ..write('payloadJson: $payloadJson, ')
+          ..write('cachedAt: $cachedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $WriteQueueEntriesTable writeQueueEntries =
       $WriteQueueEntriesTable(this);
+  late final $CachedPersonalEventsTable cachedPersonalEvents =
+      $CachedPersonalEventsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
-  List<DatabaseSchemaEntity> get allSchemaEntities => [writeQueueEntries];
+  List<DatabaseSchemaEntity> get allSchemaEntities => [
+    writeQueueEntries,
+    cachedPersonalEvents,
+  ];
 }
 
 typedef $$WriteQueueEntriesTableCreateCompanionBuilder =
@@ -663,10 +983,211 @@ typedef $$WriteQueueEntriesTableProcessedTableManager =
       WriteQueueEntry,
       PrefetchHooks Function()
     >;
+typedef $$CachedPersonalEventsTableCreateCompanionBuilder =
+    CachedPersonalEventsCompanion Function({
+      required String id,
+      required String userId,
+      required String payloadJson,
+      required DateTime cachedAt,
+      Value<int> rowid,
+    });
+typedef $$CachedPersonalEventsTableUpdateCompanionBuilder =
+    CachedPersonalEventsCompanion Function({
+      Value<String> id,
+      Value<String> userId,
+      Value<String> payloadJson,
+      Value<DateTime> cachedAt,
+      Value<int> rowid,
+    });
+
+class $$CachedPersonalEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedPersonalEventsTable> {
+  $$CachedPersonalEventsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedPersonalEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedPersonalEventsTable> {
+  $$CachedPersonalEventsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get userId => $composableBuilder(
+    column: $table.userId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get cachedAt => $composableBuilder(
+    column: $table.cachedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedPersonalEventsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedPersonalEventsTable> {
+  $$CachedPersonalEventsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get userId =>
+      $composableBuilder(column: $table.userId, builder: (column) => column);
+
+  GeneratedColumn<String> get payloadJson => $composableBuilder(
+    column: $table.payloadJson,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get cachedAt =>
+      $composableBuilder(column: $table.cachedAt, builder: (column) => column);
+}
+
+class $$CachedPersonalEventsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedPersonalEventsTable,
+          CachedPersonalEvent,
+          $$CachedPersonalEventsTableFilterComposer,
+          $$CachedPersonalEventsTableOrderingComposer,
+          $$CachedPersonalEventsTableAnnotationComposer,
+          $$CachedPersonalEventsTableCreateCompanionBuilder,
+          $$CachedPersonalEventsTableUpdateCompanionBuilder,
+          (
+            CachedPersonalEvent,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedPersonalEventsTable,
+              CachedPersonalEvent
+            >,
+          ),
+          CachedPersonalEvent,
+          PrefetchHooks Function()
+        > {
+  $$CachedPersonalEventsTableTableManager(
+    _$AppDatabase db,
+    $CachedPersonalEventsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedPersonalEventsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedPersonalEventsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$CachedPersonalEventsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> userId = const Value.absent(),
+                Value<String> payloadJson = const Value.absent(),
+                Value<DateTime> cachedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedPersonalEventsCompanion(
+                id: id,
+                userId: userId,
+                payloadJson: payloadJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String userId,
+                required String payloadJson,
+                required DateTime cachedAt,
+                Value<int> rowid = const Value.absent(),
+              }) => CachedPersonalEventsCompanion.insert(
+                id: id,
+                userId: userId,
+                payloadJson: payloadJson,
+                cachedAt: cachedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedPersonalEventsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedPersonalEventsTable,
+      CachedPersonalEvent,
+      $$CachedPersonalEventsTableFilterComposer,
+      $$CachedPersonalEventsTableOrderingComposer,
+      $$CachedPersonalEventsTableAnnotationComposer,
+      $$CachedPersonalEventsTableCreateCompanionBuilder,
+      $$CachedPersonalEventsTableUpdateCompanionBuilder,
+      (
+        CachedPersonalEvent,
+        BaseReferences<
+          _$AppDatabase,
+          $CachedPersonalEventsTable,
+          CachedPersonalEvent
+        >,
+      ),
+      CachedPersonalEvent,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
   $AppDatabaseManager(this._db);
   $$WriteQueueEntriesTableTableManager get writeQueueEntries =>
       $$WriteQueueEntriesTableTableManager(_db, _db.writeQueueEntries);
+  $$CachedPersonalEventsTableTableManager get cachedPersonalEvents =>
+      $$CachedPersonalEventsTableTableManager(_db, _db.cachedPersonalEvents);
 }

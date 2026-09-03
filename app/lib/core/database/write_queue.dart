@@ -23,4 +23,8 @@ abstract class WriteQueue {
   Future<int> pendingCount();
 
   Future<List<SyncIntent>> peekOrdered({int limit = 50});
+
+  Future<void> markAttempt(String id, {required String? lastError});
+
+  Future<void> remove(String id);
 }

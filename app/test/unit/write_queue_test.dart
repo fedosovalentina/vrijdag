@@ -39,4 +39,21 @@ void main() {
     final ordered = await queue.peekOrdered();
     expect(ordered.map((e) => e.id), ['1', '2']);
   });
+
+  test('write queue markAttempt and remove', () async {
+    await queue.enqueue(
+      SyncIntent(
+        id: 'x',
+        type: 'event.create',
+        payloadJson: '{}',
+        createdAt: DateTime.utc(2026, 9, 3, 12),
+      ),
+    );
+    await queue.markAttempt('x', lastError: 'timeout');
+    final peeked = await queue.peekOrdered();
+    expect(peeked.single.attempts, 1);
+    expect(peeked.single.lastError, 'timeout');
+    await queue.remove('x');
+    expect(await queue.pendingCount(), 0);
+  });
 }
