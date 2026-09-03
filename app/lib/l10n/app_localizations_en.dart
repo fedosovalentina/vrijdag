@@ -125,4 +125,14 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get authDeleteFailed =>
       'The account could not be deleted. Try again later.';
+
+  @override
+  String get authSignOutPendingTitle => 'Unsynced changes';
+
+  @override
+  String get authSignOutPendingBody =>
+      'Some changes are still waiting to sync with the server. Signing out leaves them on this device until next time.';
+
+  @override
+  String get authSignOutPendingContinue => 'Sign out anyway';
 }

@@ -125,4 +125,14 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get authDeleteFailed =>
       'Het account kon niet worden verwijderd. Probeer het later opnieuw.';
+
+  @override
+  String get authSignOutPendingTitle => 'Niet-gesynchroniseerde wijzigingen';
+
+  @override
+  String get authSignOutPendingBody =>
+      'Er staan wijzigingen klaar die nog niet met de server zijn gesynchroniseerd. Als je nu uitlogt, blijven ze op dit apparaat tot de volgende keer.';
+
+  @override
+  String get authSignOutPendingContinue => 'Toch uitloggen';
 }

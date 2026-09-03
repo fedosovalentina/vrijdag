@@ -7,12 +7,14 @@ import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/app_config.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/config/vrijdag_env.dart';
+import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/errors/noop_error_reporter.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 
 import '../support/fake_auth_repository.dart';
+import '../support/memory_write_queue.dart';
 
 void main() {
   late FakeAuthRepository auth;
@@ -40,6 +42,7 @@ void main() {
       analyticsProvider.overrideWithValue(NoopAnalytics()),
       authRepositoryProvider.overrideWithValue(auth),
       authSessionProvider.overrideWith((ref) => auth.watchSession()),
+      writeQueueProvider.overrideWithValue(MemoryWriteQueue()),
     ];
   }
 

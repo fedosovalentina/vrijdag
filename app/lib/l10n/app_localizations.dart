@@ -313,6 +313,24 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Het account kon niet worden verwijderd. Probeer het later opnieuw.'**
   String get authDeleteFailed;
+
+  /// Title when signing out while the write queue still has intents.
+  ///
+  /// In nl, this message translates to:
+  /// **'Niet-gesynchroniseerde wijzigingen'**
+  String get authSignOutPendingTitle;
+
+  /// Warns that signing out does not discard the local write queue.
+  ///
+  /// In nl, this message translates to:
+  /// **'Er staan wijzigingen klaar die nog niet met de server zijn gesynchroniseerd. Als je nu uitlogt, blijven ze op dit apparaat tot de volgende keer.'**
+  String get authSignOutPendingBody;
+
+  /// Confirm sign-out despite pending offline intents.
+  ///
+  /// In nl, this message translates to:
+  /// **'Toch uitloggen'**
+  String get authSignOutPendingContinue;
 }
 
 class _AppLocalizationsDelegate

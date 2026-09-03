@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
@@ -92,6 +93,39 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
       // Profile trigger may already have created the row; sync failures must
       // not block the home shell (reliability before magic).
     }
+  }
+
+  Future<void> _confirmSignOut(BuildContext context) async {
+    final l10n = context.l10n;
+    final pending = await ref.read(writeQueueProvider).pendingCount();
+    if (pending > 0) {
+      if (!context.mounted) {
+        return;
+      }
+      final proceed = await showDialog<bool>(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text(l10n.authSignOutPendingTitle),
+            content: Text(l10n.authSignOutPendingBody),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text(l10n.commonCancel),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text(l10n.authSignOutPendingContinue),
+              ),
+            ],
+          );
+        },
+      );
+      if (proceed != true) {
+        return;
+      }
+    }
+    await ref.read(authRepositoryProvider).signOut();
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -186,7 +220,7 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
             onSelected: (value) async {
               switch (value) {
                 case _HomeMenuAction.signOut:
-                  await ref.read(authRepositoryProvider).signOut();
+                  await _confirmSignOut(context);
                 case _HomeMenuAction.deleteAccount:
                   await _confirmDelete(context);
               }

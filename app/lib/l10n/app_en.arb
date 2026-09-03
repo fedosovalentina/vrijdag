@@ -35,5 +35,8 @@
   "authDeleteFinalTitle": "Delete permanently",
   "authDeleteFinalBody": "Confirm that you want to permanently delete this account.",
   "authDeleteFinalAction": "Delete account permanently",
-  "authDeleteFailed": "The account could not be deleted. Try again later."
+  "authDeleteFailed": "The account could not be deleted. Try again later.",
+  "authSignOutPendingTitle": "Unsynced changes",
+  "authSignOutPendingBody": "Some changes are still waiting to sync with the server. Signing out leaves them on this device until next time.",
+  "authSignOutPendingContinue": "Sign out anyway"
 }

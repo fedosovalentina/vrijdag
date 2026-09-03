@@ -153,5 +153,17 @@
   "authDeleteFailed": "Het account kon niet worden verwijderd. Probeer het later opnieuw.",
   "@authDeleteFailed": {
     "description": "Shown when the delete-account Edge Function fails."
+  },
+  "authSignOutPendingTitle": "Niet-gesynchroniseerde wijzigingen",
+  "@authSignOutPendingTitle": {
+    "description": "Title when signing out while the write queue still has intents."
+  },
+  "authSignOutPendingBody": "Er staan wijzigingen klaar die nog niet met de server zijn gesynchroniseerd. Als je nu uitlogt, blijven ze op dit apparaat tot de volgende keer.",
+  "@authSignOutPendingBody": {
+    "description": "Warns that signing out does not discard the local write queue."
+  },
+  "authSignOutPendingContinue": "Toch uitloggen",
+  "@authSignOutPendingContinue": {
+    "description": "Confirm sign-out despite pending offline intents."
   }
 }
