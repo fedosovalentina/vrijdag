@@ -48,10 +48,13 @@ jobs:
           cache: true
 
       - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
       - run: dart format --set-exit-if-changed .
       # dart analyze (not flutter analyze) — required for hardcoded_strings_lint plugin (F-090)
       - run: dart analyze --fatal-infos
       - run: flutter test
+      - name: Generated Drift sources are committed
+        run: git diff --exit-code -- lib/core/database/app_database.g.dart
 
   localization:
     name: Localization completeness

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/analytics/analytics_event.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
@@ -52,6 +54,7 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
             email: email,
             emailRedirectTo: SignInScreen.emailRedirectTo,
           );
+      await ref.read(analyticsProvider).track(const AuthMagicLinkSent());
       if (!mounted) {
         return;
       }
@@ -84,6 +87,9 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
 
     try {
       await ref.read(authRepositoryProvider).signInWithApple();
+      await ref
+          .read(analyticsProvider)
+          .track(const AuthSignInSucceeded(method: 'apple'));
       if (!mounted) {
         return;
       }

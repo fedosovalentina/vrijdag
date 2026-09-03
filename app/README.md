@@ -63,7 +63,7 @@ These may appear in the app bundle:
 | `SUPABASE_URL` | staging/prod | defaults to local stack URL when `local` |
 | `SUPABASE_PUBLISHABLE_KEY` | staging/prod | anon key only |
 | `SENTRY_DSN` | no | Sentry EU DSN |
-| `POSTHOG_API_KEY` | no | PostHog EU project key |
+| `POSTHOG_API_KEY` | no | PostHog EU project key (omit locally — analytics stay no-op, no SDK noise) |
 | `POSTHOG_HOST` | no | defaults to `https://eu.i.posthog.com` |
 | `APP_VERSION` | no | overrides package version for telemetry |
 
