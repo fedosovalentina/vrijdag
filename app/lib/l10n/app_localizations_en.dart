@@ -146,6 +146,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarNewEvent => 'New event';
 
   @override
+  String get calendarEditEvent => 'Edit event';
+
+  @override
   String get calendarTitleLabel => 'Title';
 
   @override
@@ -155,7 +158,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarNotesLabel => 'Notes';
 
   @override
+  String get calendarStartsLabel => 'Starts';
+
+  @override
+  String get calendarEndsLabel => 'Ends';
+
+  @override
   String get calendarTitleRequired => 'Enter a title.';
+
+  @override
+  String get calendarInvalidRange => 'The end must be on or after the start.';
 
   @override
   String get calendarSaveFailed => 'The event could not be saved.';
@@ -171,4 +183,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get calendarAllDay => 'All day';
+
+  @override
+  String get syncPendingChanges => 'Changes waiting to sync';
+
+  @override
+  String syncPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count changes waiting to sync',
+      one: '$count change waiting to sync',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorsOfflineBody =>
+      'You are offline. Changes stay on this device until the connection returns.';
 }

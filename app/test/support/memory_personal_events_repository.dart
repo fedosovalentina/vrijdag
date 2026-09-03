@@ -46,9 +46,12 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
     required String title,
     required DateTime startDate,
     required DateTime endDate,
+    required String timezone,
     String? notes,
     String? location,
   }) async {
+    // timezone is stored on the server row; memory stub keeps domain shape only.
+    assert(timezone.isNotEmpty);
     final now = DateTime.now().toUtc();
     final event = PersonalEvent(
       id: 'mem-${_events.length + 1}',

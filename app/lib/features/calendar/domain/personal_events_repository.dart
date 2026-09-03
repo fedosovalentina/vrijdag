@@ -13,6 +13,7 @@ abstract class PersonalEventsRepository {
     required String title,
     required DateTime startDate,
     required DateTime endDate,
+    required String timezone,
     String? notes,
     String? location,
   });

@@ -13,6 +13,7 @@ class PosthogAnalytics implements Analytics {
   Future<void> initialize() async {
     final apiKey = _config.posthogApiKey;
     if (apiKey == null || apiKey.isEmpty) {
+      // Stay silent without a key — never call Posthog().setup with empty config.
       return;
     }
 
@@ -37,6 +38,38 @@ class PosthogAnalytics implements Analytics {
           eventName: 'app_started',
           properties: {'environment': environment, 'version': version},
         );
+      case AuthMagicLinkSent():
+        await Posthog().capture(eventName: 'auth_magic_link_sent');
+      case AuthSignInSucceeded(:final method):
+        await Posthog().capture(
+          eventName: 'auth_signed_in',
+          properties: {'method': method},
+        );
+      case AuthSignOutSucceeded():
+        await Posthog().capture(eventName: 'auth_signed_out');
+      case AuthAccountDeleted():
+        await Posthog().capture(eventName: 'auth_account_deleted');
+      case EventCreated(:final source, :final isAllDay, :final hasLocation):
+        await Posthog().capture(
+          eventName: 'event_created',
+          properties: {
+            'source': source,
+            'is_all_day': isAllDay,
+            'has_location': hasLocation,
+          },
+        );
+      case EventEdited(:final source):
+        await Posthog().capture(
+          eventName: 'event_edited',
+          properties: {'source': source},
+        );
+      case EventDeleted(:final source):
+        await Posthog().capture(
+          eventName: 'event_deleted',
+          properties: {'source': source},
+        );
+      case EventDeleteUndone():
+        await Posthog().capture(eventName: 'event_delete_undone');
     }
   }
 }

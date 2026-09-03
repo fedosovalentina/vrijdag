@@ -104,6 +104,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
     required String title,
     required DateTime startDate,
     required DateTime endDate,
+    required String timezone,
     String? notes,
     String? location,
   }) async {
@@ -119,7 +120,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'location': location,
       'start_date': _dateOnly(startDate),
       'end_date': _dateOnly(endDate),
-      'timezone': 'Europe/Amsterdam',
+      'timezone': timezone,
       'all_day': true,
       'source': 'vrijdag',
       'source_of_truth': 'vrijdag',
@@ -226,7 +227,9 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'end_date': event.allDay == null
           ? null
           : _dateOnly(event.allDay!.endDate),
-      'timezone': event.timed?.timezone ?? 'Europe/Amsterdam',
+      'timezone':
+          event.timed?.timezone ??
+          (event.allDay != null ? 'Europe/Amsterdam' : 'UTC'),
       'all_day': event.isAllDay,
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
     };
@@ -234,6 +237,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
 
   PersonalEvent _fromRow(Map<String, dynamic> row) {
     final allDay = row['all_day'] as bool? ?? false;
+    final timezone = row['timezone'] as String? ?? 'Europe/Amsterdam';
     return PersonalEvent(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -245,7 +249,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           : TimedEventSpan(
               startsAt: DateTime.parse(row['starts_at'] as String).toUtc(),
               endsAt: DateTime.parse(row['ends_at'] as String).toUtc(),
-              timezone: row['timezone'] as String? ?? 'Europe/Amsterdam',
+              timezone: timezone,
             ),
       allDay: allDay
           ? AllDayEventSpan(
@@ -253,8 +257,8 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
               endDate: DateTime.parse(row['end_date'] as String),
             )
           : null,
-      source: EventSource.vrijdag,
-      sourceOfTruth: SourceOfTruth.vrijdag,
+      source: _parseSource(row['source'] as String?),
+      sourceOfTruth: _parseSourceOfTruth(row['source_of_truth'] as String?),
       deletedAt: row['deleted_at'] == null
           ? null
           : DateTime.parse(row['deleted_at'] as String).toUtc(),
@@ -306,5 +310,20 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
     final m = d.month.toString().padLeft(2, '0');
     final day = d.day.toString().padLeft(2, '0');
     return '$y-$m-$day';
+  }
+
+  EventSource _parseSource(String? raw) {
+    return switch (raw) {
+      'google' => EventSource.google,
+      'imported' => EventSource.imported,
+      _ => EventSource.vrijdag,
+    };
+  }
+
+  SourceOfTruth _parseSourceOfTruth(String? raw) {
+    return switch (raw) {
+      'google' => SourceOfTruth.google,
+      _ => SourceOfTruth.vrijdag,
+    };
   }
 }

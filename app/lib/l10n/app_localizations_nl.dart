@@ -146,6 +146,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get calendarNewEvent => 'Nieuwe afspraak';
 
   @override
+  String get calendarEditEvent => 'Afspraak bewerken';
+
+  @override
   String get calendarTitleLabel => 'Titel';
 
   @override
@@ -155,7 +158,17 @@ class AppLocalizationsNl extends AppLocalizations {
   String get calendarNotesLabel => 'Notities';
 
   @override
+  String get calendarStartsLabel => 'Begint';
+
+  @override
+  String get calendarEndsLabel => 'Eindigt';
+
+  @override
   String get calendarTitleRequired => 'Voer een titel in.';
+
+  @override
+  String get calendarInvalidRange =>
+      'Het einde moet op of na het begin liggen.';
 
   @override
   String get calendarSaveFailed => 'De afspraak kon niet worden opgeslagen.';
@@ -171,4 +184,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get calendarAllDay => 'Hele dag';
+
+  @override
+  String get syncPendingChanges => 'Wijzigingen wachten op synchronisatie';
+
+  @override
+  String syncPendingCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count wijzigingen wachten op synchronisatie',
+      one: '$count wijziging wacht op synchronisatie',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get errorsOfflineBody =>
+      'Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.';
 }

@@ -1,4 +1,6 @@
 /// Typed product analytics events. Features must use [Analytics] — never PostHog directly.
+///
+/// Never include event titles, notes, locations, or email bodies in properties.
 sealed class AnalyticsEvent {
   const AnalyticsEvent();
 }
@@ -9,4 +11,51 @@ class AppStarted extends AnalyticsEvent {
 
   final String environment;
   final String version;
+}
+
+class AuthMagicLinkSent extends AnalyticsEvent {
+  const AuthMagicLinkSent();
+}
+
+class AuthSignInSucceeded extends AnalyticsEvent {
+  const AuthSignInSucceeded({required this.method});
+
+  /// `magic_link` | `apple`
+  final String method;
+}
+
+class AuthSignOutSucceeded extends AnalyticsEvent {
+  const AuthSignOutSucceeded();
+}
+
+class AuthAccountDeleted extends AnalyticsEvent {
+  const AuthAccountDeleted();
+}
+
+class EventCreated extends AnalyticsEvent {
+  const EventCreated({
+    required this.source,
+    required this.isAllDay,
+    required this.hasLocation,
+  });
+
+  final String source;
+  final bool isAllDay;
+  final bool hasLocation;
+}
+
+class EventEdited extends AnalyticsEvent {
+  const EventEdited({required this.source});
+
+  final String source;
+}
+
+class EventDeleted extends AnalyticsEvent {
+  const EventDeleted({required this.source});
+
+  final String source;
+}
+
+class EventDeleteUndone extends AnalyticsEvent {
+  const EventDeleteUndone();
 }

@@ -350,6 +350,12 @@ abstract class AppLocalizations {
   /// **'Nieuwe afspraak'**
   String get calendarNewEvent;
 
+  /// Screen title when editing an existing personal event.
+  ///
+  /// In nl, this message translates to:
+  /// **'Afspraak bewerken'**
+  String get calendarEditEvent;
+
   /// Event title field label.
   ///
   /// In nl, this message translates to:
@@ -368,11 +374,29 @@ abstract class AppLocalizations {
   /// **'Notities'**
   String get calendarNotesLabel;
 
+  /// Label for the event start date/time field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Begint'**
+  String get calendarStartsLabel;
+
+  /// Label for the event end date/time field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Eindigt'**
+  String get calendarEndsLabel;
+
   /// Validation when title is empty.
   ///
   /// In nl, this message translates to:
   /// **'Voer een titel in.'**
   String get calendarTitleRequired;
+
+  /// Validation when end is before start.
+  ///
+  /// In nl, this message translates to:
+  /// **'Het einde moet op of na het begin liggen.'**
+  String get calendarInvalidRange;
 
   /// Generic save failure for personal events.
   ///
@@ -398,11 +422,29 @@ abstract class AppLocalizations {
   /// **'Afspraken konden niet worden geladen.'**
   String get calendarLoadFailed;
 
-  /// Badge for all-day events in the list.
+  /// Toggle / badge for all-day events.
   ///
   /// In nl, this message translates to:
   /// **'Hele dag'**
   String get calendarAllDay;
+
+  /// Short offline/pending sync banner title.
+  ///
+  /// In nl, this message translates to:
+  /// **'Wijzigingen wachten op synchronisatie'**
+  String get syncPendingChanges;
+
+  /// Pending write-queue count for the offline banner.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count, plural, one{{count} wijziging wacht op synchronisatie} other{{count} wijzigingen wachten op synchronisatie}}'**
+  String syncPendingCount(int count);
+
+  /// Explains that offline edits remain local until reconnect.
+  ///
+  /// In nl, this message translates to:
+  /// **'Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.'**
+  String get errorsOfflineBody;
 }
 
 class _AppLocalizationsDelegate

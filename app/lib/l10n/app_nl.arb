@@ -178,6 +178,10 @@
   "@calendarNewEvent": {
     "description": "Button / screen title to create a timed event."
   },
+  "calendarEditEvent": "Afspraak bewerken",
+  "@calendarEditEvent": {
+    "description": "Screen title when editing an existing personal event."
+  },
   "calendarTitleLabel": "Titel",
   "@calendarTitleLabel": {
     "description": "Event title field label."
@@ -190,9 +194,21 @@
   "@calendarNotesLabel": {
     "description": "Optional notes field."
   },
+  "calendarStartsLabel": "Begint",
+  "@calendarStartsLabel": {
+    "description": "Label for the event start date/time field."
+  },
+  "calendarEndsLabel": "Eindigt",
+  "@calendarEndsLabel": {
+    "description": "Label for the event end date/time field."
+  },
   "calendarTitleRequired": "Voer een titel in.",
   "@calendarTitleRequired": {
     "description": "Validation when title is empty."
+  },
+  "calendarInvalidRange": "Het einde moet op of na het begin liggen.",
+  "@calendarInvalidRange": {
+    "description": "Validation when end is before start."
   },
   "calendarSaveFailed": "De afspraak kon niet worden opgeslagen.",
   "@calendarSaveFailed": {
@@ -212,6 +228,21 @@
   },
   "calendarAllDay": "Hele dag",
   "@calendarAllDay": {
-    "description": "Badge for all-day events in the list."
+    "description": "Toggle / badge for all-day events."
+  },
+  "syncPendingChanges": "Wijzigingen wachten op synchronisatie",
+  "@syncPendingChanges": {
+    "description": "Short offline/pending sync banner title."
+  },
+  "syncPendingCount": "{count, plural, one{{count} wijziging wacht op synchronisatie} other{{count} wijzigingen wachten op synchronisatie}}",
+  "@syncPendingCount": {
+    "description": "Pending write-queue count for the offline banner.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "errorsOfflineBody": "Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.",
+  "@errorsOfflineBody": {
+    "description": "Explains that offline edits remain local until reconnect."
   }
 }

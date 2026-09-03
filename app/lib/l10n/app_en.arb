@@ -42,13 +42,25 @@
   "calendarTodayTitle": "Today",
   "calendarEmptyToday": "No events today.",
   "calendarNewEvent": "New event",
+  "calendarEditEvent": "Edit event",
   "calendarTitleLabel": "Title",
   "calendarLocationLabel": "Location",
   "calendarNotesLabel": "Notes",
+  "calendarStartsLabel": "Starts",
+  "calendarEndsLabel": "Ends",
   "calendarTitleRequired": "Enter a title.",
+  "calendarInvalidRange": "The end must be on or after the start.",
   "calendarSaveFailed": "The event could not be saved.",
   "calendarDeleted": "Event deleted.",
   "calendarUndo": "Undo",
   "calendarLoadFailed": "Events could not be loaded.",
-  "calendarAllDay": "All day"
+  "calendarAllDay": "All day",
+  "syncPendingChanges": "Changes waiting to sync",
+  "syncPendingCount": "{count, plural, one{{count} change waiting to sync} other{{count} changes waiting to sync}}",
+  "@syncPendingCount": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "errorsOfflineBody": "You are offline. Changes stay on this device until the connection returns."
 }

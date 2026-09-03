@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/analytics/analytics_event.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
+import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
-import 'package:vrijdag/features/calendar/presentation/create_event_screen.dart';
+import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
 
 /// Utilitarian today list until Design Task 02 lands Day chrome.
 class TodayEventsPanel extends ConsumerWidget {
@@ -28,8 +31,10 @@ class TodayEventsPanel extends ConsumerWidget {
             TextButton(
               onPressed: () async {
                 await Navigator.of(context).push<bool>(
-                  MaterialPageRoute(builder: (_) => const CreateEventScreen()),
+                  MaterialPageRoute(builder: (_) => const EventEditorScreen()),
                 );
+                ref.invalidate(todaysEventsProvider);
+                ref.invalidate(pendingWriteCountProvider);
               },
               child: Text(l10n.calendarNewEvent),
             ),
@@ -46,6 +51,15 @@ class TodayEventsPanel extends ConsumerWidget {
                 for (final event in items)
                   _EventTile(
                     event: event,
+                    onOpen: () async {
+                      await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) => EventEditorScreen(existing: event),
+                        ),
+                      );
+                      ref.invalidate(todaysEventsProvider);
+                      ref.invalidate(pendingWriteCountProvider);
+                    },
                     onDelete: () => _deleteWithUndo(context, ref, event),
                   ),
               ],
@@ -68,8 +82,11 @@ class TodayEventsPanel extends ConsumerWidget {
   ) async {
     final l10n = context.l10n;
     final repo = ref.read(personalEventsRepositoryProvider);
+    final analytics = ref.read(analyticsProvider);
     await repo.softDelete(event.id);
+    await analytics.track(EventDeleted(source: event.source.name));
     ref.invalidate(todaysEventsProvider);
+    ref.invalidate(pendingWriteCountProvider);
 
     if (!context.mounted) {
       return;
@@ -85,7 +102,9 @@ class TodayEventsPanel extends ConsumerWidget {
           label: l10n.calendarUndo,
           onPressed: () async {
             await repo.undoSoftDelete(event.id);
+            await analytics.track(const EventDeleteUndone());
             ref.invalidate(todaysEventsProvider);
+            ref.invalidate(pendingWriteCountProvider);
           },
         ),
       ),
@@ -94,9 +113,14 @@ class TodayEventsPanel extends ConsumerWidget {
 }
 
 class _EventTile extends StatelessWidget {
-  const _EventTile({required this.event, required this.onDelete});
+  const _EventTile({
+    required this.event,
+    required this.onOpen,
+    required this.onDelete,
+  });
 
   final PersonalEvent event;
+  final VoidCallback onOpen;
   final VoidCallback onDelete;
 
   @override
@@ -110,6 +134,7 @@ class _EventTile extends StatelessWidget {
       subtitle: Text(
         [subtitle, if (event.hasLocation) event.location!].join(' · '),
       ),
+      onTap: onOpen,
       trailing: IconButton(
         onPressed: onDelete,
         icon: const Icon(Icons.delete_outline),
