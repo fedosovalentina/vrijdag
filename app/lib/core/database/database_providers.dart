@@ -1,6 +1,8 @@
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vrijdag/core/database/app_database.dart';
 import 'package:vrijdag/core/database/drift_write_queue.dart';
+import 'package:vrijdag/core/database/sync_intent_applier.dart';
 import 'package:vrijdag/core/database/write_queue.dart';
 import 'package:vrijdag/core/database/write_queue_replayer.dart';
 import 'package:vrijdag/features/calendar/data/drift_personal_events_cache.dart';
@@ -24,13 +26,45 @@ final pendingWriteCountProvider = FutureProvider.autoDispose<int>((ref) {
   return ref.watch(writeQueueProvider).pendingCount();
 });
 
-/// Skeleton replayer — handler is a no-op until remote replay is wired.
+final syncIntentApplierProvider = Provider<SyncIntentApplier>((ref) {
+  return SyncIntentApplier();
+});
+
 final writeQueueReplayerProvider = Provider<WriteQueueReplayer>((ref) {
+  final applier = ref.watch(syncIntentApplierProvider);
   return WriteQueueReplayer(
     queue: ref.watch(writeQueueProvider),
-    handler: (_) async {
-      // Intents are already applied optimistically against Supabase when online.
-      // Offline-first replay of failed HTTP writes lands in a later F-009 slice.
-    },
+    handler: applier.apply,
   );
+});
+
+/// True when the device reports any non-none connectivity.
+final isOnlineProvider = StreamProvider.autoDispose<bool>((ref) async* {
+  try {
+    final connectivity = Connectivity();
+    yield _hasLink(await connectivity.checkConnectivity());
+    await for (final results in connectivity.onConnectivityChanged) {
+      yield _hasLink(results);
+    }
+  } on Object {
+    // Tests / missing plugins must not break the home shell.
+    yield true;
+  }
+});
+
+bool _hasLink(List<ConnectivityResult> results) {
+  return results.any((r) => r != ConnectivityResult.none);
+}
+
+/// Replays the write queue whenever connectivity returns.
+final writeQueueReplayControllerProvider = Provider<void>((ref) {
+  final replayer = ref.watch(writeQueueReplayerProvider);
+  ref.listen<AsyncValue<bool>>(isOnlineProvider, (previous, next) async {
+    final wasOffline = previous?.valueOrNull == false;
+    final online = next.valueOrNull == true;
+    if (online && (wasOffline || previous == null)) {
+      await replayer.replayOnce();
+      ref.invalidate(pendingWriteCountProvider);
+    }
+  });
 });
