@@ -1,5 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
+import 'package:vrijdag/core/supabase/supabase_client.dart';
+import 'package:vrijdag/features/calendar/data/caching_personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/data/supabase_personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
@@ -7,8 +9,19 @@ import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart
 final personalEventsRepositoryProvider = Provider<PersonalEventsRepository>((
   ref,
 ) {
-  return SupabasePersonalEventsRepository(
+  final remote = SupabasePersonalEventsRepository(
     writeQueue: ref.watch(writeQueueProvider),
+  );
+  return CachingPersonalEventsRepository(
+    remote: remote,
+    cache: ref.watch(personalEventsCacheProvider),
+    currentUserId: () {
+      final id = supabaseClient?.auth.currentUser?.id;
+      if (id == null) {
+        throw StateError('Not signed in');
+      }
+      return id;
+    },
   );
 });
 
