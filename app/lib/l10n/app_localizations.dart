@@ -181,6 +181,18 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Testcrash'**
   String get bootstrapTestCrash;
+
+  /// Sentry DSN present and telemetry allowed for this build.
+  ///
+  /// In nl, this message translates to:
+  /// **'Sentry gereed.'**
+  String get bootstrapSentryReady;
+
+  /// Sentry DSN missing — test crash is unavailable.
+  ///
+  /// In nl, this message translates to:
+  /// **'Sentry niet geconfigureerd.'**
+  String get bootstrapSentryUnavailable;
 }
 
 class _AppLocalizationsDelegate

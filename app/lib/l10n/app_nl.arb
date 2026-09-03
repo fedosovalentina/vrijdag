@@ -60,5 +60,13 @@
   "bootstrapTestCrash": "Testcrash",
   "@bootstrapTestCrash": {
     "description": "Debug control that sends a deliberate crash to error reporting."
+  },
+  "bootstrapSentryReady": "Sentry gereed.",
+  "@bootstrapSentryReady": {
+    "description": "Sentry DSN present and telemetry allowed for this build."
+  },
+  "bootstrapSentryUnavailable": "Sentry niet geconfigureerd.",
+  "@bootstrapSentryUnavailable": {
+    "description": "Sentry DSN missing — test crash is unavailable."
   }
 }

@@ -40,7 +40,9 @@ void main() {
     expect(find.textContaining('F-001'), findsOneWidget);
     expect(find.text('Omgeving: local'), findsOneWidget);
     expect(find.text('Supabase-client gereed.'), findsOneWidget);
+    expect(find.text('Sentry niet geconfigureerd.'), findsOneWidget);
     expect(find.text('Omgevingsskelet gereed.'), findsOneWidget);
+    expect(find.text('Testcrash'), findsNothing);
   });
 
   testWidgets('bootstrap screen shows localized English copy', (tester) async {
@@ -69,6 +71,8 @@ void main() {
 
     expect(find.text('Environment: staging'), findsOneWidget);
     expect(find.text('Supabase not configured.'), findsOneWidget);
+    expect(find.text('Sentry not configured.'), findsOneWidget);
     expect(find.text('Environment scaffold ready.'), findsOneWidget);
+    expect(find.text('Test crash'), findsNothing);
   });
 }

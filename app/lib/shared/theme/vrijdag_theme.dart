@@ -42,9 +42,7 @@ ThemeData buildVrijdagTheme() {
         color: VrijdagColors.inkSoft,
         height: 1.5,
       ),
-      bodySmall: bodyFont.bodySmall?.copyWith(
-        color: VrijdagColors.warmGrey,
-      ),
+      bodySmall: bodyFont.bodySmall?.copyWith(color: VrijdagColors.warmGrey),
       labelLarge: GoogleFonts.ibmPlexSans(
         fontWeight: FontWeight.w500,
         color: VrijdagColors.rust,

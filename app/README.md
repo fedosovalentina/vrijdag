@@ -81,6 +81,18 @@ flutter run \
   --dart-define=POSTHOG_API_KEY=phc_…
 ```
 
+### Local run with Sentry (AC-4)
+
+Without `SENTRY_DSN`, the bootstrap screen shows "Sentry not configured" and
+hides the test-crash button. To verify a deliberate crash reaches Sentry EU:
+
+```bash
+flutter run \
+  --dart-define=SENTRY_DSN=https://YOUR_KEY@YOUR_ORG.ingest.de.sentry.io/PROJECT
+```
+
+Use a **EU** DSN (`ingest.de.sentry.io` or your EU region host).
+
 ### Bundle secret check
 
 After a release build, inspect the IPA/APK for forbidden strings:

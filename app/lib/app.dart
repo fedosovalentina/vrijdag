@@ -45,6 +45,11 @@ class _BootstrapScreen extends ConsumerWidget {
         : supabaseReady
         ? l10n.bootstrapSupabaseConnected
         : l10n.bootstrapSupabaseUnavailable;
+    final sentryStatus = config.hasSentry
+        ? l10n.bootstrapSentryReady
+        : l10n.bootstrapSentryUnavailable;
+    final showTestCrash =
+        kDebugMode && !config.isProduction && config.hasSentry;
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.commonAppName)),
@@ -67,12 +72,14 @@ class _BootstrapScreen extends ConsumerWidget {
               Text(l10n.bootstrapEnvironment(config.environment.label)),
               const SizedBox(height: 8),
               Text(supabaseStatus),
+              const SizedBox(height: 8),
+              Text(sentryStatus),
               const SizedBox(height: 16),
               Text(
                 l10n.bootstrapStatusReady,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
-              if (kDebugMode && !config.isProduction) ...[
+              if (showTestCrash) ...[
                 const SizedBox(height: 24),
                 TextButton(
                   onPressed: () =>

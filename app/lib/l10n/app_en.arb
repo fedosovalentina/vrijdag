@@ -13,5 +13,7 @@
   "bootstrapEnvironment": "Environment: {environment}",
   "bootstrapSupabaseConnected": "Supabase client ready.",
   "bootstrapSupabaseUnavailable": "Supabase not configured.",
-  "bootstrapTestCrash": "Test crash"
+  "bootstrapTestCrash": "Test crash",
+  "bootstrapSentryReady": "Sentry ready.",
+  "bootstrapSentryUnavailable": "Sentry not configured."
 }

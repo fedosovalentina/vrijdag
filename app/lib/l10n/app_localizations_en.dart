@@ -52,4 +52,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bootstrapTestCrash => 'Test crash';
+
+  @override
+  String get bootstrapSentryReady => 'Sentry ready.';
+
+  @override
+  String get bootstrapSentryUnavailable => 'Sentry not configured.';
 }
