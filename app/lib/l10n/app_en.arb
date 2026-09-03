@@ -38,5 +38,17 @@
   "authDeleteFailed": "The account could not be deleted. Try again later.",
   "authSignOutPendingTitle": "Unsynced changes",
   "authSignOutPendingBody": "Some changes are still waiting to sync with the server. Signing out leaves them on this device until next time.",
-  "authSignOutPendingContinue": "Sign out anyway"
+  "authSignOutPendingContinue": "Sign out anyway",
+  "calendarTodayTitle": "Today",
+  "calendarEmptyToday": "No events today.",
+  "calendarNewEvent": "New event",
+  "calendarTitleLabel": "Title",
+  "calendarLocationLabel": "Location",
+  "calendarNotesLabel": "Notes",
+  "calendarTitleRequired": "Enter a title.",
+  "calendarSaveFailed": "The event could not be saved.",
+  "calendarDeleted": "Event deleted.",
+  "calendarUndo": "Undo",
+  "calendarLoadFailed": "Events could not be loaded.",
+  "calendarAllDay": "All day"
 }

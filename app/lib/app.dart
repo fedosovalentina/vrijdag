@@ -11,6 +11,7 @@ import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/auth/presentation/sign_in_screen.dart';
+import 'package:vrijdag/features/calendar/presentation/today_events_panel.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 
@@ -238,11 +239,10 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
           ),
         ],
       ),
-      body: Center(
-        child: Padding(
+      body: SafeArea(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 l10n.commonAppName,
@@ -266,6 +266,8 @@ class _HomeScreenState extends ConsumerState<_HomeScreen> {
                 l10n.bootstrapStatusReady,
                 style: Theme.of(context).textTheme.bodySmall,
               ),
+              const SizedBox(height: 24),
+              const TodayEventsPanel(),
               if (showTestCrash) ...[
                 const SizedBox(height: 24),
                 TextButton(

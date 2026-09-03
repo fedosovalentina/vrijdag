@@ -135,4 +135,40 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get authSignOutPendingContinue => 'Toch uitloggen';
+
+  @override
+  String get calendarTodayTitle => 'Vandaag';
+
+  @override
+  String get calendarEmptyToday => 'Geen afspraken vandaag.';
+
+  @override
+  String get calendarNewEvent => 'Nieuwe afspraak';
+
+  @override
+  String get calendarTitleLabel => 'Titel';
+
+  @override
+  String get calendarLocationLabel => 'Locatie';
+
+  @override
+  String get calendarNotesLabel => 'Notities';
+
+  @override
+  String get calendarTitleRequired => 'Voer een titel in.';
+
+  @override
+  String get calendarSaveFailed => 'De afspraak kon niet worden opgeslagen.';
+
+  @override
+  String get calendarDeleted => 'Afspraak verwijderd.';
+
+  @override
+  String get calendarUndo => 'Ongedaan maken';
+
+  @override
+  String get calendarLoadFailed => 'Afspraken konden niet worden geladen.';
+
+  @override
+  String get calendarAllDay => 'Hele dag';
 }

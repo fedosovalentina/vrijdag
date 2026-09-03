@@ -135,4 +135,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get authSignOutPendingContinue => 'Sign out anyway';
+
+  @override
+  String get calendarTodayTitle => 'Today';
+
+  @override
+  String get calendarEmptyToday => 'No events today.';
+
+  @override
+  String get calendarNewEvent => 'New event';
+
+  @override
+  String get calendarTitleLabel => 'Title';
+
+  @override
+  String get calendarLocationLabel => 'Location';
+
+  @override
+  String get calendarNotesLabel => 'Notes';
+
+  @override
+  String get calendarTitleRequired => 'Enter a title.';
+
+  @override
+  String get calendarSaveFailed => 'The event could not be saved.';
+
+  @override
+  String get calendarDeleted => 'Event deleted.';
+
+  @override
+  String get calendarUndo => 'Undo';
+
+  @override
+  String get calendarLoadFailed => 'Events could not be loaded.';
+
+  @override
+  String get calendarAllDay => 'All day';
 }

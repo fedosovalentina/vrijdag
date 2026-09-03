@@ -331,6 +331,78 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Toch uitloggen'**
   String get authSignOutPendingContinue;
+
+  /// Heading for the utilitarian today event list.
+  ///
+  /// In nl, this message translates to:
+  /// **'Vandaag'**
+  String get calendarTodayTitle;
+
+  /// Empty state when there are no personal events today.
+  ///
+  /// In nl, this message translates to:
+  /// **'Geen afspraken vandaag.'**
+  String get calendarEmptyToday;
+
+  /// Button / screen title to create a timed event.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nieuwe afspraak'**
+  String get calendarNewEvent;
+
+  /// Event title field label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Titel'**
+  String get calendarTitleLabel;
+
+  /// Optional free-text location field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Locatie'**
+  String get calendarLocationLabel;
+
+  /// Optional notes field.
+  ///
+  /// In nl, this message translates to:
+  /// **'Notities'**
+  String get calendarNotesLabel;
+
+  /// Validation when title is empty.
+  ///
+  /// In nl, this message translates to:
+  /// **'Voer een titel in.'**
+  String get calendarTitleRequired;
+
+  /// Generic save failure for personal events.
+  ///
+  /// In nl, this message translates to:
+  /// **'De afspraak kon niet worden opgeslagen.'**
+  String get calendarSaveFailed;
+
+  /// Snack after soft-delete.
+  ///
+  /// In nl, this message translates to:
+  /// **'Afspraak verwijderd.'**
+  String get calendarDeleted;
+
+  /// Undo soft-delete within the undo window.
+  ///
+  /// In nl, this message translates to:
+  /// **'Ongedaan maken'**
+  String get calendarUndo;
+
+  /// Shown when today's event list fails to load.
+  ///
+  /// In nl, this message translates to:
+  /// **'Afspraken konden niet worden geladen.'**
+  String get calendarLoadFailed;
+
+  /// Badge for all-day events in the list.
+  ///
+  /// In nl, this message translates to:
+  /// **'Hele dag'**
+  String get calendarAllDay;
 }
 
 class _AppLocalizationsDelegate

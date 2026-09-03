@@ -12,8 +12,10 @@ import 'package:vrijdag/core/errors/noop_error_reporter.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
+import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 
 import '../support/fake_auth_repository.dart';
+import '../support/memory_personal_events_repository.dart';
 import '../support/memory_write_queue.dart';
 
 void main() {
@@ -43,6 +45,9 @@ void main() {
       authRepositoryProvider.overrideWithValue(auth),
       authSessionProvider.overrideWith((ref) => auth.watchSession()),
       writeQueueProvider.overrideWithValue(MemoryWriteQueue()),
+      personalEventsRepositoryProvider.overrideWithValue(
+        MemoryPersonalEventsRepository(),
+      ),
     ];
   }
 
@@ -76,9 +81,7 @@ void main() {
 
     expect(find.textContaining('test@example.com'), findsOneWidget);
     expect(find.textContaining('F-001'), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.more_vert));
-    await tester.pumpAndSettle();
-    expect(find.text('Uitloggen'), findsOneWidget);
-    expect(find.text('Account verwijderen'), findsOneWidget);
+    expect(find.text('Vandaag'), findsOneWidget);
+    expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
   });
 }

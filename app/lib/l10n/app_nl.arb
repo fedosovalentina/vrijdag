@@ -165,5 +165,53 @@
   "authSignOutPendingContinue": "Toch uitloggen",
   "@authSignOutPendingContinue": {
     "description": "Confirm sign-out despite pending offline intents."
+  },
+  "calendarTodayTitle": "Vandaag",
+  "@calendarTodayTitle": {
+    "description": "Heading for the utilitarian today event list."
+  },
+  "calendarEmptyToday": "Geen afspraken vandaag.",
+  "@calendarEmptyToday": {
+    "description": "Empty state when there are no personal events today."
+  },
+  "calendarNewEvent": "Nieuwe afspraak",
+  "@calendarNewEvent": {
+    "description": "Button / screen title to create a timed event."
+  },
+  "calendarTitleLabel": "Titel",
+  "@calendarTitleLabel": {
+    "description": "Event title field label."
+  },
+  "calendarLocationLabel": "Locatie",
+  "@calendarLocationLabel": {
+    "description": "Optional free-text location field."
+  },
+  "calendarNotesLabel": "Notities",
+  "@calendarNotesLabel": {
+    "description": "Optional notes field."
+  },
+  "calendarTitleRequired": "Voer een titel in.",
+  "@calendarTitleRequired": {
+    "description": "Validation when title is empty."
+  },
+  "calendarSaveFailed": "De afspraak kon niet worden opgeslagen.",
+  "@calendarSaveFailed": {
+    "description": "Generic save failure for personal events."
+  },
+  "calendarDeleted": "Afspraak verwijderd.",
+  "@calendarDeleted": {
+    "description": "Snack after soft-delete."
+  },
+  "calendarUndo": "Ongedaan maken",
+  "@calendarUndo": {
+    "description": "Undo soft-delete within the undo window."
+  },
+  "calendarLoadFailed": "Afspraken konden niet worden geladen.",
+  "@calendarLoadFailed": {
+    "description": "Shown when today's event list fails to load."
+  },
+  "calendarAllDay": "Hele dag",
+  "@calendarAllDay": {
+    "description": "Badge for all-day events in the list."
   }
 }
