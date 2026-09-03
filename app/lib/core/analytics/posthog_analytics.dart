@@ -70,6 +70,10 @@ class PosthogAnalytics implements Analytics {
         );
       case EventDeleteUndone():
         await Posthog().capture(eventName: 'event_delete_undone');
+      case BirthdayCreated():
+        await Posthog().capture(eventName: 'birthday_created');
+      case BirthdayDeleted():
+        await Posthog().capture(eventName: 'birthday_deleted');
     }
   }
 }

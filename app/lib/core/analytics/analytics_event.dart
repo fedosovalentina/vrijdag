@@ -59,3 +59,11 @@ class EventDeleted extends AnalyticsEvent {
 class EventDeleteUndone extends AnalyticsEvent {
   const EventDeleteUndone();
 }
+
+class BirthdayCreated extends AnalyticsEvent {
+  const BirthdayCreated();
+}
+
+class BirthdayDeleted extends AnalyticsEvent {
+  const BirthdayDeleted();
+}
