@@ -130,6 +130,19 @@ unzip -p build/ios/ipa/*.ipa Payload/Runner.app/Frameworks/App.framework/App \
 4. Platform branching only in `core/platform`.
 5. Secrets never in the client bundle.
 
+## Authentication (local)
+
+Magic-link redirect scheme: `nl.vrijdag.vrijdag://login-callback/`  
+Must be listed in Supabase Auth redirect allow-list (`supabase/config.toml` for local).
+
+Sign in with Apple needs:
+
+1. Capability enabled on the App ID `nl.vrijdag.vrijdag` in Apple Developer
+2. Apple provider configured in Supabase Auth (Services ID / key)
+3. Entitlement file `ios/Runner/Runner.entitlements` (already wired)
+
+Until those are configured, the Apple button shows a plain-language error.
+
 ## TestFlight
 
 See [`tools/upload-testflight.sh`](../tools/upload-testflight.sh) at the repo root.

@@ -58,4 +58,44 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bootstrapSentryUnavailable => 'Sentry not configured.';
+
+  @override
+  String get authSignInTitle => 'Sign in';
+
+  @override
+  String get authEmailLabel => 'Email';
+
+  @override
+  String get authSendMagicLink => 'Send sign-in link';
+
+  @override
+  String get authCheckEmail => 'Open the link in your email to continue.';
+
+  @override
+  String get authInvalidEmail => 'Enter a valid email address.';
+
+  @override
+  String get authSendFailed =>
+      'The sign-in link could not be sent. Try again later.';
+
+  @override
+  String get authSignOut => 'Sign out';
+
+  @override
+  String authSignedInAs(String email) {
+    return 'Signed in as $email';
+  }
+
+  @override
+  String get authSupabaseRequired => 'Supabase is required to sign in.';
+
+  @override
+  String get authSignInWithApple => 'Sign in with Apple';
+
+  @override
+  String get authAppleFailed =>
+      'Sign in with Apple failed. Check that Apple Sign In is configured.';
+
+  @override
+  String get authOrEmail => 'Or with email';
 }

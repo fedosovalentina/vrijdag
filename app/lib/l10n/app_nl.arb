@@ -68,5 +68,58 @@
   "bootstrapSentryUnavailable": "Sentry niet geconfigureerd.",
   "@bootstrapSentryUnavailable": {
     "description": "Sentry DSN missing — test crash is unavailable."
+  },
+  "authSignInTitle": "Inloggen",
+  "@authSignInTitle": {
+    "description": "Title of the sign-in screen."
+  },
+  "authEmailLabel": "E-mailadres",
+  "@authEmailLabel": {
+    "description": "Label for the email field on magic-link sign-in."
+  },
+  "authSendMagicLink": "Stuur inloglink",
+  "@authSendMagicLink": {
+    "description": "Primary button that sends the magic link email."
+  },
+  "authCheckEmail": "Open de link in je e-mail om verder te gaan.",
+  "@authCheckEmail": {
+    "description": "Shown after a magic link has been sent successfully."
+  },
+  "authInvalidEmail": "Voer een geldig e-mailadres in.",
+  "@authInvalidEmail": {
+    "description": "Validation error when the email field is empty or malformed."
+  },
+  "authSendFailed": "De inloglink kon niet worden gestuurd. Probeer het later opnieuw.",
+  "@authSendFailed": {
+    "description": "Generic failure when magic link send fails."
+  },
+  "authSignOut": "Uitloggen",
+  "@authSignOut": {
+    "description": "Sign out action."
+  },
+  "authSignedInAs": "Ingelogd als {email}",
+  "@authSignedInAs": {
+    "description": "Status line showing the signed-in email.",
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "authSupabaseRequired": "Supabase is nodig om in te loggen.",
+  "@authSupabaseRequired": {
+    "description": "Shown when auth UI is opened without a configured Supabase client."
+  },
+  "authSignInWithApple": "Log in met Apple",
+  "@authSignInWithApple": {
+    "description": "Sign in with Apple button label."
+  },
+  "authAppleFailed": "Inloggen met Apple is mislukt. Controleer of Apple Sign In is geconfigureerd.",
+  "@authAppleFailed": {
+    "description": "Shown when Sign in with Apple fails (capability/provider missing)."
+  },
+  "authOrEmail": "Of met e-mail",
+  "@authOrEmail": {
+    "description": "Divider label between Apple and magic-link options."
   }
 }

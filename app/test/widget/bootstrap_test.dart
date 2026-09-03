@@ -9,70 +9,70 @@ import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/config/vrijdag_env.dart';
 import 'package:vrijdag/core/errors/noop_error_reporter.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
+import 'package:vrijdag/features/auth/domain/auth_session.dart';
+import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
+
+import '../support/fake_auth_repository.dart';
 
 void main() {
-  testWidgets('bootstrap screen shows localized Dutch copy', (tester) async {
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(
-              environment: VrijdagEnv.local,
-              supabaseUrl: AppConfig.defaultLocalSupabaseUrl,
-              supabasePublishableKey:
-                  AppConfig.defaultLocalSupabasePublishableKey,
-              sentryDsn: null,
-              posthogApiKey: null,
-              posthogHost: AppConfig.defaultPosthogHost,
-              appVersion: '0.1.0+1',
-            ),
-          ),
-          supabaseReadyProvider.overrideWithValue(true),
-          errorReporterProvider.overrideWithValue(NoopErrorReporter()),
-          analyticsProvider.overrideWithValue(NoopAnalytics()),
-        ],
-        child: const VrijdagApp(locale: Locale('nl')),
-      ),
-    );
-    await tester.pumpAndSettle();
+  late FakeAuthRepository auth;
 
-    expect(find.text('Vrijdag'), findsWidgets);
-    expect(find.textContaining('F-001'), findsOneWidget);
-    expect(find.text('Omgeving: local'), findsOneWidget);
-    expect(find.text('Supabase-client gereed.'), findsOneWidget);
-    expect(find.text('Sentry niet geconfigureerd.'), findsOneWidget);
-    expect(find.text('Omgevingsskelet gereed.'), findsOneWidget);
-    expect(find.text('Testcrash'), findsNothing);
+  tearDown(() async {
+    await auth.dispose();
   });
 
-  testWidgets('bootstrap screen shows localized English copy', (tester) async {
+  List<Override> overrides({required AuthSession session}) {
+    auth = FakeAuthRepository(session);
+    return [
+      appConfigProvider.overrideWithValue(
+        const AppConfig(
+          environment: VrijdagEnv.local,
+          supabaseUrl: AppConfig.defaultLocalSupabaseUrl,
+          supabasePublishableKey: AppConfig.defaultLocalSupabasePublishableKey,
+          sentryDsn: null,
+          posthogApiKey: null,
+          posthogHost: AppConfig.defaultPosthogHost,
+          appVersion: '0.1.0+1',
+        ),
+      ),
+      supabaseReadyProvider.overrideWithValue(true),
+      errorReporterProvider.overrideWithValue(NoopErrorReporter()),
+      analyticsProvider.overrideWithValue(NoopAnalytics()),
+      authRepositoryProvider.overrideWithValue(auth),
+      authSessionProvider.overrideWith((ref) => auth.watchSession()),
+    ];
+  }
+
+  testWidgets('signed out shows magic link form', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [
-          appConfigProvider.overrideWithValue(
-            const AppConfig(
-              environment: VrijdagEnv.staging,
-              supabaseUrl: '',
-              supabasePublishableKey: '',
-              sentryDsn: null,
-              posthogApiKey: null,
-              posthogHost: AppConfig.defaultPosthogHost,
-              appVersion: '0.1.0+1',
-            ),
-          ),
-          supabaseReadyProvider.overrideWithValue(false),
-          errorReporterProvider.overrideWithValue(NoopErrorReporter()),
-          analyticsProvider.overrideWithValue(NoopAnalytics()),
-        ],
+        overrides: overrides(session: const AuthSignedOut()),
         child: const VrijdagApp(locale: Locale('en')),
       ),
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Environment: staging'), findsOneWidget);
-    expect(find.text('Supabase not configured.'), findsOneWidget);
-    expect(find.text('Sentry not configured.'), findsOneWidget);
-    expect(find.text('Environment scaffold ready.'), findsOneWidget);
-    expect(find.text('Test crash'), findsNothing);
+    expect(find.text('Sign in'), findsWidgets);
+    expect(find.text('Sign in with Apple'), findsOneWidget);
+    expect(find.text('Send sign-in link'), findsOneWidget);
+  });
+
+  testWidgets('signed in shows home foundation copy', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides(
+          session: const AuthSignedIn(
+            userId: 'user-1',
+            email: 'test@example.com',
+          ),
+        ),
+        child: const VrijdagApp(locale: Locale('nl')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.textContaining('test@example.com'), findsOneWidget);
+    expect(find.text('Uitloggen'), findsOneWidget);
+    expect(find.textContaining('F-001'), findsOneWidget);
   });
 }

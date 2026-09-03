@@ -47,8 +47,12 @@ enabled = true
 
 [auth]
 enabled = true
-site_url = "http://127.0.0.1:3000"
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+site_url = "nl.vrijdag.vrijdag://login-callback/"
+additional_redirect_urls = [
+  "nl.vrijdag.vrijdag://login-callback/",
+  "http://127.0.0.1:3000",
+  "https://127.0.0.1:3000",
+]
 jwt_expiry = 3600
 enable_signup = true
 

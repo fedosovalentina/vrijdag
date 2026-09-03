@@ -6,10 +6,14 @@ import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/localization/locale_resolution.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
+import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
+import 'package:vrijdag/features/auth/domain/auth_session.dart';
+import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
+import 'package:vrijdag/features/auth/presentation/sign_in_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 
-/// Root widget: Material shell, localization, bootstrap placeholder.
+/// Root widget: Material shell, localization, auth gate.
 class VrijdagApp extends StatelessWidget {
   const VrijdagApp({super.key, this.locale});
 
@@ -25,19 +29,75 @@ class VrijdagApp extends StatelessWidget {
       supportedLocales: AppLocalizations.supportedLocales,
       localeResolutionCallback: resolveAppLocale,
       theme: buildVrijdagTheme(),
-      home: const _BootstrapScreen(),
+      home: const _AuthGate(),
     );
   }
 }
 
-class _BootstrapScreen extends ConsumerWidget {
-  const _BootstrapScreen();
+class _AuthGate extends ConsumerWidget {
+  const _AuthGate();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final session = ref.watch(authSessionProvider);
+
+    return session.when(
+      data: (value) => switch (value) {
+        AuthSignedIn() => const _HomeScreen(),
+        AuthSignedOut() || AuthUnknown() => const SignInScreen(),
+      },
+      loading: () =>
+          const Scaffold(body: Center(child: CircularProgressIndicator())),
+      error: (_, _) => const SignInScreen(),
+    );
+  }
+}
+
+class _HomeScreen extends ConsumerStatefulWidget {
+  const _HomeScreen();
+
+  @override
+  ConsumerState<_HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends ConsumerState<_HomeScreen> {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _ensureProfile();
+    });
+  }
+
+  Future<void> _ensureProfile() async {
+    final session = ref.read(authSessionProvider).valueOrNull;
+    if (session is! AuthSignedIn) {
+      return;
+    }
+
+    final language = resolveProfileLanguage(Localizations.localeOf(context));
+    final timezone = resolveDeviceTimezone();
+
+    try {
+      await ref
+          .read(userProfileRepositoryProvider)
+          .ensureProfile(
+            userId: session.userId,
+            language: language,
+            timezone: timezone,
+          );
+    } on Object {
+      // Profile trigger may already have created the row; sync failures must
+      // not block the home shell (reliability before magic).
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = context.l10n;
     final config = ref.watch(appConfigProvider);
     final supabaseReady = ref.watch(supabaseReadyProvider);
+    final session = ref.watch(authSessionProvider).valueOrNull;
 
     final supabaseStatus =
         config.supabaseUrl.isEmpty || config.supabasePublishableKey.isEmpty
@@ -51,8 +111,21 @@ class _BootstrapScreen extends ConsumerWidget {
     final showTestCrash =
         kDebugMode && !config.isProduction && config.hasSentry;
 
+    final email = switch (session) {
+      AuthSignedIn(:final email, :final userId) => email ?? userId,
+      _ => '',
+    };
+
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.commonAppName)),
+      appBar: AppBar(
+        title: Text(l10n.commonAppName),
+        actions: [
+          TextButton(
+            onPressed: () => ref.read(authRepositoryProvider).signOut(),
+            child: Text(l10n.authSignOut),
+          ),
+        ],
+      ),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(24),
@@ -69,6 +142,8 @@ class _BootstrapScreen extends ConsumerWidget {
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 24),
+              Text(l10n.authSignedInAs(email)),
+              const SizedBox(height: 8),
               Text(l10n.bootstrapEnvironment(config.environment.label)),
               const SizedBox(height: 8),
               Text(supabaseStatus),

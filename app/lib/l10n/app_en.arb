@@ -15,5 +15,17 @@
   "bootstrapSupabaseUnavailable": "Supabase not configured.",
   "bootstrapTestCrash": "Test crash",
   "bootstrapSentryReady": "Sentry ready.",
-  "bootstrapSentryUnavailable": "Sentry not configured."
+  "bootstrapSentryUnavailable": "Sentry not configured.",
+  "authSignInTitle": "Sign in",
+  "authEmailLabel": "Email",
+  "authSendMagicLink": "Send sign-in link",
+  "authCheckEmail": "Open the link in your email to continue.",
+  "authInvalidEmail": "Enter a valid email address.",
+  "authSendFailed": "The sign-in link could not be sent. Try again later.",
+  "authSignOut": "Sign out",
+  "authSignedInAs": "Signed in as {email}",
+  "authSupabaseRequired": "Supabase is required to sign in.",
+  "authSignInWithApple": "Sign in with Apple",
+  "authAppleFailed": "Sign in with Apple failed. Check that Apple Sign In is configured.",
+  "authOrEmail": "Or with email"
 }

@@ -193,6 +193,78 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Sentry niet geconfigureerd.'**
   String get bootstrapSentryUnavailable;
+
+  /// Title of the sign-in screen.
+  ///
+  /// In nl, this message translates to:
+  /// **'Inloggen'**
+  String get authSignInTitle;
+
+  /// Label for the email field on magic-link sign-in.
+  ///
+  /// In nl, this message translates to:
+  /// **'E-mailadres'**
+  String get authEmailLabel;
+
+  /// Primary button that sends the magic link email.
+  ///
+  /// In nl, this message translates to:
+  /// **'Stuur inloglink'**
+  String get authSendMagicLink;
+
+  /// Shown after a magic link has been sent successfully.
+  ///
+  /// In nl, this message translates to:
+  /// **'Open de link in je e-mail om verder te gaan.'**
+  String get authCheckEmail;
+
+  /// Validation error when the email field is empty or malformed.
+  ///
+  /// In nl, this message translates to:
+  /// **'Voer een geldig e-mailadres in.'**
+  String get authInvalidEmail;
+
+  /// Generic failure when magic link send fails.
+  ///
+  /// In nl, this message translates to:
+  /// **'De inloglink kon niet worden gestuurd. Probeer het later opnieuw.'**
+  String get authSendFailed;
+
+  /// Sign out action.
+  ///
+  /// In nl, this message translates to:
+  /// **'Uitloggen'**
+  String get authSignOut;
+
+  /// Status line showing the signed-in email.
+  ///
+  /// In nl, this message translates to:
+  /// **'Ingelogd als {email}'**
+  String authSignedInAs(String email);
+
+  /// Shown when auth UI is opened without a configured Supabase client.
+  ///
+  /// In nl, this message translates to:
+  /// **'Supabase is nodig om in te loggen.'**
+  String get authSupabaseRequired;
+
+  /// Sign in with Apple button label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Log in met Apple'**
+  String get authSignInWithApple;
+
+  /// Shown when Sign in with Apple fails (capability/provider missing).
+  ///
+  /// In nl, this message translates to:
+  /// **'Inloggen met Apple is mislukt. Controleer of Apple Sign In is geconfigureerd.'**
+  String get authAppleFailed;
+
+  /// Divider label between Apple and magic-link options.
+  ///
+  /// In nl, this message translates to:
+  /// **'Of met e-mail'**
+  String get authOrEmail;
 }
 
 class _AppLocalizationsDelegate
