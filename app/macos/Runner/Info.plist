@@ -28,6 +28,9 @@
 	<string>MainMenu</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
+	<!-- Manual PostHog init via Dart (dart-define + consent). Do not put API key here. -->
+	<key>com.posthog.posthog.AUTO_INIT</key>
+	<false/>
 	<key>CFBundleURLTypes</key>
 	<array>
 		<dict>

@@ -205,8 +205,15 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
                   keyboardType: TextInputType.emailAddress,
                   autocorrect: false,
                   autofillHints: const [AutofillHints.email],
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyLarge?.copyWith(color: colors.ink),
+                  cursorColor: colors.ink,
                   decoration: InputDecoration(
                     labelText: l10n.authEmailLabel,
+                    labelStyle: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.warmGrey),
                     border: const UnderlineInputBorder(),
                     enabledBorder: UnderlineInputBorder(
                       borderSide: BorderSide(color: colors.ink),

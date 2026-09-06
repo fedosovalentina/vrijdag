@@ -20,7 +20,12 @@ class PosthogAnalytics implements Analytics {
     final config = PostHogConfig(apiKey)
       ..host = _config.posthogHost
       ..captureApplicationLifecycleEvents = false
-      ..sessionReplay = false;
+      ..sessionReplay = false
+      // Smoke / low-volume: send immediately rather than waiting for batch of 20.
+      ..flushAt = 1
+      ..flushInterval = const Duration(seconds: 5)
+      ..debug = !_config.isProduction
+      ..personProfiles = PostHogPersonProfiles.identifiedOnly;
 
     await Posthog().setup(config);
     _initialized = true;
@@ -75,5 +80,11 @@ class PosthogAnalytics implements Analytics {
       case BirthdayDeleted():
         await Posthog().capture(eventName: 'birthday_deleted');
     }
+
+    // Ensure the batch leaves the device (macOS/debug often exits before interval).
+    await Posthog().flush();
+    // Native flush returns before the HTTP round-trip; give the SDK a beat.
+    await Future<void>.delayed(const Duration(milliseconds: 800));
+    await Posthog().flush();
   }
 }

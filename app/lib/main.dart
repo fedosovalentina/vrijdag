@@ -30,8 +30,6 @@ Future<void> main() async {
     consentGranted: consent,
   );
 
-  await observability.initializeAnalytics();
-
   void launchApp() {
     runApp(
       ProviderScope(
@@ -46,6 +44,9 @@ Future<void> main() async {
   }
 
   Future<void> afterSdkReady() async {
+    // Init PostHog after the Flutter engine/plugins are up (Sentry appRunner or
+    // plain path). Setup before runApp can queue events that never flush.
+    await observability.initializeAnalytics();
     await observability.initializeErrorReporter();
     await observability.emitAppStarted();
     launchApp();
@@ -54,8 +55,8 @@ Future<void> main() async {
   if (observability.usesSentry) {
     await SentryFlutter.init(
       observability.configureSentry,
-      appRunner: () {
-        afterSdkReady();
+      appRunner: () async {
+        await afterSdkReady();
       },
     );
     return;
