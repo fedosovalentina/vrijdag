@@ -1,12 +1,16 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
+import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
+import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
+import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 
-/// Utilitarian magic-link + Apple sign-in (F-002). Design polish comes later.
+/// First-run sign-in (DT-03). Apple is a black/white control, not a moss fill.
 class SignInScreen extends ConsumerStatefulWidget {
   const SignInScreen({super.key});
 
@@ -108,52 +112,129 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final colors = Theme.of(context).vrijdagColors;
     final busy = _sending || _appleBusy;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final config = ref.watch(appConfigProvider);
+    final showTestCrash =
+        kDebugMode && !config.isProduction && config.hasSentry;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.authSignInTitle)),
-      body: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            if (_sent) ...[
-              Text(l10n.authCheckEmail),
-            ] else ...[
-              FilledButton(
-                onPressed: busy ? null : _submitApple,
-                child: Text(l10n.authSignInWithApple),
-              ),
-              const SizedBox(height: 24),
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(
+            VrijdagSpacing.lg,
+            VrijdagSpacing.xl,
+            VrijdagSpacing.lg,
+            VrijdagSpacing.lg,
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
               Text(
-                l10n.authOrEmail,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
+                l10n.commonAppName,
+                style: Theme.of(
+                  context,
+                ).textTheme.headlineMedium?.copyWith(color: colors.ink),
               ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                autocorrect: false,
-                autofillHints: const [AutofillHints.email],
-                decoration: InputDecoration(labelText: l10n.authEmailLabel),
-                enabled: !busy,
-                onSubmitted: (_) => _submitEmail(),
+              const SizedBox(height: VrijdagSpacing.sm),
+              Text(
+                l10n.authTagline,
+                style: Theme.of(
+                  context,
+                ).textTheme.bodyMedium?.copyWith(color: colors.inkSoft),
               ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
+              if (showTestCrash) ...[
+                const SizedBox(height: VrijdagSpacing.sm),
                 Text(
-                  _error!,
-                  style: TextStyle(color: Theme.of(context).colorScheme.error),
+                  l10n.bootstrapSentryReady,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.warmGrey),
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: () =>
+                        ref.read(errorReporterProvider).triggerTestCrash(),
+                    child: Text(l10n.bootstrapTestCrash),
+                  ),
                 ),
               ],
-              const SizedBox(height: 24),
-              FilledButton.tonal(
-                onPressed: busy ? null : _submitEmail,
-                child: Text(l10n.authSendMagicLink),
-              ),
+              const Spacer(),
+              if (_sent) ...[
+                Text(
+                  l10n.authCheckEmail,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodyMedium?.copyWith(color: colors.ink),
+                ),
+                const SizedBox(height: VrijdagSpacing.md),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: busy
+                        ? null
+                        : () => setState(() {
+                            _sent = false;
+                            _error = null;
+                          }),
+                    child: Text(l10n.authUseDifferentEmail),
+                  ),
+                ),
+              ] else ...[
+                FilledButton(
+                  onPressed: busy ? null : _submitApple,
+                  style: FilledButton.styleFrom(
+                    backgroundColor: isDark ? Colors.white : Colors.black,
+                    foregroundColor: isDark ? Colors.black : Colors.white,
+                  ),
+                  child: Text(l10n.authSignInWithApple),
+                ),
+                const SizedBox(height: VrijdagSpacing.lg),
+                Text(
+                  l10n.authOrEmail,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: colors.warmGrey),
+                ),
+                const SizedBox(height: VrijdagSpacing.md),
+                TextField(
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
+                  autocorrect: false,
+                  autofillHints: const [AutofillHints.email],
+                  decoration: InputDecoration(
+                    labelText: l10n.authEmailLabel,
+                    border: const UnderlineInputBorder(),
+                    enabledBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colors.ink),
+                    ),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colors.ink, width: 1.5),
+                    ),
+                  ),
+                  enabled: !busy,
+                  onSubmitted: (_) => _submitEmail(),
+                ),
+                if (_error != null) ...[
+                  const SizedBox(height: VrijdagSpacing.sm),
+                  Text(
+                    _error!,
+                    style: Theme.of(
+                      context,
+                    ).textTheme.bodySmall?.copyWith(color: colors.inkSoft),
+                  ),
+                ],
+                const SizedBox(height: VrijdagSpacing.lg),
+                FilledButton(
+                  onPressed: busy ? null : _submitEmail,
+                  child: Text(l10n.authSendMagicLink),
+                ),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );
