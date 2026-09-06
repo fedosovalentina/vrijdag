@@ -63,6 +63,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get authSignInTitle => 'Sign in';
 
   @override
+  String get authTagline => 'Your own time, and what sits around it.';
+
+  @override
+  String get authUseDifferentEmail => 'Use a different email';
+
+  @override
   String get authEmailLabel => 'Email';
 
   @override

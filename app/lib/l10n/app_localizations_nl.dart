@@ -63,6 +63,12 @@ class AppLocalizationsNl extends AppLocalizations {
   String get authSignInTitle => 'Inloggen';
 
   @override
+  String get authTagline => 'Je eigen tijd, en wat eromheen gebeurt.';
+
+  @override
+  String get authUseDifferentEmail => 'Ander e-mailadres';
+
+  @override
   String get authEmailLabel => 'E-mailadres';
 
   @override
@@ -107,7 +113,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get authDeleteConfirmBody =>
-      'Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.';
+      'Dit verwijdert je account en alle persoonlijke gegevens. Wereldgegevens blijven onaangetast. Dit is niet terug te draaien.';
 
   @override
   String get authDeleteConfirmContinue => 'Doorgaan';
@@ -117,7 +123,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get authDeleteFinalBody =>
-      'Bevestig dat je dit account permanent wilt verwijderen.';
+      'Bevestig dat je dit account definitief wilt verwijderen.';
 
   @override
   String get authDeleteFinalAction => 'Account definitief verwijderen';

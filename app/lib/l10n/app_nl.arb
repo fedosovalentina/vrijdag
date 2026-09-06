@@ -73,6 +73,14 @@
   "@authSignInTitle": {
     "description": "Title of the sign-in screen."
   },
+  "authTagline": "Je eigen tijd, en wat eromheen gebeurt.",
+  "@authTagline": {
+    "description": "Dry one-line product description on sign-in. Independently written Dutch."
+  },
+  "authUseDifferentEmail": "Ander e-mailadres",
+  "@authUseDifferentEmail": {
+    "description": "Return from check-email state to the magic-link form."
+  },
   "authEmailLabel": "E-mailadres",
   "@authEmailLabel": {
     "description": "Label for the email field on magic-link sign-in."
@@ -130,7 +138,7 @@
   "@authDeleteConfirmTitle": {
     "description": "First confirmation title for account deletion."
   },
-  "authDeleteConfirmBody": "Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.",
+  "authDeleteConfirmBody": "Dit verwijdert je account en alle persoonlijke gegevens. Wereldgegevens blijven onaangetast. Dit is niet terug te draaien.",
   "@authDeleteConfirmBody": {
     "description": "First confirmation body — factual, no drama."
   },
@@ -142,7 +150,7 @@
   "@authDeleteFinalTitle": {
     "description": "Second confirmation title for account deletion."
   },
-  "authDeleteFinalBody": "Bevestig dat je dit account permanent wilt verwijderen.",
+  "authDeleteFinalBody": "Bevestig dat je dit account definitief wilt verwijderen.",
   "@authDeleteFinalBody": {
     "description": "Second confirmation body for account deletion."
   },

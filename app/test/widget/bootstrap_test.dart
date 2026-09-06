@@ -67,7 +67,11 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Sign in'), findsWidgets);
+    expect(find.text('Vrijdag'), findsWidgets);
+    expect(
+      find.text('Your own time, and what sits around it.'),
+      findsOneWidget,
+    );
     expect(find.text('Sign in with Apple'), findsOneWidget);
     expect(find.text('Send sign-in link'), findsOneWidget);
   });

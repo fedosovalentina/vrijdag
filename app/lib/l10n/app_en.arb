@@ -17,6 +17,8 @@
   "bootstrapSentryReady": "Sentry ready.",
   "bootstrapSentryUnavailable": "Sentry not configured.",
   "authSignInTitle": "Sign in",
+  "authTagline": "Your own time, and what sits around it.",
+  "authUseDifferentEmail": "Use a different email",
   "authEmailLabel": "Email",
   "authSendMagicLink": "Send sign-in link",
   "authCheckEmail": "Open the link in your email to continue.",

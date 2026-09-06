@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 
-/// Deliberate empty / quiet day copy (Principle 5).
+/// Deliberate empty / quiet copy (Principle 5).
 class QuietState extends StatelessWidget {
   const QuietState({super.key, required this.message});
 

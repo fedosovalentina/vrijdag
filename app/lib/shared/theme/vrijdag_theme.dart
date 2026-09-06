@@ -10,9 +10,9 @@ ThemeData buildVrijdagTheme({Brightness brightness = Brightness.light}) {
 
   final colorScheme = ColorScheme(
     brightness: brightness,
-    primary: tokens.moss,
+    primary: tokens.ink,
     onPrimary: tokens.paper,
-    secondary: tokens.rust,
+    secondary: tokens.inkSoft,
     onSecondary: tokens.paper,
     surface: tokens.paper,
     onSurface: tokens.ink,
@@ -58,7 +58,17 @@ ThemeData buildVrijdagTheme({Brightness brightness = Brightness.light}) {
       bodySmall: bodyFont.bodySmall?.copyWith(color: tokens.warmGrey),
       labelLarge: GoogleFonts.ibmPlexSans(
         fontWeight: FontWeight.w500,
-        color: tokens.rust,
+        color: tokens.ink,
+      ),
+    ),
+    filledButtonTheme: FilledButtonThemeData(
+      style: FilledButton.styleFrom(
+        backgroundColor: tokens.ink,
+        foregroundColor: tokens.paper,
+        minimumSize: const Size.fromHeight(44),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(VrijdagRadii.sm + 2),
+        ),
       ),
     ),
     extensions: <ThemeExtension<dynamic>>[

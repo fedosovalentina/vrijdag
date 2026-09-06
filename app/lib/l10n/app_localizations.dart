@@ -200,6 +200,18 @@ abstract class AppLocalizations {
   /// **'Inloggen'**
   String get authSignInTitle;
 
+  /// Dry one-line product description on sign-in. Independently written Dutch.
+  ///
+  /// In nl, this message translates to:
+  /// **'Je eigen tijd, en wat eromheen gebeurt.'**
+  String get authTagline;
+
+  /// Return from check-email state to the magic-link form.
+  ///
+  /// In nl, this message translates to:
+  /// **'Ander e-mailadres'**
+  String get authUseDifferentEmail;
+
   /// Label for the email field on magic-link sign-in.
   ///
   /// In nl, this message translates to:
@@ -281,7 +293,7 @@ abstract class AppLocalizations {
   /// First confirmation body — factual, no drama.
   ///
   /// In nl, this message translates to:
-  /// **'Dit verwijdert je account en alle persoonlijke gegevens. World-data blijft onaangetast. Dit kan niet ongedaan worden gemaakt.'**
+  /// **'Dit verwijdert je account en alle persoonlijke gegevens. Wereldgegevens blijven onaangetast. Dit is niet terug te draaien.'**
   String get authDeleteConfirmBody;
 
   /// Proceed from first deletion confirmation to the final step.
@@ -299,7 +311,7 @@ abstract class AppLocalizations {
   /// Second confirmation body for account deletion.
   ///
   /// In nl, this message translates to:
-  /// **'Bevestig dat je dit account permanent wilt verwijderen.'**
+  /// **'Bevestig dat je dit account definitief wilt verwijderen.'**
   String get authDeleteFinalBody;
 
   /// Final destructive button that calls the delete-account function.
