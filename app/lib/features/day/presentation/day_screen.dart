@@ -24,7 +24,6 @@ import 'package:vrijdag/shared/formatters/spoken_date.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 import 'package:vrijdag/shared/widgets/date_header.dart';
-import 'package:vrijdag/shared/widgets/event_row.dart';
 import 'package:vrijdag/shared/widgets/hour_spine.dart';
 import 'package:vrijdag/shared/widgets/quiet_state.dart';
 import 'package:vrijdag/shared/widgets/stale_badge.dart';
@@ -466,15 +465,13 @@ class _DayBody extends StatelessWidget {
                       HourSpine(onHourTap: onHourTap)
                     else
                       Column(
-                        children: [
-                          for (final event in timed)
-                            EventRow(
-                              timeLabel: _formatStart(event),
-                              title: event.title,
-                              subtitle: _meta(l10n, event),
-                              onTap: () => onOpenEditor(existing: event),
-                            ),
-                        ],
+                        children: HourSpine.busyRows(
+                          timed: timed,
+                          timeLabel: _formatStart,
+                          subtitle: (event) => _meta(l10n, event),
+                          onEventTap: (event) => onOpenEditor(existing: event),
+                          onHourTap: onHourTap,
+                        ),
                       ),
                   ],
                 ),

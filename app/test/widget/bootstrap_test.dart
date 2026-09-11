@@ -102,6 +102,10 @@ void main() {
     expect(find.text('Instellingen'), findsOneWidget);
     expect(find.text('Dag'), findsOneWidget);
     expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
+    // Quiet Day spine numerals.
+    expect(find.text('08'), findsOneWidget);
+    expect(find.text('12'), findsOneWidget);
+    expect(find.text('18'), findsOneWidget);
 
     await tester.tap(find.text('Week'));
     await tester.pumpAndSettle();
@@ -114,5 +118,23 @@ void main() {
     await tester.tap(find.text('Jaar'));
     await tester.pumpAndSettle();
     expect(find.text('overzicht'), findsOneWidget);
+  });
+
+  testWidgets('signed in Day quiet copy works in English', (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: overrides(
+          session: const AuthSignedIn(
+            userId: 'user-1',
+            email: 'test@example.com',
+          ),
+        ),
+        child: const VrijdagApp(locale: Locale('en')),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.text('No events today.'), findsOneWidget);
+    expect(find.text('Day'), findsOneWidget);
   });
 }
