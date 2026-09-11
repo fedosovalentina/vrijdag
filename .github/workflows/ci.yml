@@ -75,4 +75,8 @@ jobs:
       - uses: supabase/setup-cli@v1
         with:
           version: latest
-      - run: ./tools/check-rls.sh
+      - name: Start local Supabase and check RLS
+        run: ./tools/check-rls.sh
+        # supabase start needs Docker (available on ubuntu-latest).
+        # First boot pulls images — allow enough time.
+        timeout-minutes: 20

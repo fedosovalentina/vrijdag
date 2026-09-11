@@ -26,6 +26,11 @@ if ! docker info >/dev/null 2>&1; then
   exit 1
 fi
 
+echo "check-rls.sh: ensuring local Supabase is running…"
+if ! supabase status >/dev/null 2>&1; then
+  supabase start
+fi
+
 echo "check-rls.sh: applying migrations to local database…"
 supabase db reset --local --yes >/dev/null
 
