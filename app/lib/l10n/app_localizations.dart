@@ -793,6 +793,12 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'{minutes} min'**
   String dayDurationMinutes(int minutes);
+
+  /// Empty day fragment on Week. A dash, not a sentence.
+  ///
+  /// In nl, this message translates to:
+  /// **'—'**
+  String get weekDayEmpty;
 }
 
 class _AppLocalizationsDelegate

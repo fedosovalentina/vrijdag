@@ -485,5 +485,9 @@
     "placeholders": {
       "minutes": {"type": "int"}
     }
+  },
+  "weekDayEmpty": "—",
+  "@weekDayEmpty": {
+    "description": "Empty day fragment on Week. A dash, not a sentence."
   }
 }

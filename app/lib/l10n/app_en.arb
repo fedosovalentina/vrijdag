@@ -135,5 +135,6 @@
     "placeholders": {
       "minutes": {"type": "int"}
     }
-  }
+  },
+  "weekDayEmpty": "—"
 }

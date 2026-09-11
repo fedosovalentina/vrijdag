@@ -383,4 +383,7 @@ class AppLocalizationsNl extends AppLocalizations {
   String dayDurationMinutes(int minutes) {
     return '$minutes min';
   }
+
+  @override
+  String get weekDayEmpty => '—';
 }

@@ -95,5 +95,17 @@ void main() {
     expect(find.text('Instellingen'), findsOneWidget);
     expect(find.text('Dag'), findsOneWidget);
     expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
+
+    await tester.tap(find.text('Week'));
+    await tester.pumpAndSettle();
+    expect(find.text('—'), findsWidgets);
+
+    await tester.tap(find.text('Maand'));
+    await tester.pumpAndSettle();
+    expect(find.text('afspraak'), findsOneWidget);
+
+    await tester.tap(find.text('Jaar'));
+    await tester.pumpAndSettle();
+    expect(find.text('overzicht'), findsOneWidget);
   });
 }

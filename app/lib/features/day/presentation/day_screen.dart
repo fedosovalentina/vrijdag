@@ -15,6 +15,9 @@ import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_nav.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
+import 'package:vrijdag/features/calendar/presentation/month_view.dart';
+import 'package:vrijdag/features/calendar/presentation/week_view.dart';
+import 'package:vrijdag/features/calendar/presentation/year_view.dart';
 import 'package:vrijdag/features/settings/presentation/settings_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/formatters/spoken_date.dart';
@@ -27,7 +30,7 @@ import 'package:vrijdag/shared/widgets/quiet_state.dart';
 import 'package:vrijdag/shared/widgets/stale_badge.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
-/// Signed-in home: Day Layer 1 (Task 02 / F-007).
+/// Signed-in calendar home: Day / Week / Month / Year (F-007 / F-008).
 class DayScreen extends ConsumerStatefulWidget {
   const DayScreen({super.key});
 
@@ -122,22 +125,141 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     );
     ref.invalidate(dayEventsProvider);
     ref.invalidate(todaysEventsProvider);
+    ref.invalidate(visibleEventsProvider);
     ref.invalidate(pendingWriteCountProvider);
   }
 
-  void _shiftDay(int deltaDays) {
-    final anchor = ref.read(calendarAnchorProvider);
+  void _setAnchor(DateTime value) {
     ref.read(calendarAnchorProvider.notifier).state = CalendarRange.dateOnly(
-      anchor.add(Duration(days: deltaDays)),
+      value,
     );
+  }
+
+  void _setScale(CalendarScale value) {
+    ref.read(calendarScaleProvider.notifier).state = value;
+  }
+
+  void _shiftWithinScale(int direction) {
+    final scale = ref.read(calendarScaleProvider);
+    final anchor = ref.read(calendarAnchorProvider);
+    switch (scale) {
+      case CalendarScale.day:
+        _setAnchor(anchor.add(Duration(days: direction)));
+      case CalendarScale.week:
+        _setAnchor(anchor.add(Duration(days: 7 * direction)));
+      case CalendarScale.month:
+        _setAnchor(_shiftMonth(anchor, direction));
+      case CalendarScale.year:
+        _setAnchor(DateTime(anchor.year + direction, anchor.month, anchor.day));
+    }
+  }
+
+  static DateTime _shiftMonth(DateTime anchor, int direction) {
+    final first = DateTime(anchor.year, anchor.month + direction, 1);
+    final last = DateTime(first.year, first.month + 1, 0).day;
+    final day = anchor.day > last ? last : anchor.day;
+    return DateTime(first.year, first.month, day);
+  }
+
+  static int _yearForSeasonMonth(int month, DateTime anchor) {
+    final season = CalendarRange.seasonMonths(anchor.month);
+    final crossesYear = season.contains(12) && season.contains(1);
+    if (!crossesYear) {
+      return anchor.year;
+    }
+    if (month == 12) {
+      return anchor.month == 12 ? anchor.year : anchor.year - 1;
+    }
+    if (month <= 2) {
+      return anchor.month == 12 ? anchor.year + 1 : anchor.year;
+    }
+    return anchor.year;
   }
 
   void _selectWeekday(int weekday) {
     final anchor = ref.read(calendarAnchorProvider);
     final start = CalendarRange.startOfWeek(anchor);
-    ref.read(calendarAnchorProvider.notifier).state = start.add(
-      Duration(days: weekday - DateTime.monday),
-    );
+    _setAnchor(start.add(Duration(days: weekday - DateTime.monday)));
+  }
+
+  List<CalendarZoomItem> _zoomItems({
+    required CalendarScale scale,
+    required DateTime day,
+    required AppLocalizations l10n,
+    required Locale locale,
+  }) {
+    switch (scale) {
+      case CalendarScale.day:
+        final labels = [
+          l10n.zoomMonday,
+          l10n.zoomTuesday,
+          l10n.zoomWednesday,
+          l10n.zoomThursday,
+          l10n.zoomFriday,
+          l10n.zoomSaturday,
+          l10n.zoomSunday,
+        ];
+        return [
+          for (var i = 0; i < 7; i++)
+            CalendarZoomItem(
+              label: labels[i],
+              selected: day.weekday == DateTime.monday + i,
+              onTap: () => _selectWeekday(DateTime.monday + i),
+            ),
+        ];
+      case CalendarScale.week:
+        final weeks = CalendarRange.isoWeeksInMonth(day.year, day.month);
+        final current = CalendarRange.isoWeek(day);
+        return [
+          for (final week in weeks)
+            CalendarZoomItem(
+              label: '$week',
+              selected: week == current,
+              onTap: () {
+                // Jump to Monday of that ISO week inside this month's window.
+                var cursor = CalendarRange.startOfWeek(
+                  DateTime(day.year, day.month, 1),
+                );
+                for (var i = 0; i < 6; i++) {
+                  if (CalendarRange.isoWeek(cursor) == week) {
+                    _setAnchor(cursor);
+                    return;
+                  }
+                  cursor = cursor.add(const Duration(days: 7));
+                }
+              },
+            ),
+        ];
+      case CalendarScale.month:
+        final months = CalendarRange.seasonMonths(day.month);
+        return [
+          for (final month in months)
+            CalendarZoomItem(
+              label: SpokenDate.monthShort(
+                DateTime(_yearForSeasonMonth(month, day), month, 1),
+                locale,
+              ),
+              selected: month == day.month,
+              onTap: () {
+                final year = _yearForSeasonMonth(month, day);
+                final last = DateTime(year, month + 1, 0).day;
+                final clamped = day.day > last ? last : day.day;
+                _setAnchor(DateTime(year, month, clamped));
+              },
+            ),
+        ];
+      case CalendarScale.year:
+        return const [];
+    }
+  }
+
+  String _zoomSemantic(CalendarScale scale, AppLocalizations l10n) {
+    return switch (scale) {
+      CalendarScale.day => l10n.navZoomWeekdays,
+      CalendarScale.week => l10n.navZoomWeeks,
+      CalendarScale.month => l10n.navZoomMonths,
+      CalendarScale.year => l10n.navScaleJump,
+    };
   }
 
   @override
@@ -152,16 +274,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final eventsAsync = ref.watch(dayEventsProvider);
     final birthdaysAsync = ref.watch(birthdaysListProvider);
 
-    final zoomLabels = [
-      l10n.zoomMonday,
-      l10n.zoomTuesday,
-      l10n.zoomWednesday,
-      l10n.zoomThursday,
-      l10n.zoomFriday,
-      l10n.zoomSaturday,
-      l10n.zoomSunday,
-    ];
-
     return Scaffold(
       body: SafeArea(
         child: Column(
@@ -169,22 +281,14 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           children: [
             CalendarNav(
               scale: scale,
-              zoomSemanticLabel: l10n.navZoomWeekdays,
-              zoomItems: [
-                for (var i = 0; i < 7; i++)
-                  CalendarZoomItem(
-                    label: zoomLabels[i],
-                    selected:
-                        scale == CalendarScale.day &&
-                        day.weekday == DateTime.monday + i,
-                    onTap: scale == CalendarScale.day
-                        ? () => _selectWeekday(DateTime.monday + i)
-                        : null,
-                  ),
-              ],
-              onScaleSelected: (value) {
-                ref.read(calendarScaleProvider.notifier).state = value;
-              },
+              zoomSemanticLabel: _zoomSemantic(scale, l10n),
+              zoomItems: _zoomItems(
+                scale: scale,
+                day: day,
+                l10n: l10n,
+                locale: locale,
+              ),
+              onScaleSelected: _setScale,
               onNew: () => _openEditor(),
               onSettings: () {
                 Navigator.of(context).push<void>(
@@ -200,70 +304,63 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                     return;
                   }
                   if (v < -200) {
-                    _shiftDay(1);
+                    _shiftWithinScale(1);
                   } else if (v > 200) {
-                    _shiftDay(-1);
+                    _shiftWithinScale(-1);
                   }
                 },
-                child: scale == CalendarScale.day
-                    ? _DayBody(
-                        day: day,
-                        locale: locale,
-                        l10n: l10n,
-                        eventsAsync: eventsAsync,
-                        birthdaysAsync: birthdaysAsync,
-                        onOpenEditor: _openEditor,
-                        onBirthdayTap: (birthday) async {
-                          await Navigator.of(context).push<bool>(
-                            MaterialPageRoute(
-                              builder: (_) =>
-                                  BirthdayEditorScreen(existing: birthday),
-                            ),
-                          );
-                          ref.invalidate(birthdaysListProvider);
-                        },
-                        onHourTap: (hour) {
-                          _openEditor(
-                            initialStartLocal: DateTime(
-                              day.year,
-                              day.month,
-                              day.day,
-                              hour,
-                            ),
-                          );
-                        },
-                      )
-                    : _ScalePlaceholder(scale: scale, l10n: l10n),
+                child: switch (scale) {
+                  CalendarScale.day => _DayBody(
+                    day: day,
+                    locale: locale,
+                    l10n: l10n,
+                    eventsAsync: eventsAsync,
+                    birthdaysAsync: birthdaysAsync,
+                    onOpenEditor: _openEditor,
+                    onBirthdayTap: (birthday) async {
+                      await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              BirthdayEditorScreen(existing: birthday),
+                        ),
+                      );
+                      ref.invalidate(birthdaysListProvider);
+                    },
+                    onHourTap: (hour) {
+                      _openEditor(
+                        initialStartLocal: DateTime(
+                          day.year,
+                          day.month,
+                          day.day,
+                          hour,
+                        ),
+                      );
+                    },
+                  ),
+                  CalendarScale.week => WeekView(
+                    onOpenEvent: (event) => _openEditor(existing: event),
+                    onSelectDay: (value) {
+                      _setAnchor(value);
+                      _setScale(CalendarScale.day);
+                    },
+                  ),
+                  CalendarScale.month => MonthView(
+                    onSelectDay: (value) {
+                      _setAnchor(value);
+                      _setScale(CalendarScale.day);
+                    },
+                  ),
+                  CalendarScale.year => YearView(
+                    onSelectMonth: (value) {
+                      _setAnchor(value);
+                      _setScale(CalendarScale.month);
+                    },
+                  ),
+                },
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-}
-
-class _ScalePlaceholder extends StatelessWidget {
-  const _ScalePlaceholder({required this.scale, required this.l10n});
-
-  final CalendarScale scale;
-  final AppLocalizations l10n;
-
-  @override
-  Widget build(BuildContext context) {
-    final label = switch (scale) {
-      CalendarScale.day => l10n.navDay,
-      CalendarScale.week => l10n.navWeek,
-      CalendarScale.month => l10n.navMonth,
-      CalendarScale.year => l10n.navYear,
-    };
-    final colors = Theme.of(context).vrijdagColors;
-    return Center(
-      child: Text(
-        label,
-        style: Theme.of(
-          context,
-        ).textTheme.titleMedium?.copyWith(color: colors.inkSoft),
       ),
     );
   }
