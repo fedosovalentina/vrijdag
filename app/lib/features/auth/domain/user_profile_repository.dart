@@ -7,4 +7,15 @@ abstract class UserProfileRepository {
     required String language,
     required String timezone,
   });
+
+  /// Loads the profile row, or null when missing.
+  Future<UserProfile?> fetchProfile(String userId);
+
+  /// Updates language, home city, and school holiday region preferences.
+  Future<UserProfile> updatePreferences({
+    required String userId,
+    required String language,
+    String? homeCity,
+    String? schoolHolidayRegion,
+  });
 }

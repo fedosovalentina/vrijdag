@@ -1,8 +1,9 @@
 import 'package:vrijdag/features/calendar/data/drift_personal_events_cache.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 
-/// Prefers the remote repository; falls back to Drift on read failure.
+/// Cache-first reads; writes go remote (local-first) then cache.
 class CachingPersonalEventsRepository implements PersonalEventsRepository {
   CachingPersonalEventsRepository({
     required PersonalEventsRepository remote,
@@ -22,17 +23,18 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
     required DateTime to,
   }) async {
     try {
-      final events = await _remote.listOverlapping(from: from, to: to);
-      await _cache.upsertAll(events);
-      return events;
+      final remote = await _remote.listOverlapping(from: from, to: to);
+      await _cache.upsertAll(remote);
     } on Object {
-      final cached = await _cache.listForUser(_currentUserId());
-      return cached
-          .where((e) => !e.isDeleted)
-          .where((e) => _overlaps(e, from, to))
-          .toList()
-        ..sort(_compare);
+      // Serve cache only.
     }
+
+    final cached = await _cache.listForUser(_currentUserId());
+    return cached
+        .where((e) => !e.isDeleted)
+        .where((e) => _overlaps(e, from, to))
+        .toList()
+      ..sort(_compare);
   }
 
   @override
@@ -50,6 +52,8 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
     required String timezone,
     String? notes,
     String? location,
+    RecurrenceRule? recurrenceRule,
+    DateTime? recurrenceUntil,
   }) async {
     final event = await _remote.createAllDay(
       title: title,
@@ -58,6 +62,8 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
       timezone: timezone,
       notes: notes,
       location: location,
+      recurrenceRule: recurrenceRule,
+      recurrenceUntil: recurrenceUntil,
     );
     await _cache.upsert(event);
     return event;
@@ -72,14 +78,40 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
 
   @override
   Future<void> softDelete(String eventId) async {
+    final existing = await _findCached(eventId);
+    if (existing != null) {
+      await _cache.upsert(
+        existing.copyWith(
+          deletedAt: DateTime.now().toUtc(),
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+    }
     await _remote.softDelete(eventId);
-    await _cache.remove(eventId);
   }
 
   @override
   Future<void> undoSoftDelete(String eventId) async {
+    final existing = await _findCached(eventId);
+    if (existing != null) {
+      await _cache.upsert(
+        existing.copyWith(
+          clearDeletedAt: true,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+    }
     await _remote.undoSoftDelete(eventId);
-    // Next list refresh will rehydrate the cache.
+  }
+
+  Future<PersonalEvent?> _findCached(String eventId) async {
+    final all = await _cache.listForUser(_currentUserId());
+    for (final event in all) {
+      if (event.id == eventId) {
+        return event;
+      }
+    }
+    return null;
   }
 
   bool _overlaps(PersonalEvent event, DateTime from, DateTime to) {

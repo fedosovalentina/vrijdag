@@ -242,6 +242,54 @@
   "@calendarAllDay": {
     "description": "Toggle / badge for all-day events."
   },
+  "calendarRecurrenceLabel": "Herhaling",
+  "@calendarRecurrenceLabel": {
+    "description": "Label for the recurrence frequency field on the event editor."
+  },
+  "calendarRecurrenceDoesNotRepeat": "Herhaalt niet",
+  "@calendarRecurrenceDoesNotRepeat": {
+    "description": "Recurrence option: event does not repeat."
+  },
+  "calendarRecurrenceDaily": "Dagelijks",
+  "@calendarRecurrenceDaily": {
+    "description": "Recurrence option: every day."
+  },
+  "calendarRecurrenceWeekly": "Wekelijks",
+  "@calendarRecurrenceWeekly": {
+    "description": "Recurrence option: every week on the start weekday."
+  },
+  "calendarRecurrenceMonthly": "Maandelijks",
+  "@calendarRecurrenceMonthly": {
+    "description": "Recurrence option: every month."
+  },
+  "calendarRecurrenceYearly": "Jaarlijks",
+  "@calendarRecurrenceYearly": {
+    "description": "Recurrence option: every year."
+  },
+  "calendarRecurrenceEndsNever": "Eindigt nooit",
+  "@calendarRecurrenceEndsNever": {
+    "description": "Recurrence end option: no until date."
+  },
+  "calendarRecurrenceEndsOnDate": "Eindigt op een datum",
+  "@calendarRecurrenceEndsOnDate": {
+    "description": "Recurrence end option: series ends on a chosen date."
+  },
+  "calendarRecurrenceScopeTitle": "Welke gebeurtenissen?",
+  "@calendarRecurrenceScopeTitle": {
+    "description": "Title for edit/delete scope of a recurring series."
+  },
+  "calendarRecurrenceThisOccurrence": "Deze gebeurtenis",
+  "@calendarRecurrenceThisOccurrence": {
+    "description": "Scope: only this occurrence (V1 unused for delete)."
+  },
+  "calendarRecurrenceThisAndFollowing": "Deze en volgende",
+  "@calendarRecurrenceThisAndFollowing": {
+    "description": "Scope: this and following occurrences (V1 unused for delete)."
+  },
+  "calendarRecurrenceAllEvents": "Alle gebeurtenissen",
+  "@calendarRecurrenceAllEvents": {
+    "description": "Scope: entire recurring series."
+  },
   "syncPendingChanges": "Wijzigingen wachten op synchronisatie",
   "@syncPendingChanges": {
     "description": "Short offline/pending sync banner title."
@@ -349,9 +397,9 @@
   "@birthdayEmpty": {
     "description": "Empty state for the birthday list."
   },
-  "birthdayAge": "Leeftijd {age}",
+  "birthdayAge": "{age} jaar",
   "@birthdayAge": {
-    "description": "Age line when a birth year is known. Never inferred without year.",
+    "description": "Age on Day/Settings. Locked form: 32 jaar (DEC-025).",
     "placeholders": {
       "age": {"type": "int"}
     }
@@ -470,6 +518,74 @@
   "settingsTitle": "Instellingen",
   "@settingsTitle": {
     "description": "Settings screen title. Same word as the chrome action."
+  },
+  "settingsLanguage": "Taal",
+  "@settingsLanguage": {
+    "description": "Settings row: app language preference."
+  },
+  "settingsHomeCity": "Woonplaats",
+  "@settingsHomeCity": {
+    "description": "Settings row: optional home city."
+  },
+  "settingsSchoolRegion": "Schoolvakantieregio",
+  "@settingsSchoolRegion": {
+    "description": "Settings row: Dutch school holiday region."
+  },
+  "languageNameNl": "Nederlands",
+  "@languageNameNl": {
+    "description": "Dutch language option label (shown in its own name)."
+  },
+  "languageNameEn": "English",
+  "@languageNameEn": {
+    "description": "English language option label (shown in its own name)."
+  },
+  "onboardingLanguageTitle": "Welke taal",
+  "@onboardingLanguageTitle": {
+    "description": "Onboarding screen 1 title."
+  },
+  "onboardingLanguageBody": "Gekozen uit de taal van je telefoon. Je kunt dit later wijzigen.",
+  "@onboardingLanguageBody": {
+    "description": "Onboarding screen 1 body. Confirm, do not quiz."
+  },
+  "onboardingCityTitle": "Waar woon je",
+  "@onboardingCityTitle": {
+    "description": "Onboarding screen 2 title."
+  },
+  "onboardingCityHint": "Optioneel. Zonder stad blijft de kalender werken; de wereldlaag is dunner.",
+  "@onboardingCityHint": {
+    "description": "Onboarding screen 2 hint. Skip is legitimate."
+  },
+  "onboardingCitySkip": "Overslaan",
+  "@onboardingCitySkip": {
+    "description": "Skip control on the home-city onboarding screen."
+  },
+  "onboardingRegionTitle": "Welke schoolvakantieregio",
+  "@onboardingRegionTitle": {
+    "description": "Onboarding screen 3 title."
+  },
+  "onboardingRegionNoord": "Noord",
+  "@onboardingRegionNoord": {
+    "description": "School holiday region: North."
+  },
+  "onboardingRegionCentraal": "Centraal",
+  "@onboardingRegionCentraal": {
+    "description": "School holiday region: Central (not Midden)."
+  },
+  "onboardingRegionZuid": "Zuid",
+  "@onboardingRegionZuid": {
+    "description": "School holiday region: South."
+  },
+  "onboardingRegionUnknown": "Weet ik niet",
+  "@onboardingRegionUnknown": {
+    "description": "Explicit unknown region; turns school-holiday layer off."
+  },
+  "onboardingContinue": "Doorgaan",
+  "@onboardingContinue": {
+    "description": "Primary continue on onboarding screens."
+  },
+  "onboardingSkip": "Overslaan",
+  "@onboardingSkip": {
+    "description": "First-class skip on onboarding screens."
   },
   "dayTagBirthday": "verjaardag",
   "@dayTagBirthday": {

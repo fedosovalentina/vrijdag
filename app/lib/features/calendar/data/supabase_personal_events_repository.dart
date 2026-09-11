@@ -6,8 +6,10 @@ import 'package:vrijdag/core/database/write_queue.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
 
+/// Local-first writes: cache + queue immediately; remote best-effort (F-009).
 class SupabasePersonalEventsRepository implements PersonalEventsRepository {
   SupabasePersonalEventsRepository({
     required WriteQueue writeQueue,
@@ -80,23 +82,21 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'all_day': false,
       'source': 'vrijdag',
       'source_of_truth': 'vrijdag',
+      'recurrence_rule': draft.recurrenceRule?.toRrule(),
+      'recurrence_until': draft.recurrenceUntil == null
+          ? null
+          : _dateOnly(draft.recurrenceUntil!),
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
     };
 
-    await _enqueue(
-      'personal_event.create.$id',
-      'personal_event.create',
-      payload,
-      now,
-    );
-
-    final inserted = await _db
-        .schema('app')
-        .from('personal_events')
-        .insert(payload)
-        .select()
-        .single();
-
-    return _fromRow(Map<String, dynamic>.from(inserted));
+    final local = _fromRow(payload);
+    final intentId = 'personal_event.create.$id';
+    await _enqueue(intentId, 'personal_event.create', payload, now);
+    await _tryRemote(intentId, () async {
+      await _db.schema('app').from('personal_events').upsert(payload);
+    });
+    return local;
   }
 
   @override
@@ -107,6 +107,8 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
     required String timezone,
     String? notes,
     String? location,
+    RecurrenceRule? recurrenceRule,
+    DateTime? recurrenceUntil,
   }) async {
     AllDayEventSpan(startDate: startDate, endDate: endDate).validate();
 
@@ -124,78 +126,85 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'all_day': true,
       'source': 'vrijdag',
       'source_of_truth': 'vrijdag',
+      'recurrence_rule': recurrenceRule?.toRrule(),
+      'recurrence_until': recurrenceUntil == null
+          ? null
+          : _dateOnly(recurrenceUntil),
+      'created_at': now.toIso8601String(),
+      'updated_at': now.toIso8601String(),
     };
 
-    await _enqueue(
-      'personal_event.create.$id',
-      'personal_event.create',
-      payload,
-      now,
-    );
-
-    final inserted = await _db
-        .schema('app')
-        .from('personal_events')
-        .insert(payload)
-        .select()
-        .single();
-
-    return _fromRow(Map<String, dynamic>.from(inserted));
+    final local = _fromRow(payload);
+    final intentId = 'personal_event.create.$id';
+    await _enqueue(intentId, 'personal_event.create', payload, now);
+    await _tryRemote(intentId, () async {
+      await _db.schema('app').from('personal_events').upsert(payload);
+    });
+    return local;
   }
 
   @override
   Future<PersonalEvent> update(PersonalEvent event) async {
     event.validate();
     final payload = _toRow(event);
-    await _enqueue(
-      'personal_event.update.${event.id}',
-      'personal_event.update',
-      {'id': event.id, ...payload},
-      DateTime.now().toUtc(),
-    );
-
-    final updated = await _db
-        .schema('app')
-        .from('personal_events')
-        .update(payload)
-        .eq('id', event.id)
-        .select()
-        .single();
-
-    return _fromRow(Map<String, dynamic>.from(updated));
+    final now = DateTime.now().toUtc();
+    final intentId = 'personal_event.update.${event.id}';
+    await _enqueue(intentId, 'personal_event.update', {
+      'id': event.id,
+      ...payload,
+    }, now);
+    await _tryRemote(intentId, () async {
+      await _db
+          .schema('app')
+          .from('personal_events')
+          .update(payload)
+          .eq('id', event.id);
+    });
+    return event;
   }
 
   @override
   Future<void> softDelete(String eventId) async {
     final deletedAt = DateTime.now().toUtc().toIso8601String();
-    await _enqueue(
-      'personal_event.delete.$eventId',
-      'personal_event.soft_delete',
-      {'id': eventId, 'deleted_at': deletedAt},
-      DateTime.now().toUtc(),
-    );
-
-    await _db
-        .schema('app')
-        .from('personal_events')
-        .update({'deleted_at': deletedAt})
-        .eq('id', eventId);
+    final intentId = 'personal_event.delete.$eventId';
+    await _enqueue(intentId, 'personal_event.soft_delete', {
+      'id': eventId,
+      'deleted_at': deletedAt,
+    }, DateTime.now().toUtc());
+    await _tryRemote(intentId, () async {
+      await _db
+          .schema('app')
+          .from('personal_events')
+          .update({'deleted_at': deletedAt})
+          .eq('id', eventId);
+    });
   }
 
   @override
   Future<void> undoSoftDelete(String eventId) async {
-    await _enqueue(
-      'personal_event.undelete.$eventId',
-      'personal_event.undo_soft_delete',
-      {'id': eventId},
-      DateTime.now().toUtc(),
-    );
+    final intentId = 'personal_event.undelete.$eventId';
+    await _enqueue(intentId, 'personal_event.undo_soft_delete', {
+      'id': eventId,
+    }, DateTime.now().toUtc());
+    await _tryRemote(intentId, () async {
+      await _db
+          .schema('app')
+          .from('personal_events')
+          .update({'deleted_at': null})
+          .eq('id', eventId);
+    });
+  }
 
-    await _db
-        .schema('app')
-        .from('personal_events')
-        .update({'deleted_at': null})
-        .eq('id', eventId);
+  Future<void> _tryRemote(
+    String intentId,
+    Future<void> Function() action,
+  ) async {
+    try {
+      await action();
+      await _writeQueue.remove(intentId);
+    } on Object {
+      // Offline / transient: intent stays queued for replay.
+    }
   }
 
   Future<void> _enqueue(
@@ -231,13 +240,35 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           event.timed?.timezone ??
           (event.allDay != null ? 'Europe/Amsterdam' : 'UTC'),
       'all_day': event.isAllDay,
+      'recurrence_rule': event.recurrenceRule?.toRrule(),
+      'recurrence_until': event.recurrenceUntil == null
+          ? null
+          : _dateOnly(event.recurrenceUntil!),
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
+      'updated_at': event.updatedAt.toUtc().toIso8601String(),
     };
   }
 
   PersonalEvent _fromRow(Map<String, dynamic> row) {
     final allDay = row['all_day'] as bool? ?? false;
     final timezone = row['timezone'] as String? ?? 'Europe/Amsterdam';
+    final ruleRaw = row['recurrence_rule'] as String?;
+    RecurrenceRule? rule;
+    if (ruleRaw != null && ruleRaw.trim().isNotEmpty) {
+      try {
+        rule = RecurrenceRule.parse(ruleRaw);
+      } on Object {
+        rule = null;
+      }
+    }
+    final untilRaw = row['recurrence_until'];
+    DateTime? until;
+    if (untilRaw is String && untilRaw.isNotEmpty) {
+      until = DateTime.parse(untilRaw);
+    }
+    final createdRaw = row['created_at'] as String?;
+    final updatedRaw = row['updated_at'] as String?;
+    final now = DateTime.now().toUtc();
     return PersonalEvent(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -257,13 +288,15 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
               endDate: DateTime.parse(row['end_date'] as String),
             )
           : null,
+      recurrenceRule: rule,
+      recurrenceUntil: until,
       source: _parseSource(row['source'] as String?),
       sourceOfTruth: _parseSourceOfTruth(row['source_of_truth'] as String?),
       deletedAt: row['deleted_at'] == null
           ? null
           : DateTime.parse(row['deleted_at'] as String).toUtc(),
-      createdAt: DateTime.parse(row['created_at'] as String).toUtc(),
-      updatedAt: DateTime.parse(row['updated_at'] as String).toUtc(),
+      createdAt: createdRaw == null ? now : DateTime.parse(createdRaw).toUtc(),
+      updatedAt: updatedRaw == null ? now : DateTime.parse(updatedRaw).toUtc(),
     );
   }
 

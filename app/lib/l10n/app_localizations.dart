@@ -446,6 +446,78 @@ abstract class AppLocalizations {
   /// **'Hele dag'**
   String get calendarAllDay;
 
+  /// Label for the recurrence frequency field on the event editor.
+  ///
+  /// In nl, this message translates to:
+  /// **'Herhaling'**
+  String get calendarRecurrenceLabel;
+
+  /// Recurrence option: event does not repeat.
+  ///
+  /// In nl, this message translates to:
+  /// **'Herhaalt niet'**
+  String get calendarRecurrenceDoesNotRepeat;
+
+  /// Recurrence option: every day.
+  ///
+  /// In nl, this message translates to:
+  /// **'Dagelijks'**
+  String get calendarRecurrenceDaily;
+
+  /// Recurrence option: every week on the start weekday.
+  ///
+  /// In nl, this message translates to:
+  /// **'Wekelijks'**
+  String get calendarRecurrenceWeekly;
+
+  /// Recurrence option: every month.
+  ///
+  /// In nl, this message translates to:
+  /// **'Maandelijks'**
+  String get calendarRecurrenceMonthly;
+
+  /// Recurrence option: every year.
+  ///
+  /// In nl, this message translates to:
+  /// **'Jaarlijks'**
+  String get calendarRecurrenceYearly;
+
+  /// Recurrence end option: no until date.
+  ///
+  /// In nl, this message translates to:
+  /// **'Eindigt nooit'**
+  String get calendarRecurrenceEndsNever;
+
+  /// Recurrence end option: series ends on a chosen date.
+  ///
+  /// In nl, this message translates to:
+  /// **'Eindigt op een datum'**
+  String get calendarRecurrenceEndsOnDate;
+
+  /// Title for edit/delete scope of a recurring series.
+  ///
+  /// In nl, this message translates to:
+  /// **'Welke gebeurtenissen?'**
+  String get calendarRecurrenceScopeTitle;
+
+  /// Scope: only this occurrence (V1 unused for delete).
+  ///
+  /// In nl, this message translates to:
+  /// **'Deze gebeurtenis'**
+  String get calendarRecurrenceThisOccurrence;
+
+  /// Scope: this and following occurrences (V1 unused for delete).
+  ///
+  /// In nl, this message translates to:
+  /// **'Deze en volgende'**
+  String get calendarRecurrenceThisAndFollowing;
+
+  /// Scope: entire recurring series.
+  ///
+  /// In nl, this message translates to:
+  /// **'Alle gebeurtenissen'**
+  String get calendarRecurrenceAllEvents;
+
   /// Short offline/pending sync banner title.
   ///
   /// In nl, this message translates to:
@@ -602,10 +674,10 @@ abstract class AppLocalizations {
   /// **'Nog geen verjaardagen.'**
   String get birthdayEmpty;
 
-  /// Age line when a birth year is known. Never inferred without year.
+  /// Age on Day/Settings. Locked form: 32 jaar (DEC-025).
   ///
   /// In nl, this message translates to:
-  /// **'Leeftijd {age}'**
+  /// **'{age} jaar'**
   String birthdayAge(int age);
 
   /// Shown when the birthday list fails to load.
@@ -775,6 +847,108 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Instellingen'**
   String get settingsTitle;
+
+  /// Settings row: app language preference.
+  ///
+  /// In nl, this message translates to:
+  /// **'Taal'**
+  String get settingsLanguage;
+
+  /// Settings row: optional home city.
+  ///
+  /// In nl, this message translates to:
+  /// **'Woonplaats'**
+  String get settingsHomeCity;
+
+  /// Settings row: Dutch school holiday region.
+  ///
+  /// In nl, this message translates to:
+  /// **'Schoolvakantieregio'**
+  String get settingsSchoolRegion;
+
+  /// Dutch language option label (shown in its own name).
+  ///
+  /// In nl, this message translates to:
+  /// **'Nederlands'**
+  String get languageNameNl;
+
+  /// English language option label (shown in its own name).
+  ///
+  /// In nl, this message translates to:
+  /// **'English'**
+  String get languageNameEn;
+
+  /// Onboarding screen 1 title.
+  ///
+  /// In nl, this message translates to:
+  /// **'Welke taal'**
+  String get onboardingLanguageTitle;
+
+  /// Onboarding screen 1 body. Confirm, do not quiz.
+  ///
+  /// In nl, this message translates to:
+  /// **'Gekozen uit de taal van je telefoon. Je kunt dit later wijzigen.'**
+  String get onboardingLanguageBody;
+
+  /// Onboarding screen 2 title.
+  ///
+  /// In nl, this message translates to:
+  /// **'Waar woon je'**
+  String get onboardingCityTitle;
+
+  /// Onboarding screen 2 hint. Skip is legitimate.
+  ///
+  /// In nl, this message translates to:
+  /// **'Optioneel. Zonder stad blijft de kalender werken; de wereldlaag is dunner.'**
+  String get onboardingCityHint;
+
+  /// Skip control on the home-city onboarding screen.
+  ///
+  /// In nl, this message translates to:
+  /// **'Overslaan'**
+  String get onboardingCitySkip;
+
+  /// Onboarding screen 3 title.
+  ///
+  /// In nl, this message translates to:
+  /// **'Welke schoolvakantieregio'**
+  String get onboardingRegionTitle;
+
+  /// School holiday region: North.
+  ///
+  /// In nl, this message translates to:
+  /// **'Noord'**
+  String get onboardingRegionNoord;
+
+  /// School holiday region: Central (not Midden).
+  ///
+  /// In nl, this message translates to:
+  /// **'Centraal'**
+  String get onboardingRegionCentraal;
+
+  /// School holiday region: South.
+  ///
+  /// In nl, this message translates to:
+  /// **'Zuid'**
+  String get onboardingRegionZuid;
+
+  /// Explicit unknown region; turns school-holiday layer off.
+  ///
+  /// In nl, this message translates to:
+  /// **'Weet ik niet'**
+  String get onboardingRegionUnknown;
+
+  /// Primary continue on onboarding screens.
+  ///
+  /// In nl, this message translates to:
+  /// **'Doorgaan'**
+  String get onboardingContinue;
+
+  /// First-class skip on onboarding screens.
+  ///
+  /// In nl, this message translates to:
+  /// **'Overslaan'**
+  String get onboardingSkip;
 
   /// All-day band tag for a birthday on Day.
   ///

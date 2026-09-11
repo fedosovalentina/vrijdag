@@ -195,6 +195,42 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarAllDay => 'All day';
 
   @override
+  String get calendarRecurrenceLabel => 'Repeat';
+
+  @override
+  String get calendarRecurrenceDoesNotRepeat => 'Does not repeat';
+
+  @override
+  String get calendarRecurrenceDaily => 'Daily';
+
+  @override
+  String get calendarRecurrenceWeekly => 'Weekly';
+
+  @override
+  String get calendarRecurrenceMonthly => 'Monthly';
+
+  @override
+  String get calendarRecurrenceYearly => 'Yearly';
+
+  @override
+  String get calendarRecurrenceEndsNever => 'Ends never';
+
+  @override
+  String get calendarRecurrenceEndsOnDate => 'Ends on a date';
+
+  @override
+  String get calendarRecurrenceScopeTitle => 'Which events?';
+
+  @override
+  String get calendarRecurrenceThisOccurrence => 'This event';
+
+  @override
+  String get calendarRecurrenceThisAndFollowing => 'This and following';
+
+  @override
+  String get calendarRecurrenceAllEvents => 'All events';
+
+  @override
   String get syncPendingChanges => 'Changes waiting to sync';
 
   @override
@@ -283,7 +319,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String birthdayAge(int age) {
-    return 'Age $age';
+    return '$age years';
   }
 
   @override
@@ -371,6 +407,59 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Settings';
+
+  @override
+  String get settingsLanguage => 'Language';
+
+  @override
+  String get settingsHomeCity => 'Home city';
+
+  @override
+  String get settingsSchoolRegion => 'School holiday region';
+
+  @override
+  String get languageNameNl => 'Nederlands';
+
+  @override
+  String get languageNameEn => 'English';
+
+  @override
+  String get onboardingLanguageTitle => 'Which language';
+
+  @override
+  String get onboardingLanguageBody =>
+      'Taken from your phone language. You can change this later.';
+
+  @override
+  String get onboardingCityTitle => 'Where do you live';
+
+  @override
+  String get onboardingCityHint =>
+      'Optional. Without a city the calendar still works; the world layer is thinner.';
+
+  @override
+  String get onboardingCitySkip => 'Skip';
+
+  @override
+  String get onboardingRegionTitle => 'Which school holiday region';
+
+  @override
+  String get onboardingRegionNoord => 'North';
+
+  @override
+  String get onboardingRegionCentraal => 'Central';
+
+  @override
+  String get onboardingRegionZuid => 'South';
+
+  @override
+  String get onboardingRegionUnknown => 'I don\'t know';
+
+  @override
+  String get onboardingContinue => 'Continue';
+
+  @override
+  String get onboardingSkip => 'Skip';
 
   @override
   String get dayTagBirthday => 'birthday';

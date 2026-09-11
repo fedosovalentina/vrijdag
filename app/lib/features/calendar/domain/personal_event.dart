@@ -1,4 +1,5 @@
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 
 enum EventSource { vrijdag, google, imported }
 
@@ -14,6 +15,8 @@ class PersonalEvent {
     this.location,
     this.timed,
     this.allDay,
+    this.recurrenceRule,
+    this.recurrenceUntil,
     required this.source,
     required this.sourceOfTruth,
     this.deletedAt,
@@ -28,6 +31,8 @@ class PersonalEvent {
   final String? location;
   final TimedEventSpan? timed;
   final AllDayEventSpan? allDay;
+  final RecurrenceRule? recurrenceRule;
+  final DateTime? recurrenceUntil;
   final EventSource source;
   final SourceOfTruth sourceOfTruth;
   final DateTime? deletedAt;
@@ -37,6 +42,42 @@ class PersonalEvent {
   bool get isAllDay => allDay != null;
   bool get isDeleted => deletedAt != null;
   bool get hasLocation => location != null && location!.trim().isNotEmpty;
+  bool get isRecurring => recurrenceRule != null;
+
+  PersonalEvent copyWith({
+    String? title,
+    String? notes,
+    String? location,
+    TimedEventSpan? timed,
+    AllDayEventSpan? allDay,
+    RecurrenceRule? recurrenceRule,
+    DateTime? recurrenceUntil,
+    bool clearRecurrence = false,
+    DateTime? deletedAt,
+    bool clearDeletedAt = false,
+    DateTime? updatedAt,
+  }) {
+    return PersonalEvent(
+      id: id,
+      userId: userId,
+      title: title ?? this.title,
+      notes: notes ?? this.notes,
+      location: location ?? this.location,
+      timed: timed ?? this.timed,
+      allDay: allDay ?? this.allDay,
+      recurrenceRule: clearRecurrence
+          ? null
+          : (recurrenceRule ?? this.recurrenceRule),
+      recurrenceUntil: clearRecurrence
+          ? null
+          : (recurrenceUntil ?? this.recurrenceUntil),
+      source: source,
+      sourceOfTruth: sourceOfTruth,
+      deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 
   void validate() {
     if (title.trim().isEmpty) {
@@ -50,6 +91,7 @@ class PersonalEvent {
     }
     timed?.validate();
     allDay?.validate();
+    recurrenceRule?.validate();
   }
 }
 
@@ -62,6 +104,8 @@ class NewTimedEventDraft {
     Duration? duration,
     this.notes,
     this.location,
+    this.recurrenceRule,
+    this.recurrenceUntil,
   }) : endsAt = startsAt.add(duration ?? defaultTimedEventDuration);
 
   final String title;
@@ -70,4 +114,6 @@ class NewTimedEventDraft {
   final String timezone;
   final String? notes;
   final String? location;
+  final RecurrenceRule? recurrenceRule;
+  final DateTime? recurrenceUntil;
 }

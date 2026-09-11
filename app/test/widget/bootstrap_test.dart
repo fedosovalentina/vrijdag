@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vrijdag/app.dart';
 import 'package:vrijdag/core/analytics/noop_analytics.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
@@ -14,6 +15,7 @@ import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
+import 'package:vrijdag/features/onboarding/presentation/onboarding_providers.dart';
 
 import '../support/fake_auth_repository.dart';
 import '../support/memory_birthdays_repository.dart';
@@ -22,6 +24,10 @@ import '../support/memory_write_queue.dart';
 
 void main() {
   late FakeAuthRepository auth;
+
+  setUp(() {
+    SharedPreferences.setMockInitialValues({onboardingCompletedPrefsKey: true});
+  });
 
   tearDown(() async {
     await auth.dispose();
@@ -55,6 +61,7 @@ void main() {
       ),
       isOnlineProvider.overrideWith((ref) => Stream.value(true)),
       writeQueueReplayControllerProvider.overrideWith((ref) {}),
+      onboardingCompletedProvider.overrideWith((ref) async => true),
     ];
   }
 

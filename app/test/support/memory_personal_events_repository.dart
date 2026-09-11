@@ -1,6 +1,7 @@
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 
 class MemoryPersonalEventsRepository implements PersonalEventsRepository {
   final _events = <String, PersonalEvent>{};
@@ -32,6 +33,8 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
         endsAt: draft.endsAt,
         timezone: draft.timezone,
       ),
+      recurrenceRule: draft.recurrenceRule,
+      recurrenceUntil: draft.recurrenceUntil,
       source: EventSource.vrijdag,
       sourceOfTruth: SourceOfTruth.vrijdag,
       createdAt: now,
@@ -49,8 +52,9 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
     required String timezone,
     String? notes,
     String? location,
+    RecurrenceRule? recurrenceRule,
+    DateTime? recurrenceUntil,
   }) async {
-    // timezone is stored on the server row; memory stub keeps domain shape only.
     assert(timezone.isNotEmpty);
     final now = DateTime.now().toUtc();
     final event = PersonalEvent(
@@ -60,6 +64,8 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
       notes: notes,
       location: location,
       allDay: AllDayEventSpan(startDate: startDate, endDate: endDate),
+      recurrenceRule: recurrenceRule,
+      recurrenceUntil: recurrenceUntil,
       source: EventSource.vrijdag,
       sourceOfTruth: SourceOfTruth.vrijdag,
       createdAt: now,
@@ -81,18 +87,8 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
     if (existing == null) {
       return;
     }
-    _events[eventId] = PersonalEvent(
-      id: existing.id,
-      userId: existing.userId,
-      title: existing.title,
-      notes: existing.notes,
-      location: existing.location,
-      timed: existing.timed,
-      allDay: existing.allDay,
-      source: existing.source,
-      sourceOfTruth: existing.sourceOfTruth,
+    _events[eventId] = existing.copyWith(
       deletedAt: DateTime.now().toUtc(),
-      createdAt: existing.createdAt,
       updatedAt: DateTime.now().toUtc(),
     );
   }
@@ -103,17 +99,8 @@ class MemoryPersonalEventsRepository implements PersonalEventsRepository {
     if (existing == null) {
       return;
     }
-    _events[eventId] = PersonalEvent(
-      id: existing.id,
-      userId: existing.userId,
-      title: existing.title,
-      notes: existing.notes,
-      location: existing.location,
-      timed: existing.timed,
-      allDay: existing.allDay,
-      source: existing.source,
-      sourceOfTruth: existing.sourceOfTruth,
-      createdAt: existing.createdAt,
+    _events[eventId] = existing.copyWith(
+      clearDeletedAt: true,
       updatedAt: DateTime.now().toUtc(),
     );
   }

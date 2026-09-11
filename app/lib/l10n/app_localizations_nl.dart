@@ -196,6 +196,42 @@ class AppLocalizationsNl extends AppLocalizations {
   String get calendarAllDay => 'Hele dag';
 
   @override
+  String get calendarRecurrenceLabel => 'Herhaling';
+
+  @override
+  String get calendarRecurrenceDoesNotRepeat => 'Herhaalt niet';
+
+  @override
+  String get calendarRecurrenceDaily => 'Dagelijks';
+
+  @override
+  String get calendarRecurrenceWeekly => 'Wekelijks';
+
+  @override
+  String get calendarRecurrenceMonthly => 'Maandelijks';
+
+  @override
+  String get calendarRecurrenceYearly => 'Jaarlijks';
+
+  @override
+  String get calendarRecurrenceEndsNever => 'Eindigt nooit';
+
+  @override
+  String get calendarRecurrenceEndsOnDate => 'Eindigt op een datum';
+
+  @override
+  String get calendarRecurrenceScopeTitle => 'Welke gebeurtenissen?';
+
+  @override
+  String get calendarRecurrenceThisOccurrence => 'Deze gebeurtenis';
+
+  @override
+  String get calendarRecurrenceThisAndFollowing => 'Deze en volgende';
+
+  @override
+  String get calendarRecurrenceAllEvents => 'Alle gebeurtenissen';
+
+  @override
   String get syncPendingChanges => 'Wijzigingen wachten op synchronisatie';
 
   @override
@@ -284,7 +320,7 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String birthdayAge(int age) {
-    return 'Leeftijd $age';
+    return '$age jaar';
   }
 
   @override
@@ -372,6 +408,59 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get settingsTitle => 'Instellingen';
+
+  @override
+  String get settingsLanguage => 'Taal';
+
+  @override
+  String get settingsHomeCity => 'Woonplaats';
+
+  @override
+  String get settingsSchoolRegion => 'Schoolvakantieregio';
+
+  @override
+  String get languageNameNl => 'Nederlands';
+
+  @override
+  String get languageNameEn => 'English';
+
+  @override
+  String get onboardingLanguageTitle => 'Welke taal';
+
+  @override
+  String get onboardingLanguageBody =>
+      'Gekozen uit de taal van je telefoon. Je kunt dit later wijzigen.';
+
+  @override
+  String get onboardingCityTitle => 'Waar woon je';
+
+  @override
+  String get onboardingCityHint =>
+      'Optioneel. Zonder stad blijft de kalender werken; de wereldlaag is dunner.';
+
+  @override
+  String get onboardingCitySkip => 'Overslaan';
+
+  @override
+  String get onboardingRegionTitle => 'Welke schoolvakantieregio';
+
+  @override
+  String get onboardingRegionNoord => 'Noord';
+
+  @override
+  String get onboardingRegionCentraal => 'Centraal';
+
+  @override
+  String get onboardingRegionZuid => 'Zuid';
+
+  @override
+  String get onboardingRegionUnknown => 'Weet ik niet';
+
+  @override
+  String get onboardingContinue => 'Doorgaan';
+
+  @override
+  String get onboardingSkip => 'Overslaan';
 
   @override
   String get dayTagBirthday => 'verjaardag';

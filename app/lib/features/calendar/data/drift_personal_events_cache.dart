@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:vrijdag/core/database/app_database.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 
 /// Local SQLite mirror of personal events for offline reads (F-004 / DEC-019).
 class DriftPersonalEventsCache {
@@ -65,6 +66,10 @@ class DriftPersonalEventsCache {
           : _dateOnly(event.allDay!.endDate),
       'source': event.source.name,
       'source_of_truth': event.sourceOfTruth.name,
+      'recurrence_rule': event.recurrenceRule?.toRrule(),
+      'recurrence_until': event.recurrenceUntil == null
+          ? null
+          : _dateOnly(event.recurrenceUntil!),
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
       'created_at': event.createdAt.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
@@ -73,6 +78,20 @@ class DriftPersonalEventsCache {
 
   PersonalEvent _fromJson(Map<String, dynamic> row) {
     final allDay = row['all_day'] as bool? ?? false;
+    RecurrenceRule? rule;
+    final ruleRaw = row['recurrence_rule'] as String?;
+    if (ruleRaw != null && ruleRaw.trim().isNotEmpty) {
+      try {
+        rule = RecurrenceRule.parse(ruleRaw);
+      } on Object {
+        rule = null;
+      }
+    }
+    DateTime? until;
+    final untilRaw = row['recurrence_until'];
+    if (untilRaw is String && untilRaw.isNotEmpty) {
+      until = DateTime.parse(untilRaw);
+    }
     return PersonalEvent(
       id: row['id'] as String,
       userId: row['user_id'] as String,
@@ -92,6 +111,8 @@ class DriftPersonalEventsCache {
               endDate: DateTime.parse(row['end_date'] as String),
             )
           : null,
+      recurrenceRule: rule,
+      recurrenceUntil: until,
       source: switch (row['source'] as String?) {
         'google' => EventSource.google,
         'imported' => EventSource.imported,

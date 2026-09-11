@@ -431,7 +431,13 @@ class _DayBody extends StatelessWidget {
               for (final birthday in birthdaysToday)
                 AllDayMarker(
                   label: l10n.dayTagBirthday,
-                  title: birthday.name,
+                  title: () {
+                    final age = birthday.ageOn(day);
+                    if (age == null) {
+                      return birthday.name;
+                    }
+                    return '${birthday.name} · ${l10n.birthdayAge(age)}';
+                  }(),
                   onTap: () => onBirthdayTap(birthday),
                 ),
               for (final event in allDay)
