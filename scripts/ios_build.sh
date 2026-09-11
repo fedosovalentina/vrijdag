@@ -156,6 +156,48 @@ sed_inplace() {
   fi
 }
 
+# Fill missing dSYMs for frameworks embedded via Dart native assets
+# (notably objective_c.framework). See dart-lang/native#3290 /
+# Flutter native-assets archive packaging gaps.
+ensure_native_asset_dsyms() {
+  local archive="$1"
+  local frameworks_dir="$archive/Products/Applications/Runner.app/Frameworks"
+  local dsyms_dir="$archive/dSYMs"
+
+  if [[ ! -d "$frameworks_dir" ]]; then
+    warn "No Frameworks dir in archive; skipping native-asset dSYM pass."
+    return 0
+  fi
+  mkdir -p "$dsyms_dir"
+
+  local framework name binary dest
+  shopt -s nullglob
+  for framework in "$frameworks_dir"/*.framework; do
+    name="$(basename "$framework" .framework)"
+    dest="$dsyms_dir/${name}.framework.dSYM"
+    if [[ -d "$dest" ]]; then
+      continue
+    fi
+    binary="$framework/$name"
+    if [[ ! -f "$binary" ]]; then
+      # Versioned framework layout
+      if [[ -f "$framework/Versions/Current/$name" ]]; then
+        binary="$framework/Versions/Current/$name"
+      else
+        continue
+      fi
+    fi
+    log "  Generating missing dSYM for ${name}.framework…"
+    if dsymutil "$binary" -o "$dest" >>"$LOG_FILE" 2>&1; then
+      ok "dSYM: $dest"
+    else
+      warn "dsymutil failed for ${name}.framework (upload may still warn)."
+      rm -rf "$dest"
+    fi
+  done
+  shopt -u nullglob
+}
+
 # ---------------------------------------------------------------------------
 # 1/6 Validation
 # ---------------------------------------------------------------------------
@@ -564,6 +606,10 @@ else
   ok "IPA: $IPA_PATH"
   if [[ -d "$ARCHIVE_PATH" ]]; then
     ok "Archive: $ARCHIVE_PATH"
+    # Native-assets frameworks (e.g. objective_c) can ship without a dSYM in
+    # the archive folder even when DWARF is in the binary. Xcode then warns /
+    # blocks Distribute. Generate and copy any missing framework dSYMs.
+    ensure_native_asset_dsyms "$ARCHIVE_PATH"
   else
     warn "Archive not at $ARCHIVE_PATH (IPA is still usable in Transporter)."
   fi
