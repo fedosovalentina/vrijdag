@@ -76,7 +76,7 @@ void main() {
     expect(find.text('Send sign-in link'), findsOneWidget);
   });
 
-  testWidgets('signed in shows home foundation copy', (tester) async {
+  testWidgets('signed in shows Day home, not F-001 scaffold', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides(
@@ -90,9 +90,9 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('test@example.com'), findsOneWidget);
-    expect(find.textContaining('F-001'), findsOneWidget);
+    expect(find.textContaining('F-001'), findsNothing);
     expect(find.text('Vandaag'), findsOneWidget);
     expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
+    expect(find.text('Verjaardagen'), findsOneWidget);
   });
 }

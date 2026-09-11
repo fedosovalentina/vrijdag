@@ -67,3 +67,13 @@ class BirthdayCreated extends AnalyticsEvent {
 class BirthdayDeleted extends AnalyticsEvent {
   const BirthdayDeleted();
 }
+
+/// Day home opened (F-007). Counts only — never titles.
+class TodayOpened extends AnalyticsEvent {
+  const TodayOpened({required this.hasEvents, required this.eventCountBucket});
+
+  final bool hasEvents;
+
+  /// `0` | `1-2` | `3-5` | `6+`
+  final String eventCountBucket;
+}

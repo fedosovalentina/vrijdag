@@ -79,6 +79,14 @@ class PosthogAnalytics implements Analytics {
         await Posthog().capture(eventName: 'birthday_created');
       case BirthdayDeleted():
         await Posthog().capture(eventName: 'birthday_deleted');
+      case TodayOpened(:final hasEvents, :final eventCountBucket):
+        await Posthog().capture(
+          eventName: 'today_opened',
+          properties: {
+            'has_events': hasEvents,
+            'event_count_bucket': eventCountBucket,
+          },
+        );
     }
 
     // Ensure the batch leaves the device (macOS/debug often exits before interval).
