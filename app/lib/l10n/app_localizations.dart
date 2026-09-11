@@ -613,6 +613,186 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Verjaardagen konden niet worden geladen.'**
   String get birthdayLoadFailed;
+
+  /// Scale jump: Day view.
+  ///
+  /// In nl, this message translates to:
+  /// **'Dag'**
+  String get navDay;
+
+  /// Scale jump: Week view.
+  ///
+  /// In nl, this message translates to:
+  /// **'Week'**
+  String get navWeek;
+
+  /// Scale jump: Month view.
+  ///
+  /// In nl, this message translates to:
+  /// **'Maand'**
+  String get navMonth;
+
+  /// Scale jump: Year view.
+  ///
+  /// In nl, this message translates to:
+  /// **'Jaar'**
+  String get navYear;
+
+  /// Scale jump: Season view. Disabled until F-035.
+  ///
+  /// In nl, this message translates to:
+  /// **'Seizoen'**
+  String get navSeason;
+
+  /// Utility row: open the event editor. Word, not a FAB.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nieuw'**
+  String get chromeNew;
+
+  /// Utility row: open Settings.
+  ///
+  /// In nl, this message translates to:
+  /// **'Instellingen'**
+  String get chromeSettings;
+
+  /// Accessibility label for the weekday zoom strip on Day.
+  ///
+  /// In nl, this message translates to:
+  /// **'Dagen van de week'**
+  String get navZoomWeekdays;
+
+  /// Accessibility label for the week-number zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'Weken van de maand'**
+  String get navZoomWeeks;
+
+  /// Accessibility label for the season-month zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'Maanden van het seizoen'**
+  String get navZoomMonths;
+
+  /// Accessibility label for Day Week Month Year Season.
+  ///
+  /// In nl, this message translates to:
+  /// **'Tijdschaal'**
+  String get navScaleJump;
+
+  /// Short Monday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'ma'**
+  String get zoomMonday;
+
+  /// Short Tuesday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'di'**
+  String get zoomTuesday;
+
+  /// Short Wednesday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'wo'**
+  String get zoomWednesday;
+
+  /// Short Thursday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'do'**
+  String get zoomThursday;
+
+  /// Short Friday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'vr'**
+  String get zoomFriday;
+
+  /// Short Saturday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'za'**
+  String get zoomSaturday;
+
+  /// Short Sunday on the Day zoom strip.
+  ///
+  /// In nl, this message translates to:
+  /// **'zo'**
+  String get zoomSunday;
+
+  /// Spoken week number above the week range.
+  ///
+  /// In nl, this message translates to:
+  /// **'week {week}'**
+  String weekHeading(int week);
+
+  /// Eyebrow above the year number on Year.
+  ///
+  /// In nl, this message translates to:
+  /// **'overzicht'**
+  String get yearOverview;
+
+  /// Year map legend: filled tick is a personal event.
+  ///
+  /// In nl, this message translates to:
+  /// **'afspraak'**
+  String get yearLegendEvent;
+
+  /// Year map legend: ring tick is a birthday.
+  ///
+  /// In nl, this message translates to:
+  /// **'verjaardag'**
+  String get yearLegendBirthday;
+
+  /// Meteorological spring (Mar–May). Independently written Dutch.
+  ///
+  /// In nl, this message translates to:
+  /// **'lente'**
+  String get seasonSpring;
+
+  /// Meteorological summer (Jun–Aug).
+  ///
+  /// In nl, this message translates to:
+  /// **'zomer'**
+  String get seasonSummer;
+
+  /// Meteorological autumn (Sep–Nov).
+  ///
+  /// In nl, this message translates to:
+  /// **'herfst'**
+  String get seasonAutumn;
+
+  /// Meteorological winter (Dec–Feb).
+  ///
+  /// In nl, this message translates to:
+  /// **'winter'**
+  String get seasonWinter;
+
+  /// Settings screen title. Same word as the chrome action.
+  ///
+  /// In nl, this message translates to:
+  /// **'Instellingen'**
+  String get settingsTitle;
+
+  /// All-day band tag for a birthday on Day.
+  ///
+  /// In nl, this message translates to:
+  /// **'verjaardag'**
+  String get dayTagBirthday;
+
+  /// All-day band tag for an all-day personal event.
+  ///
+  /// In nl, this message translates to:
+  /// **'hele dag'**
+  String get dayTagAllDay;
+
+  /// Timed event meta duration on Day (mockup: 60 min).
+  ///
+  /// In nl, this message translates to:
+  /// **'{minutes} min'**
+  String dayDurationMinutes(int minutes);
 }
 
 class _AppLocalizationsDelegate

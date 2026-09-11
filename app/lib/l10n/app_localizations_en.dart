@@ -288,4 +288,98 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get birthdayLoadFailed => 'Birthdays could not be loaded.';
+
+  @override
+  String get navDay => 'Day';
+
+  @override
+  String get navWeek => 'Week';
+
+  @override
+  String get navMonth => 'Month';
+
+  @override
+  String get navYear => 'Year';
+
+  @override
+  String get navSeason => 'Season';
+
+  @override
+  String get chromeNew => 'New';
+
+  @override
+  String get chromeSettings => 'Settings';
+
+  @override
+  String get navZoomWeekdays => 'Days of the week';
+
+  @override
+  String get navZoomWeeks => 'Weeks of the month';
+
+  @override
+  String get navZoomMonths => 'Months of the season';
+
+  @override
+  String get navScaleJump => 'Time scale';
+
+  @override
+  String get zoomMonday => 'Mo';
+
+  @override
+  String get zoomTuesday => 'Tu';
+
+  @override
+  String get zoomWednesday => 'We';
+
+  @override
+  String get zoomThursday => 'Th';
+
+  @override
+  String get zoomFriday => 'Fr';
+
+  @override
+  String get zoomSaturday => 'Sa';
+
+  @override
+  String get zoomSunday => 'Su';
+
+  @override
+  String weekHeading(int week) {
+    return 'week $week';
+  }
+
+  @override
+  String get yearOverview => 'overview';
+
+  @override
+  String get yearLegendEvent => 'event';
+
+  @override
+  String get yearLegendBirthday => 'birthday';
+
+  @override
+  String get seasonSpring => 'spring';
+
+  @override
+  String get seasonSummer => 'summer';
+
+  @override
+  String get seasonAutumn => 'autumn';
+
+  @override
+  String get seasonWinter => 'winter';
+
+  @override
+  String get settingsTitle => 'Settings';
+
+  @override
+  String get dayTagBirthday => 'birthday';
+
+  @override
+  String get dayTagAllDay => 'all day';
+
+  @override
+  String dayDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
 }

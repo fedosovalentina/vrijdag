@@ -95,5 +95,45 @@
       "age": {"type": "int"}
     }
   },
-  "birthdayLoadFailed": "Birthdays could not be loaded."
+  "birthdayLoadFailed": "Birthdays could not be loaded.",
+  "navDay": "Day",
+  "navWeek": "Week",
+  "navMonth": "Month",
+  "navYear": "Year",
+  "navSeason": "Season",
+  "chromeNew": "New",
+  "chromeSettings": "Settings",
+  "navZoomWeekdays": "Days of the week",
+  "navZoomWeeks": "Weeks of the month",
+  "navZoomMonths": "Months of the season",
+  "navScaleJump": "Time scale",
+  "zoomMonday": "Mo",
+  "zoomTuesday": "Tu",
+  "zoomWednesday": "We",
+  "zoomThursday": "Th",
+  "zoomFriday": "Fr",
+  "zoomSaturday": "Sa",
+  "zoomSunday": "Su",
+  "weekHeading": "week {week}",
+  "@weekHeading": {
+    "placeholders": {
+      "week": {"type": "int"}
+    }
+  },
+  "yearOverview": "overview",
+  "yearLegendEvent": "event",
+  "yearLegendBirthday": "birthday",
+  "seasonSpring": "spring",
+  "seasonSummer": "summer",
+  "seasonAutumn": "autumn",
+  "seasonWinter": "winter",
+  "settingsTitle": "Settings",
+  "dayTagBirthday": "birthday",
+  "dayTagAllDay": "all day",
+  "dayDurationMinutes": "{minutes} min",
+  "@dayDurationMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  }
 }

@@ -289,4 +289,98 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get birthdayLoadFailed => 'Verjaardagen konden niet worden geladen.';
+
+  @override
+  String get navDay => 'Dag';
+
+  @override
+  String get navWeek => 'Week';
+
+  @override
+  String get navMonth => 'Maand';
+
+  @override
+  String get navYear => 'Jaar';
+
+  @override
+  String get navSeason => 'Seizoen';
+
+  @override
+  String get chromeNew => 'Nieuw';
+
+  @override
+  String get chromeSettings => 'Instellingen';
+
+  @override
+  String get navZoomWeekdays => 'Dagen van de week';
+
+  @override
+  String get navZoomWeeks => 'Weken van de maand';
+
+  @override
+  String get navZoomMonths => 'Maanden van het seizoen';
+
+  @override
+  String get navScaleJump => 'Tijdschaal';
+
+  @override
+  String get zoomMonday => 'ma';
+
+  @override
+  String get zoomTuesday => 'di';
+
+  @override
+  String get zoomWednesday => 'wo';
+
+  @override
+  String get zoomThursday => 'do';
+
+  @override
+  String get zoomFriday => 'vr';
+
+  @override
+  String get zoomSaturday => 'za';
+
+  @override
+  String get zoomSunday => 'zo';
+
+  @override
+  String weekHeading(int week) {
+    return 'week $week';
+  }
+
+  @override
+  String get yearOverview => 'overzicht';
+
+  @override
+  String get yearLegendEvent => 'afspraak';
+
+  @override
+  String get yearLegendBirthday => 'verjaardag';
+
+  @override
+  String get seasonSpring => 'lente';
+
+  @override
+  String get seasonSummer => 'zomer';
+
+  @override
+  String get seasonAutumn => 'herfst';
+
+  @override
+  String get seasonWinter => 'winter';
+
+  @override
+  String get settingsTitle => 'Instellingen';
+
+  @override
+  String get dayTagBirthday => 'verjaardag';
+
+  @override
+  String get dayTagAllDay => 'hele dag';
+
+  @override
+  String dayDurationMinutes(int minutes) {
+    return '$minutes min';
+  }
 }

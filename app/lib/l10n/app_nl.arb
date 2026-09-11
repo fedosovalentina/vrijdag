@@ -359,5 +359,131 @@
   "birthdayLoadFailed": "Verjaardagen konden niet worden geladen.",
   "@birthdayLoadFailed": {
     "description": "Shown when the birthday list fails to load."
+  },
+  "navDay": "Dag",
+  "@navDay": {
+    "description": "Scale jump: Day view."
+  },
+  "navWeek": "Week",
+  "@navWeek": {
+    "description": "Scale jump: Week view."
+  },
+  "navMonth": "Maand",
+  "@navMonth": {
+    "description": "Scale jump: Month view."
+  },
+  "navYear": "Jaar",
+  "@navYear": {
+    "description": "Scale jump: Year view."
+  },
+  "navSeason": "Seizoen",
+  "@navSeason": {
+    "description": "Scale jump: Season view. Disabled until F-035."
+  },
+  "chromeNew": "Nieuw",
+  "@chromeNew": {
+    "description": "Utility row: open the event editor. Word, not a FAB."
+  },
+  "chromeSettings": "Instellingen",
+  "@chromeSettings": {
+    "description": "Utility row: open Settings."
+  },
+  "navZoomWeekdays": "Dagen van de week",
+  "@navZoomWeekdays": {
+    "description": "Accessibility label for the weekday zoom strip on Day."
+  },
+  "navZoomWeeks": "Weken van de maand",
+  "@navZoomWeeks": {
+    "description": "Accessibility label for the week-number zoom strip."
+  },
+  "navZoomMonths": "Maanden van het seizoen",
+  "@navZoomMonths": {
+    "description": "Accessibility label for the season-month zoom strip."
+  },
+  "navScaleJump": "Tijdschaal",
+  "@navScaleJump": {
+    "description": "Accessibility label for Day Week Month Year Season."
+  },
+  "zoomMonday": "ma",
+  "@zoomMonday": {
+    "description": "Short Monday on the Day zoom strip."
+  },
+  "zoomTuesday": "di",
+  "@zoomTuesday": {
+    "description": "Short Tuesday on the Day zoom strip."
+  },
+  "zoomWednesday": "wo",
+  "@zoomWednesday": {
+    "description": "Short Wednesday on the Day zoom strip."
+  },
+  "zoomThursday": "do",
+  "@zoomThursday": {
+    "description": "Short Thursday on the Day zoom strip."
+  },
+  "zoomFriday": "vr",
+  "@zoomFriday": {
+    "description": "Short Friday on the Day zoom strip."
+  },
+  "zoomSaturday": "za",
+  "@zoomSaturday": {
+    "description": "Short Saturday on the Day zoom strip."
+  },
+  "zoomSunday": "zo",
+  "@zoomSunday": {
+    "description": "Short Sunday on the Day zoom strip."
+  },
+  "weekHeading": "week {week}",
+  "@weekHeading": {
+    "description": "Spoken week number above the week range.",
+    "placeholders": {
+      "week": {"type": "int"}
+    }
+  },
+  "yearOverview": "overzicht",
+  "@yearOverview": {
+    "description": "Eyebrow above the year number on Year."
+  },
+  "yearLegendEvent": "afspraak",
+  "@yearLegendEvent": {
+    "description": "Year map legend: filled tick is a personal event."
+  },
+  "yearLegendBirthday": "verjaardag",
+  "@yearLegendBirthday": {
+    "description": "Year map legend: ring tick is a birthday."
+  },
+  "seasonSpring": "lente",
+  "@seasonSpring": {
+    "description": "Meteorological spring (Mar–May). Independently written Dutch."
+  },
+  "seasonSummer": "zomer",
+  "@seasonSummer": {
+    "description": "Meteorological summer (Jun–Aug)."
+  },
+  "seasonAutumn": "herfst",
+  "@seasonAutumn": {
+    "description": "Meteorological autumn (Sep–Nov)."
+  },
+  "seasonWinter": "winter",
+  "@seasonWinter": {
+    "description": "Meteorological winter (Dec–Feb)."
+  },
+  "settingsTitle": "Instellingen",
+  "@settingsTitle": {
+    "description": "Settings screen title. Same word as the chrome action."
+  },
+  "dayTagBirthday": "verjaardag",
+  "@dayTagBirthday": {
+    "description": "All-day band tag for a birthday on Day."
+  },
+  "dayTagAllDay": "hele dag",
+  "@dayTagAllDay": {
+    "description": "All-day band tag for an all-day personal event."
+  },
+  "dayDurationMinutes": "{minutes} min",
+  "@dayDurationMinutes": {
+    "description": "Timed event meta duration on Day (mockup: 60 min).",
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
   }
 }

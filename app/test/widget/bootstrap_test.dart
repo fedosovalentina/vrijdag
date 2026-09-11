@@ -91,8 +91,9 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.textContaining('F-001'), findsNothing);
-    expect(find.text('Vandaag'), findsOneWidget);
+    expect(find.text('Nieuw'), findsOneWidget);
+    expect(find.text('Instellingen'), findsOneWidget);
+    expect(find.text('Dag'), findsOneWidget);
     expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
-    expect(find.text('Verjaardagen'), findsOneWidget);
   });
 }

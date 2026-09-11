@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
+import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 
-/// Large spoken-form date header (F-094 / F-007).
+/// Spoken-form date header (F-007 / task-02-measurements).
 class DateHeader extends StatelessWidget {
   const DateHeader({
     super.key,
@@ -18,15 +18,32 @@ class DateHeader extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.vrijdagColors;
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: VrijdagSpacing.sm),
+      padding: const EdgeInsets.fromLTRB(
+        VrijdagSpacing.page,
+        VrijdagSpacing.page,
+        VrijdagSpacing.page,
+        VrijdagSpacing.sm,
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             weekdayLabel,
-            style: theme.textTheme.bodyMedium?.copyWith(color: colors.warmGrey),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontSize: 13,
+              color: colors.warmGrey,
+            ),
           ),
-          Text(dateLabel, style: theme.textTheme.headlineMedium),
+          const SizedBox(height: VrijdagSpacing.xxs),
+          Text(
+            dateLabel,
+            style: theme.textTheme.headlineMedium?.copyWith(
+              fontSize: 29,
+              height: 1.1,
+              fontWeight: FontWeight.w500,
+              color: colors.ink,
+            ),
+          ),
         ],
       ),
     );

@@ -10,9 +10,12 @@ import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 
 /// Create or edit a personal event (utilitarian F-004 UI).
 class EventEditorScreen extends ConsumerStatefulWidget {
-  const EventEditorScreen({super.key, this.existing});
+  const EventEditorScreen({super.key, this.existing, this.initialStartLocal});
 
   final PersonalEvent? existing;
+
+  /// Prefill for Nieuw from an empty hour on Day (DEC-025).
+  final DateTime? initialStartLocal;
 
   @override
   ConsumerState<EventEditorScreen> createState() => _EventEditorScreenState();
@@ -57,7 +60,10 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       );
     } else {
       _allDay = false;
-      _startLocal = _roundToNextQuarter(DateTime.now());
+      final seed = widget.initialStartLocal;
+      _startLocal = seed == null
+          ? _roundToNextQuarter(DateTime.now())
+          : DateTime(seed.year, seed.month, seed.day, seed.hour);
       _endLocal = _startLocal.add(defaultTimedEventDuration);
     }
   }

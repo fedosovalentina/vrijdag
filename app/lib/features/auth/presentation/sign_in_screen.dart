@@ -52,14 +52,16 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       _error = null;
     });
 
+    // Capture before awaits: AuthGate may dispose this screen mid-flight.
+    final auth = ref.read(authRepositoryProvider);
+    final analytics = ref.read(analyticsProvider);
+
     try {
-      await ref
-          .read(authRepositoryProvider)
-          .sendMagicLink(
-            email: email,
-            emailRedirectTo: SignInScreen.emailRedirectTo,
-          );
-      await ref.read(analyticsProvider).track(const AuthMagicLinkSent());
+      await auth.sendMagicLink(
+        email: email,
+        emailRedirectTo: SignInScreen.emailRedirectTo,
+      );
+      await analytics.track(const AuthMagicLinkSent());
       if (!mounted) {
         return;
       }
@@ -102,11 +104,13 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       _error = null;
     });
 
+    // Capture before awaits: successful Apple sign-in swaps AuthGate → Day.
+    final auth = ref.read(authRepositoryProvider);
+    final analytics = ref.read(analyticsProvider);
+
     try {
-      await ref.read(authRepositoryProvider).signInWithApple();
-      await ref
-          .read(analyticsProvider)
-          .track(const AuthSignInSucceeded(method: 'apple'));
+      await auth.signInWithApple();
+      await analytics.track(const AuthSignInSucceeded(method: 'apple'));
       if (!mounted) {
         return;
       }

@@ -1,24 +1,33 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:intl/intl.dart';
 import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
-import 'package:vrijdag/core/config/config_providers.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
-import 'package:vrijdag/features/birthdays/presentation/birthdays_panel.dart';
+import 'package:vrijdag/features/birthdays/domain/birthday.dart';
+import 'package:vrijdag/features/birthdays/presentation/birthday_editor_screen.dart';
+import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
+import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
+import 'package:vrijdag/features/calendar/domain/personal_event.dart';
+import 'package:vrijdag/features/calendar/presentation/calendar_nav.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
-import 'package:vrijdag/features/calendar/presentation/today_events_panel.dart';
-import 'package:vrijdag/shared/widgets/component_gallery_screen.dart';
+import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
+import 'package:vrijdag/features/settings/presentation/settings_screen.dart';
+import 'package:vrijdag/l10n/app_localizations.dart';
+import 'package:vrijdag/shared/formatters/spoken_date.dart';
+import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
+import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
+import 'package:vrijdag/shared/widgets/date_header.dart';
+import 'package:vrijdag/shared/widgets/event_row.dart';
+import 'package:vrijdag/shared/widgets/hour_spine.dart';
+import 'package:vrijdag/shared/widgets/quiet_state.dart';
+import 'package:vrijdag/shared/widgets/stale_badge.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
-enum _DayMenuAction { signOut, deleteAccount, componentGallery, testCrash }
-
-/// Signed-in home: Day (Layer 1) — date, personal events, birthdays.
+/// Signed-in home: Day Layer 1 (Task 02 / F-007).
 class DayScreen extends ConsumerStatefulWidget {
   const DayScreen({super.key});
 
@@ -33,12 +42,18 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) {
+        return;
+      }
       _ensureProfile();
       _trackTodayOpened();
     });
   }
 
   Future<void> _ensureProfile() async {
+    if (!mounted) {
+      return;
+    }
     final session = ref.read(authSessionProvider).valueOrNull;
     if (session is! AuthSignedIn) {
       return;
@@ -48,13 +63,12 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final timezone = await resolveDeviceTimezoneId();
 
     try {
-      await ref
-          .read(userProfileRepositoryProvider)
-          .ensureProfile(
-            userId: session.userId,
-            language: language,
-            timezone: timezone,
-          );
+      final profiles = ref.read(userProfileRepositoryProvider);
+      await profiles.ensureProfile(
+        userId: session.userId,
+        language: language,
+        timezone: timezone,
+      );
     } on Object {
       // Profile trigger may already have created the row; sync failures must
       // not block Day (reliability before magic).
@@ -62,21 +76,23 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   Future<void> _trackTodayOpened() async {
-    if (_openedTracked) {
+    if (_openedTracked || !mounted) {
       return;
     }
     _openedTracked = true;
 
+    final analytics = ref.read(analyticsProvider);
     final events = await ref.read(todaysEventsProvider.future);
+    if (!mounted) {
+      return;
+    }
     final count = events.length;
-    await ref
-        .read(analyticsProvider)
-        .track(
-          TodayOpened(
-            hasEvents: count > 0,
-            eventCountBucket: _eventCountBucket(count),
-          ),
-        );
+    await analytics.track(
+      TodayOpened(
+        hasEvents: count > 0,
+        eventCountBucket: _eventCountBucket(count),
+      ),
+    );
   }
 
   static String _eventCountBucket(int count) {
@@ -92,100 +108,36 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     return '6+';
   }
 
-  Future<void> _confirmSignOut(BuildContext context) async {
-    final l10n = context.l10n;
-    final pending = await ref.read(writeQueueProvider).pendingCount();
-    if (pending > 0) {
-      if (!context.mounted) {
-        return;
-      }
-      final proceed = await showDialog<bool>(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text(l10n.authSignOutPendingTitle),
-            content: Text(l10n.authSignOutPendingBody),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: Text(l10n.commonCancel),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.authSignOut),
-              ),
-            ],
-          );
-        },
-      );
-      if (proceed != true) {
-        return;
-      }
-    }
-
-    await ref.read(analyticsProvider).track(const AuthSignOutSucceeded());
-    await ref.read(authRepositoryProvider).signOut();
+  Future<void> _openEditor({
+    PersonalEvent? existing,
+    DateTime? initialStartLocal,
+  }) async {
+    await Navigator.of(context).push<bool>(
+      MaterialPageRoute(
+        builder: (_) => EventEditorScreen(
+          existing: existing,
+          initialStartLocal: initialStartLocal,
+        ),
+      ),
+    );
+    ref.invalidate(dayEventsProvider);
+    ref.invalidate(todaysEventsProvider);
+    ref.invalidate(pendingWriteCountProvider);
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final l10n = context.l10n;
-    final first = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.authDeleteConfirmTitle),
-          content: Text(l10n.authDeleteConfirmBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(l10n.authDeleteConfirmContinue),
-            ),
-          ],
-        );
-      },
+  void _shiftDay(int deltaDays) {
+    final anchor = ref.read(calendarAnchorProvider);
+    ref.read(calendarAnchorProvider.notifier).state = CalendarRange.dateOnly(
+      anchor.add(Duration(days: deltaDays)),
     );
-    if (first != true || !context.mounted) {
-      return;
-    }
+  }
 
-    final second = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(l10n.authDeleteFinalTitle),
-          content: Text(l10n.authDeleteFinalBody),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: Text(l10n.commonCancel),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: Text(l10n.authDeleteFinalAction),
-            ),
-          ],
-        );
-      },
+  void _selectWeekday(int weekday) {
+    final anchor = ref.read(calendarAnchorProvider);
+    final start = CalendarRange.startOfWeek(anchor);
+    ref.read(calendarAnchorProvider.notifier).state = start.add(
+      Duration(days: weekday - DateTime.monday),
     );
-    if (second != true) {
-      return;
-    }
-
-    try {
-      await ref.read(authRepositoryProvider).deleteAccount();
-      await ref.read(analyticsProvider).track(const AuthAccountDeleted());
-    } on Object {
-      if (!context.mounted) {
-        return;
-      }
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text(l10n.authDeleteFailed)));
-    }
   }
 
   @override
@@ -193,87 +145,260 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     ref.watch(writeQueueReplayControllerProvider);
 
     final l10n = context.l10n;
-    final config = ref.watch(appConfigProvider);
-    final locale = Localizations.localeOf(context).toString();
-    final spokenDate = DateFormat.MMMMEEEEd(locale).format(DateTime.now());
-    final showTestCrash =
-        kDebugMode && !config.isProduction && config.hasSentry;
+    final locale = Localizations.localeOf(context);
+    final scale = ref.watch(calendarScaleProvider);
+    final anchor = ref.watch(calendarAnchorProvider);
+    final day = CalendarRange.dateOnly(anchor);
+    final eventsAsync = ref.watch(dayEventsProvider);
+    final birthdaysAsync = ref.watch(birthdaysListProvider);
+
+    final zoomLabels = [
+      l10n.zoomMonday,
+      l10n.zoomTuesday,
+      l10n.zoomWednesday,
+      l10n.zoomThursday,
+      l10n.zoomFriday,
+      l10n.zoomSaturday,
+      l10n.zoomSunday,
+    ];
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.commonAppName),
-        actions: [
-          PopupMenuButton<_DayMenuAction>(
-            onSelected: (value) async {
-              switch (value) {
-                case _DayMenuAction.signOut:
-                  await _confirmSignOut(context);
-                case _DayMenuAction.deleteAccount:
-                  await _confirmDelete(context);
-                case _DayMenuAction.componentGallery:
-                  if (!ComponentGalleryScreen.isAvailable) {
-                    return;
-                  }
-                  if (!context.mounted) {
-                    return;
-                  }
-                  await Navigator.of(context).push<void>(
-                    MaterialPageRoute(
-                      builder: (_) => const ComponentGalleryScreen(),
-                    ),
-                  );
-                case _DayMenuAction.testCrash:
-                  ref.read(errorReporterProvider).triggerTestCrash();
-              }
-            },
-            itemBuilder: (context) => [
-              PopupMenuItem(
-                value: _DayMenuAction.signOut,
-                child: Text(l10n.authSignOut),
-              ),
-              PopupMenuItem(
-                value: _DayMenuAction.deleteAccount,
-                child: Text(l10n.authDeleteAccount),
-              ),
-              if (ComponentGalleryScreen.isAvailable)
-                PopupMenuItem(
-                  value: _DayMenuAction.componentGallery,
-                  child: Text(l10n.designGalleryTitle),
-                ),
-              if (showTestCrash)
-                PopupMenuItem(
-                  value: _DayMenuAction.testCrash,
-                  child: Text(l10n.bootstrapTestCrash),
-                ),
-            ],
-          ),
-        ],
-      ),
       body: SafeArea(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const SyncPendingBanner(),
+            CalendarNav(
+              scale: scale,
+              zoomSemanticLabel: l10n.navZoomWeekdays,
+              zoomItems: [
+                for (var i = 0; i < 7; i++)
+                  CalendarZoomItem(
+                    label: zoomLabels[i],
+                    selected:
+                        scale == CalendarScale.day &&
+                        day.weekday == DateTime.monday + i,
+                    onTap: scale == CalendarScale.day
+                        ? () => _selectWeekday(DateTime.monday + i)
+                        : null,
+                  ),
+              ],
+              onScaleSelected: (value) {
+                ref.read(calendarScaleProvider.notifier).state = value;
+              },
+              onNew: () => _openEditor(),
+              onSettings: () {
+                Navigator.of(context).push<void>(
+                  MaterialPageRoute(builder: (_) => const SettingsScreen()),
+                );
+              },
+            ),
             Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    Text(
-                      spokenDate,
-                      style: Theme.of(context).textTheme.headlineMedium,
-                    ),
-                    const SizedBox(height: 24),
-                    const TodayEventsPanel(),
-                    const SizedBox(height: 24),
-                    const BirthdaysPanel(),
-                  ],
-                ),
+              child: GestureDetector(
+                onHorizontalDragEnd: (details) {
+                  final v = details.primaryVelocity;
+                  if (v == null) {
+                    return;
+                  }
+                  if (v < -200) {
+                    _shiftDay(1);
+                  } else if (v > 200) {
+                    _shiftDay(-1);
+                  }
+                },
+                child: scale == CalendarScale.day
+                    ? _DayBody(
+                        day: day,
+                        locale: locale,
+                        l10n: l10n,
+                        eventsAsync: eventsAsync,
+                        birthdaysAsync: birthdaysAsync,
+                        onOpenEditor: _openEditor,
+                        onBirthdayTap: (birthday) async {
+                          await Navigator.of(context).push<bool>(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  BirthdayEditorScreen(existing: birthday),
+                            ),
+                          );
+                          ref.invalidate(birthdaysListProvider);
+                        },
+                        onHourTap: (hour) {
+                          _openEditor(
+                            initialStartLocal: DateTime(
+                              day.year,
+                              day.month,
+                              day.day,
+                              hour,
+                            ),
+                          );
+                        },
+                      )
+                    : _ScalePlaceholder(scale: scale, l10n: l10n),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _ScalePlaceholder extends StatelessWidget {
+  const _ScalePlaceholder({required this.scale, required this.l10n});
+
+  final CalendarScale scale;
+  final AppLocalizations l10n;
+
+  @override
+  Widget build(BuildContext context) {
+    final label = switch (scale) {
+      CalendarScale.day => l10n.navDay,
+      CalendarScale.week => l10n.navWeek,
+      CalendarScale.month => l10n.navMonth,
+      CalendarScale.year => l10n.navYear,
+    };
+    final colors = Theme.of(context).vrijdagColors;
+    return Center(
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.titleMedium?.copyWith(color: colors.inkSoft),
+      ),
+    );
+  }
+}
+
+class _DayBody extends StatelessWidget {
+  const _DayBody({
+    required this.day,
+    required this.locale,
+    required this.l10n,
+    required this.eventsAsync,
+    required this.birthdaysAsync,
+    required this.onOpenEditor,
+    required this.onBirthdayTap,
+    required this.onHourTap,
+  });
+
+  final DateTime day;
+  final Locale locale;
+  final AppLocalizations l10n;
+  final AsyncValue<List<PersonalEvent>> eventsAsync;
+  final AsyncValue<List<Birthday>> birthdaysAsync;
+  final Future<void> Function({
+    PersonalEvent? existing,
+    DateTime? initialStartLocal,
+  })
+  onOpenEditor;
+  final ValueChanged<Birthday> onBirthdayTap;
+  final ValueChanged<int> onHourTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).vrijdagColors;
+    final birthdaysToday = birthdaysAsync.maybeWhen(
+      data: (items) => items.where((b) {
+        final occ = Birthday.occurrenceDate(
+          year: day.year,
+          month: b.month,
+          day: b.day,
+        );
+        return occ.month == day.month && occ.day == day.day;
+      }).toList(),
+      orElse: () => const <Birthday>[],
+    );
+
+    return eventsAsync.when(
+      loading: () => const Center(child: CircularProgressIndicator()),
+      error: (_, _) => QuietState(message: l10n.calendarLoadFailed),
+      data: (events) {
+        final allDay = events.where((e) => e.isAllDay).toList();
+        final timed = events.where((e) => !e.isAllDay).toList()
+          ..sort((a, b) {
+            final aStart = a.timed!.startsAt;
+            final bStart = b.timed!.startsAt;
+            return aStart.compareTo(bStart);
+          });
+        final quiet = allDay.isEmpty && timed.isEmpty && birthdaysToday.isEmpty;
+
+        return SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DateHeader(
+                weekdayLabel: SpokenDate.weekday(day, locale),
+                dateLabel: SpokenDate.dayMonth(day, locale),
+              ),
+              const SyncPendingBanner(),
+              for (final birthday in birthdaysToday)
+                AllDayMarker(
+                  label: l10n.dayTagBirthday,
+                  title: birthday.name,
+                  onTap: () => onBirthdayTap(birthday),
+                ),
+              for (final event in allDay)
+                AllDayMarker(
+                  label: l10n.dayTagAllDay,
+                  title: event.title,
+                  onTap: () => onOpenEditor(existing: event),
+                ),
+              if (quiet) QuietState(message: l10n.calendarEmptyToday),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(
+                  VrijdagSpacing.page,
+                  VrijdagSpacing.xs,
+                  VrijdagSpacing.page,
+                  VrijdagSpacing.page,
+                ),
+                child: Stack(
+                  children: [
+                    Positioned(
+                      left: 68,
+                      top: 0,
+                      bottom: 12,
+                      child: Container(width: 1, color: colors.hair),
+                    ),
+                    if (quiet)
+                      HourSpine(onHourTap: onHourTap)
+                    else
+                      Column(
+                        children: [
+                          for (final event in timed)
+                            EventRow(
+                              timeLabel: _formatStart(event),
+                              title: event.title,
+                              subtitle: _meta(l10n, event),
+                              onTap: () => onOpenEditor(existing: event),
+                            ),
+                        ],
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  static String _formatStart(PersonalEvent event) {
+    final start = event.timed!.startsAt.toLocal();
+    String two(int n) => n.toString().padLeft(2, '0');
+    return '${two(start.hour)}:${two(start.minute)}';
+  }
+
+  static String? _meta(AppLocalizations l10n, PersonalEvent event) {
+    final timed = event.timed;
+    if (timed == null) {
+      return null;
+    }
+    final minutes = timed.endsAt.difference(timed.startsAt).inMinutes;
+    final duration = l10n.dayDurationMinutes(minutes < 0 ? 0 : minutes);
+    if (event.hasLocation) {
+      return '$duration · ${event.location}';
+    }
+    return duration;
   }
 }
