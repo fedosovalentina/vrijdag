@@ -145,9 +145,13 @@ Until those are configured, the Apple button shows a plain-language error.
 
 ## TestFlight
 
-See [`tools/upload-testflight.sh`](../tools/upload-testflight.sh) at the repo root.
-Requires Xcode signing and App Store Connect credentials via environment variables
-(from `.env`, not committed).
+iOS TestFlight → `docs/IOS_RELEASE.md` + `scripts/ios_build.sh`.
+
+```bash
+cp app/dart_defines.example.json app/dart_defines.json   # fill staging keys
+bash scripts/ios_build.sh                                # IPA + Organizer
+bash scripts/ios_build.sh --upload                       # IPA + altool
+```
 
 ## Current status
 

@@ -4,10 +4,23 @@ import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
 
 void main() {
-  test('dark theme paints type in ink, not light-theme black', () {
-    final theme = buildVrijdagTheme(brightness: Brightness.dark);
-    final ink = VrijdagColorTokens.autumnDark.ink;
+  testWidgets('dark theme paints type in ink, not light-theme black', (
+    tester,
+  ) async {
+    late ThemeData theme;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildVrijdagTheme(brightness: Brightness.dark),
+        home: Builder(
+          builder: (context) {
+            theme = Theme.of(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
 
+    final ink = VrijdagColorTokens.autumnDark.ink;
     expect(theme.scaffoldBackgroundColor, VrijdagColorTokens.autumnDark.paper);
     expect(theme.colorScheme.onSurface, ink);
     expect(theme.textTheme.bodyLarge?.color, ink);
@@ -18,10 +31,21 @@ void main() {
     expect(theme.textSelectionTheme.cursorColor, ink);
   });
 
-  test('light theme still uses dark ink on paper', () {
-    final theme = buildVrijdagTheme();
-    final ink = VrijdagColorTokens.autumnLight.ink;
+  testWidgets('light theme still uses dark ink on paper', (tester) async {
+    late ThemeData theme;
+    await tester.pumpWidget(
+      MaterialApp(
+        theme: buildVrijdagTheme(),
+        home: Builder(
+          builder: (context) {
+            theme = Theme.of(context);
+            return const SizedBox.shrink();
+          },
+        ),
+      ),
+    );
 
+    final ink = VrijdagColorTokens.autumnLight.ink;
     expect(theme.scaffoldBackgroundColor, VrijdagColorTokens.autumnLight.paper);
     expect(theme.textTheme.bodyLarge?.color, ink);
     expect(theme.colorScheme.onSurface, ink);

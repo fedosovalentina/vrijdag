@@ -21,6 +21,8 @@ tools/project-status.py
 tools/install-git-hooks.sh
 reports/
 scratch/
+canvases/
+*.canvas.tsx
 *.status.txt
 project-status*.md
 project-status*.txt
@@ -33,12 +35,18 @@ project-status*.txt
 secrets/
 *.pem
 *.p12
+*.p8
 *.key
 *.keystore
 *.jks
 service-account*.json
 google-services.json
 GoogleService-Info.plist
+# Flutter dart-defines and App Store Connect API config (filled copies, never commit)
+dart_defines.json
+asc_api.json
+!dart_defines.example.json
+!asc_api.example.json
 supabase/.temp/
 supabase/.branches/
 
@@ -127,6 +135,7 @@ venv/
 
 # --- Data dumps & scratch --------------------------------------------------
 *.log
+logs/
 tmp/
 .tmp/
 scratch/

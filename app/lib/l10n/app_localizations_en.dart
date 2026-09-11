@@ -85,6 +85,10 @@ class AppLocalizationsEn extends AppLocalizations {
       'The sign-in link could not be sent. Try again later.';
 
   @override
+  String get authSendRateLimited =>
+      'Too many sign-in emails. Wait about an hour, or check spam.';
+
+  @override
   String get authSignOut => 'Sign out';
 
   @override

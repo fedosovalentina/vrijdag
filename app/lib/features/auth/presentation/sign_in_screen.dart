@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/config/config_providers.dart';
@@ -65,6 +66,18 @@ class _SignInScreenState extends ConsumerState<SignInScreen> {
       setState(() {
         _sending = false;
         _sent = true;
+      });
+    } on AuthException catch (error) {
+      if (!mounted) {
+        return;
+      }
+      final rateLimited =
+          error.code == 'over_email_send_rate_limit' ||
+          error.statusCode == '429' ||
+          error.message.toLowerCase().contains('rate limit');
+      setState(() {
+        _sending = false;
+        _error = rateLimited ? l10n.authSendRateLimited : l10n.authSendFailed;
       });
     } on Object {
       if (!mounted) {

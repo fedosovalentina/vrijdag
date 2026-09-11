@@ -1,0 +1,8 @@
+{
+  "VRIJDAG_ENV": "staging",
+  "SUPABASE_URL": "https://YOUR_PROJECT_REF.supabase.co",
+  "SUPABASE_PUBLISHABLE_KEY": "YOUR_SUPABASE_ANON_KEY",
+  "SENTRY_DSN": "",
+  "POSTHOG_API_KEY": "",
+  "POSTHOG_HOST": "https://eu.i.posthog.com"
+}

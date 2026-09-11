@@ -101,6 +101,10 @@
   "@authSendFailed": {
     "description": "Generic failure when magic link send fails."
   },
+  "authSendRateLimited": "Te veel inlogmails. Wacht ongeveer een uur, of kijk in spam.",
+  "@authSendRateLimited": {
+    "description": "Supabase built-in email rate limit (over_email_send_rate_limit)."
+  },
   "authSignOut": "Uitloggen",
   "@authSignOut": {
     "description": "Sign out action."

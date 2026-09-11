@@ -85,6 +85,10 @@ class AppLocalizationsNl extends AppLocalizations {
       'De inloglink kon niet worden gestuurd. Probeer het later opnieuw.';
 
   @override
+  String get authSendRateLimited =>
+      'Te veel inlogmails. Wacht ongeveer een uur, of kijk in spam.';
+
+  @override
   String get authSignOut => 'Uitloggen';
 
   @override

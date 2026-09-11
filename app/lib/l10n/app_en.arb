@@ -24,6 +24,7 @@
   "authCheckEmail": "Open the link in your email to continue.",
   "authInvalidEmail": "Enter a valid email address.",
   "authSendFailed": "The sign-in link could not be sent. Try again later.",
+  "authSendRateLimited": "Too many sign-in emails. Wait about an hour, or check spam.",
   "authSignOut": "Sign out",
   "authSignedInAs": "Signed in as {email}",
   "authSupabaseRequired": "Supabase is required to sign in.",

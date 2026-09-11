@@ -95,6 +95,7 @@ exclamation marks. Dutch and English from day one.
 app/        Flutter client
 supabase/   Database migrations, Edge Functions, seed data
 services/   Background workers, added only when a real need appears
+scripts/    Release scripts (iOS TestFlight)
 tools/      Developer scripts (localization checks, database safety)
 ```
 
@@ -102,6 +103,8 @@ tools/      Developer scripts (localization checks, database safety)
 
 Early development. The Flutter client and Supabase migrations live in this repository.
 See `app/` and `supabase/` for the current scaffold.
+
+iOS TestFlight → `docs/IOS_RELEASE.md` + `scripts/ios_build.sh`
 
 ## Contributing
 

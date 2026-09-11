@@ -242,6 +242,12 @@ abstract class AppLocalizations {
   /// **'De inloglink kon niet worden gestuurd. Probeer het later opnieuw.'**
   String get authSendFailed;
 
+  /// Supabase built-in email rate limit (over_email_send_rate_limit).
+  ///
+  /// In nl, this message translates to:
+  /// **'Te veel inlogmails. Wacht ongeveer een uur, of kijk in spam.'**
+  String get authSendRateLimited;
+
   /// Sign out action.
   ///
   /// In nl, this message translates to:

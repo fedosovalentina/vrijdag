@@ -1,6 +1,15 @@
 #!/usr/bin/env bash
 #
-# Build a staging IPA and upload to TestFlight via Apple's Transporter.
+# Legacy TestFlight helper (reads repo-root .env).
+#
+# Prefer the canonical flow:
+#   bash scripts/ios_build.sh              # build IPA, open Organizer
+#   bash scripts/ios_build.sh --upload     # build + upload via ASC API key
+# See docs/IOS_RELEASE.md
+#
+# This script still works if you already have .env filled:
+#   ./tools/upload-testflight.sh
+#   ./tools/upload-testflight.sh --skip-upload   # build only
 #
 # Requires (from environment or a local .env file — never committed):
 #   SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY          — staging Supabase
