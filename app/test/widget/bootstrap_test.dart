@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vrijdag/app.dart';
 import 'package:vrijdag/core/analytics/noop_analytics.dart';
@@ -113,11 +114,16 @@ void main() {
 
     await tester.tap(find.text('Maand'));
     await tester.pumpAndSettle();
-    expect(find.text('afspraak'), findsOneWidget);
+    // Month feed: spoken month header (replaces the old grid legend).
+    final monthLabel = DateFormat.MMMM(
+      'nl',
+    ).format(DateTime.now()).toLowerCase();
+    expect(find.textContaining(monthLabel), findsWidgets);
 
     await tester.tap(find.text('Jaar'));
     await tester.pumpAndSettle();
     expect(find.text('overzicht'), findsOneWidget);
+    expect(find.text('afspraak'), findsOneWidget);
   });
 
   testWidgets('signed in Day quiet copy works in English', (tester) async {

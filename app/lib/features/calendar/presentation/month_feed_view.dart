@@ -369,12 +369,19 @@ class _DayRowState extends State<_DayRow> {
         children: [
           SizedBox(
             width: 28,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 6),
-              child: Row(
-                children: [
-                  if (today) Container(width: 3, height: 14, color: colors.ink),
-                  Text(
+            // Today bar sits in the 6px left pad so the day number still fits
+            // the fixed 28px column (spec §1) — a Row overflowed by ~4.5px.
+            child: Stack(
+              alignment: Alignment.centerLeft,
+              children: [
+                if (today)
+                  Positioned(
+                    left: 2,
+                    child: Container(width: 3, height: 14, color: colors.ink),
+                  ),
+                Padding(
+                  padding: const EdgeInsets.only(left: 6),
+                  child: Text(
                     '${widget.day.day}',
                     style: TextStyle(
                       fontSize: 13,
@@ -382,8 +389,8 @@ class _DayRowState extends State<_DayRow> {
                       color: past && !today ? colors.warmGrey : colors.ink,
                     ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
           SizedBox(
