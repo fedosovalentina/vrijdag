@@ -19,6 +19,7 @@ class PersonalEvent {
     this.recurrenceUntil,
     this.recurrenceExdates = const [],
     this.seriesMaster,
+    this.categoryId,
     required this.source,
     required this.sourceOfTruth,
     this.deletedAt,
@@ -39,6 +40,9 @@ class PersonalEvent {
 
   /// The stored series row, when this object is one expanded occurrence.
   final PersonalEvent? seriesMaster;
+
+  /// Label chosen for this event. Null means no label.
+  final String? categoryId;
   final EventSource source;
   final SourceOfTruth sourceOfTruth;
   final DateTime? deletedAt;
@@ -60,6 +64,8 @@ class PersonalEvent {
     DateTime? recurrenceUntil,
     List<DateTime>? recurrenceExdates,
     PersonalEvent? seriesMaster,
+    String? categoryId,
+    bool clearCategory = false,
     bool clearRecurrence = false,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
@@ -81,6 +87,7 @@ class PersonalEvent {
           : (recurrenceUntil ?? this.recurrenceUntil),
       recurrenceExdates: recurrenceExdates ?? this.recurrenceExdates,
       seriesMaster: seriesMaster ?? this.seriesMaster,
+      categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
       source: source,
       sourceOfTruth: sourceOfTruth,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),

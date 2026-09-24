@@ -70,6 +70,14 @@ class BirthdayDeleted extends AnalyticsEvent {
 
 /// Day home opened (F-007). Counts only — never titles.
 /// Feed jumped to a day (F-014). [bucket] is `YYYY-MM`, never a title.
+/// A label was saved. [countBucket] is how many labels exist, never a name.
+class CategorySaved extends AnalyticsEvent {
+  const CategorySaved({required this.countBucket});
+
+  /// `1-2` | `3-5` | `6-8`
+  final String countBucket;
+}
+
 class FeedJump extends AnalyticsEvent {
   const FeedJump({required this.target, required this.bucket});
 

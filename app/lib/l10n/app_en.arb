@@ -166,6 +166,13 @@
     }
   },
   "weekDayEmpty": "—",
+  "categoryTitle": "Categories",
+  "categoryAdd": "New",
+  "categoryName": "Name",
+  "categoryEmpty": "No categories yet.",
+  "categoryFull": "At most eight categories.",
+  "categoryDelete": "Delete",
+  "categoryEvent": "Category",
   "feedBackToToday": "Today",
   "feedNow": "now",
   "feedMore": "+{count} more",

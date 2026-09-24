@@ -606,6 +606,34 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "categoryTitle": "Categorieën",
+  "@categoryTitle": {
+    "description": "Settings list of labels the person created for events."
+  },
+  "categoryAdd": "Nieuw",
+  "@categoryAdd": {
+    "description": "Add a category. Same word as the calendar chrome."
+  },
+  "categoryName": "Naam",
+  "@categoryName": {
+    "description": "Field label for a category name."
+  },
+  "categoryEmpty": "Nog geen categorieën.",
+  "@categoryEmpty": {
+    "description": "Quiet state when the person has created no categories."
+  },
+  "categoryFull": "Hooguit acht categorieën.",
+  "@categoryFull": {
+    "description": "Inline sentence when a ninth category is refused."
+  },
+  "categoryDelete": "Verwijder",
+  "@categoryDelete": {
+    "description": "Remove a category. Its events keep no label."
+  },
+  "categoryEvent": "Categorie",
+  "@categoryEvent": {
+    "description": "Event screen row for choosing a label."
+  },
   "feedBackToToday": "Vandaag",
   "@feedBackToToday": {
     "description": "Feed control that brings today into the upper third."

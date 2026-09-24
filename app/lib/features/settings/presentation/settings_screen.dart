@@ -12,6 +12,7 @@ import 'package:vrijdag/features/auth/domain/school_holiday_region.dart';
 import 'package:vrijdag/features/auth/domain/user_profile.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthdays_panel.dart';
+import 'package:vrijdag/features/calendar/presentation/category_list_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
 import 'package:vrijdag/shared/theme/vrijdag_tokens.dart';
@@ -83,6 +84,14 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _confirmDelete(context, ref),
           ),
           const Divider(),
+          ListTile(
+            title: Text(l10n.categoryTitle),
+            onTap: () {
+              Navigator.of(context).push<void>(
+                MaterialPageRoute(builder: (_) => const CategoryListScreen()),
+              );
+            },
+          ),
           const BirthdaysPanel(),
           if (ComponentGalleryScreen.isAvailable) ...[
             const Divider(),

@@ -477,6 +477,27 @@ class AppLocalizationsNl extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get categoryTitle => 'Categorieën';
+
+  @override
+  String get categoryAdd => 'Nieuw';
+
+  @override
+  String get categoryName => 'Naam';
+
+  @override
+  String get categoryEmpty => 'Nog geen categorieën.';
+
+  @override
+  String get categoryFull => 'Hooguit acht categorieën.';
+
+  @override
+  String get categoryDelete => 'Verwijder';
+
+  @override
+  String get categoryEvent => 'Categorie';
+
+  @override
   String get feedBackToToday => 'Vandaag';
 
   @override

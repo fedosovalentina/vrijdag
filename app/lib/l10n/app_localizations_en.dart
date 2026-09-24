@@ -476,6 +476,27 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get categoryTitle => 'Categories';
+
+  @override
+  String get categoryAdd => 'New';
+
+  @override
+  String get categoryName => 'Name';
+
+  @override
+  String get categoryEmpty => 'No categories yet.';
+
+  @override
+  String get categoryFull => 'At most eight categories.';
+
+  @override
+  String get categoryDelete => 'Delete';
+
+  @override
+  String get categoryEvent => 'Category';
+
+  @override
   String get feedBackToToday => 'Today';
 
   @override

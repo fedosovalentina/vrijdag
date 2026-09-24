@@ -10,6 +10,7 @@ import 'package:vrijdag/features/birthdays/domain/birthday.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_presence.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
+import 'package:vrijdag/features/calendar/domain/event_category.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_frame.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_jump.dart';
@@ -295,6 +296,9 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               .read(monthFeedWindowProvider.notifier)
               .adoptScale(computed, slots: used);
         });
+        final categories =
+            ref.watch(eventCategoriesProvider).valueOrNull ??
+            const <EventCategory>[];
         final scale = _visualScale ?? computed;
         final slotCount = window.slotCount < used ? used : window.slotCount;
         return Stack(
@@ -307,6 +311,7 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               scale: scale,
               slotCount: slotCount,
               slots: {for (final s in assigned) s.id: s.slot},
+              categories: categories,
               now: _now,
               locale: locale,
               onOpenYear: widget.onOpenYear,
@@ -368,6 +373,7 @@ class _FeedList extends StatelessWidget {
     required this.scale,
     required this.slotCount,
     required this.slots,
+    required this.categories,
     required this.now,
     required this.locale,
     required this.onOpenYear,
@@ -384,6 +390,7 @@ class _FeedList extends StatelessWidget {
   final FeedScale scale;
   final int slotCount;
   final Map<String, int> slots;
+  final List<EventCategory> categories;
   final DateTime now;
   final Locale locale;
   final VoidCallback onOpenYear;
@@ -464,6 +471,7 @@ class _FeedList extends StatelessWidget {
               spans: _spansOn(day, entries, slots),
               scale: scale,
               slotCount: slotCount,
+              categories: categories,
               weekdayWidth: weekdayWidth,
               now: now,
               locale: locale,
@@ -525,6 +533,7 @@ class _DayRow extends StatefulWidget {
     required this.spans,
     required this.scale,
     required this.slotCount,
+    required this.categories,
     required this.weekdayWidth,
     required this.now,
     required this.locale,
@@ -543,6 +552,7 @@ class _DayRow extends StatefulWidget {
   final List<({int slot, PersonalEvent event})> spans;
   final FeedScale scale;
   final int slotCount;
+  final List<EventCategory> categories;
   final double weekdayWidth;
   final DateTime now;
   final Locale locale;
@@ -689,6 +699,10 @@ class _DayRowState extends State<_DayRow> {
                                   SizedBox(
                                     height: layout.chipHeight,
                                     child: _Chip(
+                                      category: _categoryFor(
+                                        entry.event.categoryId,
+                                        widget.categories,
+                                      ),
                                       entry: entry,
                                       day: widget.day,
                                       scale: widget.scale,
@@ -743,6 +757,27 @@ class _DayRowState extends State<_DayRow> {
   }
 }
 
+EventCategory? _categoryFor(String? id, List<EventCategory> categories) {
+  if (id == null) {
+    return null;
+  }
+  for (final category in categories) {
+    if (category.id == id) {
+      return category;
+    }
+  }
+  return null;
+}
+
+Color _categoryColor(VrijdagColorTokens colors, int index) {
+  return switch (index % 4) {
+    0 => colors.ink,
+    1 => colors.moss,
+    2 => colors.rust,
+    _ => colors.gold,
+  };
+}
+
 class FeedDayPlace {
   const FeedDayPlace({
     required this.day,
@@ -757,6 +792,7 @@ class FeedDayPlace {
 
 class _Chip extends StatelessWidget {
   const _Chip({
+    required this.category,
     required this.entry,
     required this.day,
     required this.scale,
@@ -764,6 +800,7 @@ class _Chip extends StatelessWidget {
     required this.onTap,
   });
 
+  final EventCategory? category;
   final FeedEntry entry;
   final DateTime day;
   final FeedScale scale;
@@ -773,6 +810,7 @@ class _Chip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return _FeedChipBody(
+      category: category,
       entry: entry,
       day: day,
       scale: scale,
@@ -1065,6 +1103,7 @@ FeedScale _lerpScale(FeedScale from, FeedScale to, double t) {
 
 class _FeedChipBody extends StatelessWidget {
   const _FeedChipBody({
+    required this.category,
     required this.entry,
     required this.day,
     required this.scale,
@@ -1072,6 +1111,7 @@ class _FeedChipBody extends StatelessWidget {
     required this.onTap,
   });
 
+  final EventCategory? category;
   final FeedEntry entry;
   final DateTime day;
   final FeedScale scale;
@@ -1082,6 +1122,14 @@ class _FeedChipBody extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = Theme.of(context).vrijdagColors;
     final event = entry.event;
+    final mark = category == null
+        ? null
+        : Border(
+            left: BorderSide(
+              color: _categoryColor(colors, category!.colorIndex),
+              width: 4,
+            ),
+          );
     if (event.isAllDay) {
       return GestureDetector(
         onTap: onTap,
@@ -1169,11 +1217,16 @@ class _FeedChipBody extends StatelessWidget {
                 child: DecoratedBox(
                   decoration: BoxDecoration(
                     color: colors.banner,
-                    border: entry.frequency == null
-                        ? null
-                        : Border(
-                            left: BorderSide(color: colors.warmGrey, width: 3),
-                          ),
+                    border:
+                        mark ??
+                        (entry.frequency == null
+                            ? null
+                            : Border(
+                                left: BorderSide(
+                                  color: colors.warmGrey,
+                                  width: 3,
+                                ),
+                              )),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 7),

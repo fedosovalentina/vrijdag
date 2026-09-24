@@ -3,7 +3,10 @@ import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/data/caching_personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/data/supabase_personal_events_repository.dart';
+import 'package:vrijdag/features/auth/domain/auth_session.dart';
+import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
+import 'package:vrijdag/features/calendar/domain/event_category.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_scale.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
@@ -151,6 +154,69 @@ class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
 
 /// Day the month feed should scroll to after the year map closes.
 final monthFeedJumpProvider = StateProvider<DateTime?>((ref) => null);
+
+final eventCategoriesProvider =
+    AsyncNotifierProvider<EventCategoriesNotifier, List<EventCategory>>(
+      EventCategoriesNotifier.new,
+    );
+
+class EventCategoriesNotifier extends AsyncNotifier<List<EventCategory>> {
+  @override
+  Future<List<EventCategory>> build() async {
+    final session = ref.watch(authSessionProvider).valueOrNull;
+    if (session is! AuthSignedIn) {
+      return const [];
+    }
+    return ref
+        .watch(personalEventsCacheProvider)
+        .loadCategories(session.userId);
+  }
+
+  Future<bool> add(String name) async {
+    final session = ref.read(authSessionProvider).valueOrNull;
+    if (session is! AuthSignedIn) {
+      return false;
+    }
+    final current = state.valueOrNull ?? const <EventCategory>[];
+    final next = CategoryCatalog(
+      current,
+    ).add(id: DateTime.now().microsecondsSinceEpoch.toString(), name: name);
+    if (next == null) {
+      return false;
+    }
+    await ref
+        .read(personalEventsCacheProvider)
+        .saveCategories(session.userId, next.items);
+    state = AsyncData(next.items);
+    return true;
+  }
+
+  Future<void> rename(String id, String name) async {
+    final session = ref.read(authSessionProvider).valueOrNull;
+    if (session is! AuthSignedIn) {
+      return;
+    }
+    final next = CategoryCatalog(
+      state.valueOrNull ?? const [],
+    ).rename(id, name);
+    await ref
+        .read(personalEventsCacheProvider)
+        .saveCategories(session.userId, next.items);
+    state = AsyncData(next.items);
+  }
+
+  Future<void> remove(String id) async {
+    final session = ref.read(authSessionProvider).valueOrNull;
+    if (session is! AuthSignedIn) {
+      return;
+    }
+    final next = CategoryCatalog(state.valueOrNull ?? const []).remove(id);
+    await ref
+        .read(personalEventsCacheProvider)
+        .saveCategories(session.userId, next.items);
+    state = AsyncData(next.items);
+  }
+}
 
 final monthFeedWindowProvider =
     NotifierProvider<MonthFeedWindowNotifier, MonthFeedWindow>(

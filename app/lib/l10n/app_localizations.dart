@@ -974,6 +974,48 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// Settings list of labels the person created for events.
+  ///
+  /// In nl, this message translates to:
+  /// **'Categorieën'**
+  String get categoryTitle;
+
+  /// Add a category. Same word as the calendar chrome.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nieuw'**
+  String get categoryAdd;
+
+  /// Field label for a category name.
+  ///
+  /// In nl, this message translates to:
+  /// **'Naam'**
+  String get categoryName;
+
+  /// Quiet state when the person has created no categories.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nog geen categorieën.'**
+  String get categoryEmpty;
+
+  /// Inline sentence when a ninth category is refused.
+  ///
+  /// In nl, this message translates to:
+  /// **'Hooguit acht categorieën.'**
+  String get categoryFull;
+
+  /// Remove a category. Its events keep no label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verwijder'**
+  String get categoryDelete;
+
+  /// Event screen row for choosing a label.
+  ///
+  /// In nl, this message translates to:
+  /// **'Categorie'**
+  String get categoryEvent;
+
   /// Feed control that brings today into the upper third.
   ///
   /// In nl, this message translates to:

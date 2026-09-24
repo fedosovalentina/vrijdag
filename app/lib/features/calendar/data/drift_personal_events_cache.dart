@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:drift/drift.dart';
 import 'package:vrijdag/core/database/app_database.dart';
+import 'package:vrijdag/features/calendar/domain/event_category.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
@@ -9,6 +10,8 @@ import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
 /// Local SQLite mirror of personal events for offline reads (F-004 / DEC-019).
 class DriftPersonalEventsCache {
   DriftPersonalEventsCache(this._db);
+
+  static const categoriesRowId = 'categories';
 
   final AppDatabase _db;
 
@@ -43,8 +46,57 @@ class DriftPersonalEventsCache {
     )..where((t) => t.userId.equals(userId))).get();
     return [
       for (final row in rows)
-        _fromJson(jsonDecode(row.payloadJson) as Map<String, dynamic>),
+        if (row.id != categoriesRowId)
+          _fromJson(jsonDecode(row.payloadJson) as Map<String, dynamic>),
     ];
+  }
+
+  Future<List<EventCategory>> loadCategories(String userId) async {
+    final row =
+        await (_db.select(_db.cachedPersonalEvents)..where(
+              (t) => t.id.equals(categoriesRowId) & t.userId.equals(userId),
+            ))
+            .getSingleOrNull();
+    if (row == null) {
+      return const [];
+    }
+    final raw = jsonDecode(row.payloadJson);
+    if (raw is! List) {
+      return const [];
+    }
+    return [
+      for (final item in raw)
+        if (item is Map)
+          EventCategory(
+            id: item['id'] as String,
+            name: item['name'] as String,
+            colorIndex: item['color'] as int? ?? 0,
+            patternIndex: item['pattern'] as int? ?? 0,
+          ),
+    ];
+  }
+
+  Future<void> saveCategories(String userId, List<EventCategory> items) {
+    final payload = [
+      for (final item in items)
+        {
+          'id': item.id,
+          'name': item.name,
+          'color': item.colorIndex,
+          'pattern': item.patternIndex,
+        },
+    ];
+    return _db
+        .into(_db.cachedPersonalEvents)
+        .insert(
+          CachedPersonalEventsCompanion.insert(
+            id: categoriesRowId,
+            userId: userId,
+            payloadJson: jsonEncode(payload),
+            cachedAt: DateTime.now().toUtc(),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
   }
 
   Map<String, dynamic> _toJson(PersonalEvent event) {
@@ -76,6 +128,7 @@ class DriftPersonalEventsCache {
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
       'created_at': event.createdAt.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
+      'category_id': event.categoryId,
     };
   }
 
@@ -109,6 +162,7 @@ class DriftPersonalEventsCache {
       recurrenceRule: stored.rule,
       recurrenceUntil: until,
       recurrenceExdates: stored.exdates,
+      categoryId: row['category_id'] as String?,
       source: switch (row['source'] as String?) {
         'google' => EventSource.google,
         'imported' => EventSource.imported,

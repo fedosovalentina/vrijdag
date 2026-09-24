@@ -33,6 +33,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   late DateTime _endLocal;
   late bool _allDay;
   RecurrenceFrequency? _frequency;
+  String? _categoryId;
   DateTime? _recurrenceUntil;
   var _saving = false;
   var _viewing = false;
@@ -57,6 +58,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     _notes = TextEditingController(text: existing?.notes ?? '');
     final seriesRule = existing?.seriesMaster ?? existing;
     _frequency = seriesRule?.recurrenceRule?.frequency;
+    _categoryId = existing?.categoryId;
     final until = seriesRule?.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
@@ -102,6 +104,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     _notes.text = existing.notes ?? '';
     final seriesRule = existing.seriesMaster ?? existing;
     _frequency = seriesRule.recurrenceRule?.frequency;
+    _categoryId = existing.categoryId;
     final until = seriesRule.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
@@ -501,6 +504,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
                       ? recurrenceUntil
                       : series.recurrenceUntil),
             recurrenceExdates: plan.exdates,
+            categoryId: plan.applyToSeries ? _categoryId : series.categoryId,
             source: series.source,
             sourceOfTruth: series.sourceOfTruth,
             createdAt: series.createdAt,
@@ -554,6 +558,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
               : null,
           recurrenceRule: writeRule,
           recurrenceUntil: writeUntil,
+          categoryId: _categoryId,
           source: existing.source,
           sourceOfTruth: existing.sourceOfTruth,
           deletedAt: existing.deletedAt,
@@ -563,7 +568,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
         await repo.update(updated);
         await analytics.track(EventEdited(source: existing.source.name));
       } else if (_allDay) {
-        await repo.createAllDay(
+        final created = await repo.createAllDay(
           title: title,
           startDate: DateTime(
             _startLocal.year,
@@ -577,6 +582,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           recurrenceRule: writeRule,
           recurrenceUntil: writeUntil,
         );
+        if (_categoryId != null) {
+          await repo.update(created.copyWith(categoryId: _categoryId));
+        }
         await analytics.track(
           EventCreated(
             source: 'vrijdag',
@@ -585,7 +593,7 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           ),
         );
       } else {
-        await repo.createTimed(
+        final created = await repo.createTimed(
           NewTimedEventDraft(
             title: title,
             startsAt: _startLocal.toUtc(),
@@ -597,6 +605,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
             recurrenceUntil: writeUntil,
           ),
         );
+        if (_categoryId != null) {
+          await repo.update(created.copyWith(categoryId: _categoryId));
+        }
         await analytics.track(
           EventCreated(
             source: 'vrijdag',
@@ -742,6 +753,43 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       return _formatDate(value);
     }
     return '${_formatDate(value)} ${two(value.hour)}:${two(value.minute)}';
+  }
+
+  String _categoryName() {
+    final id = _categoryId;
+    if (id == null) {
+      return context.l10n.weekDayEmpty;
+    }
+    final items = ref.read(eventCategoriesProvider).valueOrNull ?? const [];
+    for (final item in items) {
+      if (item.id == id) {
+        return item.name;
+      }
+    }
+    return context.l10n.weekDayEmpty;
+  }
+
+  Future<void> _pickCategory() async {
+    final items = ref.read(eventCategoriesProvider).valueOrNull ?? const [];
+    final picked = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(context.l10n.categoryEvent),
+          children: [
+            for (final item in items)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(item.id),
+                child: Text(item.name),
+              ),
+          ],
+        );
+      },
+    );
+    if (picked == null) {
+      return;
+    }
+    setState(() => _categoryId = picked == _categoryId ? null : picked);
   }
 
   Future<RecurrenceScope?> _askScope() {
@@ -909,6 +957,12 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
               ),
             ),
           if (showDetails) ...[
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.categoryEvent),
+              subtitle: Text(_categoryName()),
+              onTap: _viewing || _saving ? null : _pickCategory,
+            ),
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.calendarRecurrenceLabel),
