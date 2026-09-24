@@ -14,6 +14,7 @@ import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_nav.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
+import 'package:vrijdag/features/calendar/presentation/day_focus_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/month_feed_view.dart';
 import 'package:vrijdag/features/calendar/presentation/week_view.dart';
@@ -358,6 +359,20 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                   ),
                   CalendarScale.month => MonthFeedView(
                     onOpenYear: () => _setScale(CalendarScale.year),
+                    onOpenDay: (day) {
+                      final date = CalendarRange.dateOnly(day);
+                      _setAnchor(date);
+                      ref.read(monthFeedJumpProvider.notifier).state = date;
+                      Navigator.of(context).push<void>(
+                        MaterialPageRoute(
+                          builder: (_) => DayFocusScreen(
+                            day: date,
+                            onOpenEvent: (event) =>
+                                _openEditor(existing: event),
+                          ),
+                        ),
+                      );
+                    },
                     onOpenEvent: (event) => _openEditor(existing: event),
                     onOpenBirthday: (birthday) async {
                       await Navigator.of(context).push<bool>(

@@ -72,6 +72,18 @@ final todaysEventsProvider = FutureProvider.autoDispose<List<PersonalEvent>>((
   return RecurrenceMaterializer.materialize(masters, from: from, to: to);
 });
 
+/// Events for one focused day, without moving the feed's own query.
+final focusDayEventsProvider = FutureProvider.autoDispose
+    .family<List<PersonalEvent>, DateTime>((ref, day) async {
+      final date = CalendarRange.dateOnly(day);
+      final from = date.toUtc();
+      final to = date.add(const Duration(days: 1)).toUtc();
+      final masters = await ref
+          .watch(personalEventsRepositoryProvider)
+          .listOverlapping(from: from, to: to);
+      return RecurrenceMaterializer.materialize(masters, from: from, to: to);
+    });
+
 /// Events for the Day anchor (local calendar day).
 final dayEventsProvider = FutureProvider.autoDispose<List<PersonalEvent>>((
   ref,

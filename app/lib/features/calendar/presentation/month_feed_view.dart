@@ -32,11 +32,13 @@ class MonthFeedView extends ConsumerStatefulWidget {
   const MonthFeedView({
     super.key,
     required this.onOpenYear,
+    required this.onOpenDay,
     required this.onOpenEvent,
     required this.onOpenBirthday,
   });
 
   final VoidCallback onOpenYear;
+  final ValueChanged<DateTime> onOpenDay;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
 
@@ -328,6 +330,7 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               now: _now,
               locale: locale,
               onOpenYear: widget.onOpenYear,
+              onOpenDay: widget.onOpenDay,
               highlight: _highlight,
               onOpenEvent: widget.onOpenEvent,
               onOpenBirthday: widget.onOpenBirthday,
@@ -393,6 +396,7 @@ class _FeedList extends StatelessWidget {
     required this.now,
     required this.locale,
     required this.onOpenYear,
+    required this.onOpenDay,
     required this.highlight,
     required this.onOpenEvent,
     required this.onOpenBirthday,
@@ -413,6 +417,7 @@ class _FeedList extends StatelessWidget {
   final DateTime now;
   final Locale locale;
   final VoidCallback onOpenYear;
+  final ValueChanged<DateTime> onOpenDay;
   final DateTime? highlight;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
@@ -514,6 +519,7 @@ class _FeedList extends StatelessWidget {
               moreLabel: l10n.feedMore,
               lessLabel: l10n.feedShowLess,
               dstLabel: _dstLabel(day, l10n.feedDstPlus, l10n.feedDstMinus),
+              onOpenDay: onOpenDay,
               onOpenEvent: onOpenEvent,
               onOpenBirthday: onOpenBirthday,
             );
@@ -583,6 +589,7 @@ class _DayRow extends StatefulWidget {
     required this.moreLabel,
     required this.lessLabel,
     required this.dstLabel,
+    required this.onOpenDay,
     required this.onOpenEvent,
     required this.onOpenBirthday,
   });
@@ -602,6 +609,7 @@ class _DayRow extends StatefulWidget {
   final String Function(int count) moreLabel;
   final String lessLabel;
   final String? dstLabel;
+  final ValueChanged<DateTime> onOpenDay;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
 
@@ -649,14 +657,18 @@ class _DayRowState extends State<_DayRow> {
                       left: 2,
                       child: Container(width: 3, height: 14, color: colors.ink),
                     ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 6),
-                    child: Text(
-                      '${widget.day.day}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: today ? FontWeight.w700 : FontWeight.w400,
-                        color: past && !today ? colors.warmGrey : colors.ink,
+                  GestureDetector(
+                    onTap: () => widget.onOpenDay(widget.day),
+                    behavior: HitTestBehavior.opaque,
+                    child: Padding(
+                      padding: const EdgeInsets.only(left: 6),
+                      child: Text(
+                        '${widget.day.day}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: today ? FontWeight.w700 : FontWeight.w400,
+                          color: past && !today ? colors.warmGrey : colors.ink,
+                        ),
                       ),
                     ),
                   ),
