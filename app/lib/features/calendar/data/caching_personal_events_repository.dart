@@ -25,10 +25,16 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
     try {
       final remote = await _remote.listOverlapping(from: from, to: to);
       final previous = await _cache.listForUser(_currentUserId());
-      final labels = {for (final event in previous) event.id: event.categoryId};
+      final local = {for (final event in previous) event.id: event};
       await _cache.upsertAll([
         for (final event in remote)
-          event.copyWith(categoryId: labels[event.id]),
+          event.copyWith(
+            categoryId: local[event.id]?.categoryId,
+            reminderMinutes: local[event.id]?.reminderMinutes,
+            replaceReminders: local.containsKey(event.id),
+            guests: local[event.id]?.guests,
+            replaceGuests: local.containsKey(event.id),
+          ),
       ]);
     } on Object {
       // Serve cache only.

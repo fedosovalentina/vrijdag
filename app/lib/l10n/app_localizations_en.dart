@@ -476,6 +476,50 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get reminderTitle => 'Reminder';
+
+  @override
+  String get reminderNone => 'None';
+
+  @override
+  String get reminderAtTime => 'At the time';
+
+  @override
+  String reminderMinutes(int count) {
+    return '$count minutes';
+  }
+
+  @override
+  String get reminderHour => '1 hour';
+
+  @override
+  String get reminderDay => '1 day';
+
+  @override
+  String get reminderAsk => 'Notifications for this reminder?';
+
+  @override
+  String get reminderOff => 'Notifications are off. The event is kept.';
+
+  @override
+  String get guestTitle => 'Guests';
+
+  @override
+  String get guestHint => 'Name or email';
+
+  @override
+  String get guestAdd => 'Add';
+
+  @override
+  String get reminderNotNow => 'Not now';
+
+  @override
+  String get reminderAllow => 'Allow notifications';
+
+  @override
+  String get reminderChannel => 'Reminders';
+
+  @override
   String get eventShare => 'Share';
 
   @override

@@ -129,6 +129,8 @@ class DriftPersonalEventsCache {
       'created_at': event.createdAt.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
       'category_id': event.categoryId,
+      'reminder_minutes': event.reminderMinutes,
+      'guests': event.guests,
     };
   }
 
@@ -163,6 +165,14 @@ class DriftPersonalEventsCache {
       recurrenceUntil: until,
       recurrenceExdates: stored.exdates,
       categoryId: row['category_id'] as String?,
+      reminderMinutes: [
+        for (final item in (row['reminder_minutes'] as List? ?? const []))
+          if (item is int) item else if (item is num) item.toInt(),
+      ],
+      guests: [
+        for (final item in (row['guests'] as List? ?? const []))
+          if (item is String && item.trim().isNotEmpty) item,
+      ],
       source: switch (row['source'] as String?) {
         'google' => EventSource.google,
         'imported' => EventSource.imported,

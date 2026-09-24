@@ -72,6 +72,20 @@ class BirthdayDeleted extends AnalyticsEvent {
 /// Feed jumped to a day (F-014). [bucket] is `YYYY-MM`, never a title.
 /// A label was saved. [countBucket] is how many labels exist, never a name.
 /// Search ran. Never include the query.
+class ReminderSaved extends AnalyticsEvent {
+  const ReminderSaved({required this.countBucket});
+
+  /// `0` | `1` | `2+`
+  final String countBucket;
+}
+
+class GuestsSaved extends AnalyticsEvent {
+  const GuestsSaved({required this.countBucket});
+
+  /// `0` | `1` | `2+` — never a name or email.
+  final String countBucket;
+}
+
 class EventShared extends AnalyticsEvent {
   const EventShared({required this.format});
 

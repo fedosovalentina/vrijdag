@@ -974,6 +974,90 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// Event row for reminder offsets.
+  ///
+  /// In nl, this message translates to:
+  /// **'Herinnering'**
+  String get reminderTitle;
+
+  /// No reminder on this event.
+  ///
+  /// In nl, this message translates to:
+  /// **'Geen'**
+  String get reminderNone;
+
+  /// Reminder when the event starts.
+  ///
+  /// In nl, this message translates to:
+  /// **'Op het moment'**
+  String get reminderAtTime;
+
+  /// No description provided for @reminderMinutes.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count} minuten'**
+  String reminderMinutes(int count);
+
+  /// Reminder one hour before.
+  ///
+  /// In nl, this message translates to:
+  /// **'1 uur'**
+  String get reminderHour;
+
+  /// Reminder one day before.
+  ///
+  /// In nl, this message translates to:
+  /// **'1 dag'**
+  String get reminderDay;
+
+  /// Asked the first time a reminder is chosen, not at launch.
+  ///
+  /// In nl, this message translates to:
+  /// **'Meldingen voor deze herinnering?'**
+  String get reminderAsk;
+
+  /// Shown when notification permission is declined.
+  ///
+  /// In nl, this message translates to:
+  /// **'Meldingen staan uit. De afspraak blijft bewaard.'**
+  String get reminderOff;
+
+  /// Names or emails on an event. No invite is sent.
+  ///
+  /// In nl, this message translates to:
+  /// **'Gasten'**
+  String get guestTitle;
+
+  /// Field for one guest name or email.
+  ///
+  /// In nl, this message translates to:
+  /// **'Naam of e-mail'**
+  String get guestHint;
+
+  /// Adds one guest chip. No invitation is sent.
+  ///
+  /// In nl, this message translates to:
+  /// **'Voeg toe'**
+  String get guestAdd;
+
+  /// Declines the notification explainer. The event still saves.
+  ///
+  /// In nl, this message translates to:
+  /// **'Niet nu'**
+  String get reminderNotNow;
+
+  /// Continues from the explainer to the system permission prompt.
+  ///
+  /// In nl, this message translates to:
+  /// **'Sta meldingen toe'**
+  String get reminderAllow;
+
+  /// Android notification channel name for event reminders.
+  ///
+  /// In nl, this message translates to:
+  /// **'Herinneringen'**
+  String get reminderChannel;
+
   /// View-mode action that opens the system share sheet.
   ///
   /// In nl, this message translates to:

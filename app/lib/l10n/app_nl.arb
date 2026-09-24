@@ -606,6 +606,62 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "reminderTitle": "Herinnering",
+  "@reminderTitle": {
+    "description": "Event row for reminder offsets."
+  },
+  "reminderNone": "Geen",
+  "@reminderNone": {
+    "description": "No reminder on this event."
+  },
+  "reminderAtTime": "Op het moment",
+  "@reminderAtTime": {
+    "description": "Reminder when the event starts."
+  },
+  "reminderMinutes": "{count} minuten",
+  "@reminderMinutes": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "reminderHour": "1 uur",
+  "@reminderHour": {
+    "description": "Reminder one hour before."
+  },
+  "reminderDay": "1 dag",
+  "@reminderDay": {
+    "description": "Reminder one day before."
+  },
+  "reminderAsk": "Meldingen voor deze herinnering?",
+  "@reminderAsk": {
+    "description": "Asked the first time a reminder is chosen, not at launch."
+  },
+  "reminderOff": "Meldingen staan uit. De afspraak blijft bewaard.",
+  "@reminderOff": {
+    "description": "Shown when notification permission is declined."
+  },
+  "guestTitle": "Gasten",
+  "@guestTitle": {
+    "description": "Names or emails on an event. No invite is sent."
+  },
+  "guestHint": "Naam of e-mail",
+  "@guestHint": {
+    "description": "Field for one guest name or email."
+  },
+  "guestAdd": "Voeg toe",
+  "@guestAdd": {
+    "description": "Adds one guest chip. No invitation is sent."
+  },
+  "reminderNotNow": "Niet nu",
+  "@reminderNotNow": {
+    "description": "Declines the notification explainer. The event still saves."
+  },
+  "reminderAllow": "Sta meldingen toe",
+  "@reminderAllow": {
+    "description": "Continues from the explainer to the system permission prompt."
+  },
+  "reminderChannel": "Herinneringen",
+  "@reminderChannel": {
+    "description": "Android notification channel name for event reminders."
+  },
   "eventShare": "Deel",
   "@eventShare": {
     "description": "View-mode action that opens the system share sheet."

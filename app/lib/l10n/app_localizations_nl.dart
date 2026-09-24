@@ -477,6 +477,50 @@ class AppLocalizationsNl extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get reminderTitle => 'Herinnering';
+
+  @override
+  String get reminderNone => 'Geen';
+
+  @override
+  String get reminderAtTime => 'Op het moment';
+
+  @override
+  String reminderMinutes(int count) {
+    return '$count minuten';
+  }
+
+  @override
+  String get reminderHour => '1 uur';
+
+  @override
+  String get reminderDay => '1 dag';
+
+  @override
+  String get reminderAsk => 'Meldingen voor deze herinnering?';
+
+  @override
+  String get reminderOff => 'Meldingen staan uit. De afspraak blijft bewaard.';
+
+  @override
+  String get guestTitle => 'Gasten';
+
+  @override
+  String get guestHint => 'Naam of e-mail';
+
+  @override
+  String get guestAdd => 'Voeg toe';
+
+  @override
+  String get reminderNotNow => 'Niet nu';
+
+  @override
+  String get reminderAllow => 'Sta meldingen toe';
+
+  @override
+  String get reminderChannel => 'Herinneringen';
+
+  @override
   String get eventShare => 'Deel';
 
   @override

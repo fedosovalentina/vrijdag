@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/data/caching_personal_events_repository.dart';
+import 'package:vrijdag/features/calendar/data/local_reminder_notifications.dart';
 import 'package:vrijdag/features/calendar/data/supabase_personal_events_repository.dart';
 import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
@@ -168,6 +169,39 @@ class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
 
 /// Day the month feed should scroll to after the year map closes.
 final monthFeedJumpProvider = StateProvider<DateTime?>((ref) => null);
+
+const reminderDefaultPrefsKey = 'reminder_default_minutes';
+
+/// Default reminder for Nieuw. Null means none.
+final defaultReminderProvider =
+    AsyncNotifierProvider<DefaultReminderNotifier, int?>(
+      DefaultReminderNotifier.new,
+    );
+
+class DefaultReminderNotifier extends AsyncNotifier<int?> {
+  @override
+  Future<int?> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!prefs.containsKey(reminderDefaultPrefsKey)) {
+      return null;
+    }
+    return prefs.getInt(reminderDefaultPrefsKey);
+  }
+
+  Future<void> select(int? minutes) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (minutes == null) {
+      await prefs.remove(reminderDefaultPrefsKey);
+    } else {
+      await prefs.setInt(reminderDefaultPrefsKey, minutes);
+    }
+    state = AsyncData(minutes);
+  }
+}
+
+final reminderNotificationsProvider = Provider<LocalReminderNotifications>(
+  (ref) => LocalReminderNotifications(),
+);
 
 const feedEmptyModePrefsKey = 'feed_empty_mode';
 

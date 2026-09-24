@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vrijdag/core/analytics/analytics_event.dart';
@@ -9,7 +10,10 @@ import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
+import 'package:vrijdag/features/calendar/data/local_reminder_notifications.dart';
 import 'package:vrijdag/features/calendar/domain/event_share.dart';
+import 'package:vrijdag/features/calendar/domain/reminder_schedule.dart';
+import 'package:vrijdag/shared/widgets/permission_explainer.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
@@ -39,6 +43,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   late bool _allDay;
   RecurrenceFrequency? _frequency;
   String? _categoryId;
+  var _reminders = <int>[];
+  var _guests = <String>[];
+  var _notificationsOff = false;
   DateTime? _recurrenceUntil;
   var _saving = false;
   var _viewing = false;
@@ -52,7 +59,10 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   bool get _hasDetails =>
       _location.text.trim().isNotEmpty ||
       _notes.text.trim().isNotEmpty ||
-      _frequency != null;
+      _frequency != null ||
+      _reminders.isNotEmpty ||
+      _guests.isNotEmpty ||
+      _categoryId != null;
 
   @override
   void initState() {
@@ -64,6 +74,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     final seriesRule = existing?.seriesMaster ?? existing;
     _frequency = seriesRule?.recurrenceRule?.frequency;
     _categoryId = existing?.categoryId;
+    _reminders = [...?existing?.reminderMinutes];
+    _guests = [...?existing?.guests];
+    _loadDefaultReminder();
     final until = seriesRule?.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
@@ -110,6 +123,8 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     final seriesRule = existing.seriesMaster ?? existing;
     _frequency = seriesRule.recurrenceRule?.frequency;
     _categoryId = existing.categoryId;
+    _reminders = [...existing.reminderMinutes];
+    _guests = [...existing.guests];
     final until = seriesRule.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
@@ -491,33 +506,36 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
                     )
                   : null)
             : series.allDay;
-        await repo.update(
-          PersonalEvent(
-            id: series.id,
-            userId: series.userId,
-            title: plan.applyToSeries ? title : series.title,
-            notes: plan.applyToSeries ? notes : series.notes,
-            location: plan.applyToSeries ? location : series.location,
-            timed: masterTimed,
-            allDay: masterAllDay,
-            recurrenceRule: plan.applyToSeries
-                ? recurrenceRule
-                : series.recurrenceRule,
-            recurrenceUntil: plan.replaceUntil
-                ? plan.seriesUntil
-                : (plan.applyToSeries
-                      ? recurrenceUntil
-                      : series.recurrenceUntil),
-            recurrenceExdates: plan.exdates,
-            categoryId: plan.applyToSeries ? _categoryId : series.categoryId,
-            source: series.source,
-            sourceOfTruth: series.sourceOfTruth,
-            createdAt: series.createdAt,
-            updatedAt: DateTime.now().toUtc(),
-          ),
+        final writtenSeries = PersonalEvent(
+          id: series.id,
+          userId: series.userId,
+          title: plan.applyToSeries ? title : series.title,
+          notes: plan.applyToSeries ? notes : series.notes,
+          location: plan.applyToSeries ? location : series.location,
+          timed: masterTimed,
+          allDay: masterAllDay,
+          recurrenceRule: plan.applyToSeries
+              ? recurrenceRule
+              : series.recurrenceRule,
+          recurrenceUntil: plan.replaceUntil
+              ? plan.seriesUntil
+              : (plan.applyToSeries ? recurrenceUntil : series.recurrenceUntil),
+          recurrenceExdates: plan.exdates,
+          categoryId: plan.applyToSeries ? _categoryId : series.categoryId,
+          reminderMinutes: plan.applyToSeries
+              ? _reminders
+              : series.reminderMinutes,
+          guests: plan.applyToSeries ? _guests : series.guests,
+          source: series.source,
+          sourceOfTruth: series.sourceOfTruth,
+          createdAt: series.createdAt,
+          updatedAt: DateTime.now().toUtc(),
         );
+        await repo.update(writtenSeries);
+        await _remember(writtenSeries);
         if (!plan.detachOccurrence) {
           await analytics.track(EventEdited(source: series.source.name));
+          await _trackDetails();
           if (!mounted) {
             return;
           }
@@ -564,6 +582,8 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           recurrenceRule: writeRule,
           recurrenceUntil: writeUntil,
           categoryId: _categoryId,
+          reminderMinutes: _reminders,
+          guests: _guests,
           source: existing.source,
           sourceOfTruth: existing.sourceOfTruth,
           deletedAt: existing.deletedAt,
@@ -571,7 +591,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           updatedAt: DateTime.now().toUtc(),
         );
         await repo.update(updated);
+        await _remember(updated);
         await analytics.track(EventEdited(source: existing.source.name));
+        await _trackDetails();
       } else if (_allDay) {
         final created = await repo.createAllDay(
           title: title,
@@ -587,9 +609,16 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           recurrenceRule: writeRule,
           recurrenceUntil: writeUntil,
         );
-        if (_categoryId != null) {
-          await repo.update(created.copyWith(categoryId: _categoryId));
-        }
+        final stored = created.copyWith(
+          categoryId: _categoryId,
+          reminderMinutes: _reminders,
+          replaceReminders: true,
+          guests: _guests,
+          replaceGuests: true,
+        );
+        await repo.update(stored);
+        await _remember(stored);
+        await _trackDetails();
         await analytics.track(
           EventCreated(
             source: 'vrijdag',
@@ -610,9 +639,16 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
             recurrenceUntil: writeUntil,
           ),
         );
-        if (_categoryId != null) {
-          await repo.update(created.copyWith(categoryId: _categoryId));
-        }
+        final stored = created.copyWith(
+          categoryId: _categoryId,
+          reminderMinutes: _reminders,
+          replaceReminders: true,
+          guests: _guests,
+          replaceGuests: true,
+        );
+        await repo.update(stored);
+        await _remember(stored);
+        await _trackDetails();
         await analytics.track(
           EventCreated(
             source: 'vrijdag',
@@ -795,6 +831,212 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       return;
     }
     setState(() => _categoryId = picked == _categoryId ? null : picked);
+  }
+
+  static const reminderAskedKey = 'reminder_permission_asked';
+  static const reminderOffKey = 'reminder_notifications_off';
+
+  Future<void> _loadDefaultReminder() async {
+    final minutes = await ref.read(defaultReminderProvider.future);
+    final prefs = await SharedPreferences.getInstance();
+    final off = prefs.getBool(reminderOffKey) ?? false;
+    if (!mounted) {
+      return;
+    }
+    setState(() {
+      if (widget.existing == null && minutes != null) {
+        _reminders = [minutes];
+      }
+      _notificationsOff = off;
+    });
+  }
+
+  String _offsetLabel(AppLocalizations l10n, int minutes) {
+    return switch (minutes) {
+      0 => l10n.reminderAtTime,
+      60 => l10n.reminderHour,
+      1440 => l10n.reminderDay,
+      _ => l10n.reminderMinutes(minutes),
+    };
+  }
+
+  String _reminderLabel(AppLocalizations l10n) {
+    if (_reminders.isEmpty) {
+      return l10n.reminderNone;
+    }
+    return _reminders.map((minutes) => _offsetLabel(l10n, minutes)).join(', ');
+  }
+
+  Future<void> _pickReminders() async {
+    final l10n = context.l10n;
+    final selected = {..._reminders};
+    final picked = await showDialog<Set<int>>(
+      context: context,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setLocal) {
+            return AlertDialog(
+              title: Text(l10n.reminderTitle),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (final minutes in reminderPresetMinutes)
+                    CheckboxListTile(
+                      value: selected.contains(minutes),
+                      title: Text(_offsetLabel(l10n, minutes)),
+                      onChanged: (value) {
+                        setLocal(() {
+                          if (value ?? false) {
+                            selected.add(minutes);
+                          } else {
+                            selected.remove(minutes);
+                          }
+                        });
+                      },
+                    ),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(<int>{}),
+                  child: Text(l10n.reminderNone),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(selected),
+                  child: Text(l10n.commonSave),
+                ),
+              ],
+            );
+          },
+        );
+      },
+    );
+    if (picked == null || !mounted) {
+      return;
+    }
+    setState(() => _reminders = picked.toList()..sort());
+    if (picked.isEmpty) {
+      return;
+    }
+    final prefs = await SharedPreferences.getInstance();
+    if (prefs.getBool(reminderAskedKey) ?? false) {
+      return;
+    }
+    await prefs.setBool(reminderAskedKey, true);
+    if (!mounted) {
+      return;
+    }
+    final allow = await showDialog<bool>(
+      context: context,
+      builder: (context) => Dialog(
+        child: PermissionExplainer(
+          body: l10n.reminderAsk,
+          actionLabel: l10n.reminderAllow,
+          notNowLabel: l10n.reminderNotNow,
+          onContinue: () => Navigator.of(context).pop(true),
+          onNotNow: () => Navigator.of(context).pop(false),
+        ),
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    if (allow != true) {
+      await prefs.setBool(reminderOffKey, true);
+      setState(() => _notificationsOff = true);
+      return;
+    }
+    final granted = await ref
+        .read(reminderNotificationsProvider)
+        .requestPermission();
+    await prefs.setBool(reminderOffKey, !granted);
+    if (mounted) {
+      setState(() => _notificationsOff = !granted);
+    }
+  }
+
+  Future<void> _editGuests() async {
+    final l10n = context.l10n;
+    final controller = TextEditingController();
+    final name = await showDialog<String>(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(l10n.guestTitle),
+          content: TextField(
+            controller: controller,
+            decoration: InputDecoration(hintText: l10n.guestHint),
+            onSubmitted: (value) => Navigator.of(context).pop(value),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(controller.text),
+              child: Text(l10n.guestAdd),
+            ),
+          ],
+        );
+      },
+    );
+    final trimmed = name?.trim() ?? '';
+    if (trimmed.isEmpty || !mounted) {
+      return;
+    }
+    setState(() => _guests = [..._guests, trimmed]);
+  }
+
+  String _countBucket(int count) => count <= 0
+      ? '0'
+      : count == 1
+      ? '1'
+      : '2+';
+
+  Future<void> _trackDetails() async {
+    final analytics = ref.read(analyticsProvider);
+    final hadReminders = widget.existing?.reminderMinutes.isNotEmpty ?? false;
+    final hadGuests = widget.existing?.guests.isNotEmpty ?? false;
+    if (_reminders.isNotEmpty || hadReminders) {
+      await analytics.track(
+        ReminderSaved(countBucket: _countBucket(_reminders.length)),
+      );
+    }
+    if (_guests.isNotEmpty || hadGuests) {
+      await analytics.track(
+        GuestsSaved(countBucket: _countBucket(_guests.length)),
+      );
+    }
+  }
+
+  Future<void> _remember(PersonalEvent saved) async {
+    final notifications = ref.read(reminderNotificationsProvider);
+    if (_notificationsOff || saved.reminderMinutes.isEmpty) {
+      await notifications.clear(saved.id);
+      return;
+    }
+    final anchor = reminderAnchor(
+      startsAt: saved.timed?.startsAt,
+      allDayStart: saved.allDay?.startDate,
+    );
+    final now = DateTime.now().toUtc();
+    final notices = <ReminderNotice>[
+      for (final minutes in saved.reminderMinutes)
+        if (!anchor.subtract(Duration(minutes: minutes)).isBefore(now))
+          ReminderNotice(
+            id: reminderNotificationId(saved.id, minutes),
+            when: anchor.subtract(Duration(minutes: minutes)),
+            title: saved.title,
+          ),
+    ];
+    try {
+      await notifications.replace(
+        eventId: saved.id,
+        channelName: context.l10n.reminderChannel,
+        notices: notices,
+      );
+    } on Object {
+      if (mounted) {
+        setState(() => _notificationsOff = true);
+      }
+    }
   }
 
   Future<void> _share() async {
@@ -990,6 +1232,43 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
               ),
             ),
           if (showDetails) ...[
+            if (!_viewing || _reminders.isNotEmpty)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(l10n.reminderTitle),
+                subtitle: Text(
+                  _notificationsOff ? l10n.reminderOff : _reminderLabel(l10n),
+                ),
+                onTap: _viewing || _saving ? null : _pickReminders,
+              ),
+            if (!_viewing || _guests.isNotEmpty) ...[
+              Text(l10n.guestTitle),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final guest in _guests)
+                    InputChip(
+                      label: Text(guest),
+                      onDeleted: _viewing || _saving
+                          ? null
+                          : () {
+                              setState(() {
+                                final next = [..._guests]..remove(guest);
+                                _guests = next;
+                              });
+                            },
+                    ),
+                ],
+              ),
+              if (!_viewing)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: TextButton(
+                    onPressed: _saving ? null : _editGuests,
+                    child: Text(l10n.guestAdd),
+                  ),
+                ),
+            ],
             ListTile(
               contentPadding: EdgeInsets.zero,
               title: Text(l10n.categoryEvent),

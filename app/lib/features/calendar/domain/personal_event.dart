@@ -20,6 +20,8 @@ class PersonalEvent {
     this.recurrenceExdates = const [],
     this.seriesMaster,
     this.categoryId,
+    this.reminderMinutes = const [],
+    this.guests = const [],
     required this.source,
     required this.sourceOfTruth,
     this.deletedAt,
@@ -43,6 +45,8 @@ class PersonalEvent {
 
   /// Label chosen for this event. Null means no label.
   final String? categoryId;
+  final List<int> reminderMinutes;
+  final List<String> guests;
   final EventSource source;
   final SourceOfTruth sourceOfTruth;
   final DateTime? deletedAt;
@@ -66,6 +70,10 @@ class PersonalEvent {
     PersonalEvent? seriesMaster,
     String? categoryId,
     bool clearCategory = false,
+    List<int>? reminderMinutes,
+    bool replaceReminders = false,
+    List<String>? guests,
+    bool replaceGuests = false,
     bool clearRecurrence = false,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
@@ -88,6 +96,10 @@ class PersonalEvent {
       recurrenceExdates: recurrenceExdates ?? this.recurrenceExdates,
       seriesMaster: seriesMaster ?? this.seriesMaster,
       categoryId: clearCategory ? null : (categoryId ?? this.categoryId),
+      reminderMinutes: replaceReminders
+          ? (reminderMinutes ?? const [])
+          : this.reminderMinutes,
+      guests: replaceGuests ? (guests ?? const []) : this.guests,
       source: source,
       sourceOfTruth: sourceOfTruth,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),

@@ -7,6 +7,7 @@ import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
+import 'package:vrijdag/features/calendar/data/personal_event_remote_row.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
 
 /// Local-first writes: cache + queue immediately; remote best-effort (F-009).
@@ -224,32 +225,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
   }
 
   Map<String, dynamic> _toRow(PersonalEvent event) {
-    return {
-      'title': event.title.trim(),
-      'notes': event.notes,
-      'location': event.location,
-      'starts_at': event.timed?.startsAt.toUtc().toIso8601String(),
-      'ends_at': event.timed?.endsAt.toUtc().toIso8601String(),
-      'start_date': event.allDay == null
-          ? null
-          : _dateOnly(event.allDay!.startDate),
-      'end_date': event.allDay == null
-          ? null
-          : _dateOnly(event.allDay!.endDate),
-      'timezone':
-          event.timed?.timezone ??
-          (event.allDay != null ? 'Europe/Amsterdam' : 'UTC'),
-      'all_day': event.isAllDay,
-      'recurrence_rule': encodeStoredRecurrence(
-        event.recurrenceRule,
-        event.recurrenceExdates,
-      ),
-      'recurrence_until': event.recurrenceUntil == null
-          ? null
-          : _dateOnly(event.recurrenceUntil!),
-      'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
-      'updated_at': event.updatedAt.toUtc().toIso8601String(),
-    };
+    return personalEventRemoteRow(event);
   }
 
   PersonalEvent _fromRow(Map<String, dynamic> row) {

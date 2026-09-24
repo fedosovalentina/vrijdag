@@ -166,6 +166,23 @@
     }
   },
   "weekDayEmpty": "—",
+  "reminderTitle": "Reminder",
+  "reminderNone": "None",
+  "reminderAtTime": "At the time",
+  "reminderMinutes": "{count} minutes",
+  "@reminderMinutes": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "reminderHour": "1 hour",
+  "reminderDay": "1 day",
+  "reminderAsk": "Notifications for this reminder?",
+  "reminderOff": "Notifications are off. The event is kept.",
+  "guestTitle": "Guests",
+  "guestHint": "Name or email",
+  "guestAdd": "Add",
+  "reminderNotNow": "Not now",
+  "reminderAllow": "Allow notifications",
+  "reminderChannel": "Reminders",
   "eventShare": "Share",
   "searchOpen": "Search",
   "searchHint": "Title or note",

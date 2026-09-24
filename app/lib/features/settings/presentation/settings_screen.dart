@@ -13,6 +13,7 @@ import 'package:vrijdag/features/auth/domain/user_profile.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthdays_panel.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_empty.dart';
+import 'package:vrijdag/features/calendar/domain/reminder_schedule.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/category_list_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
@@ -99,6 +100,17 @@ class SettingsScreen extends ConsumerWidget {
             onTap: () => _pickEmptyMode(context, ref),
           ),
           ListTile(
+            title: Text(l10n.reminderTitle),
+            subtitle: Text(
+              _reminderLabel(
+                l10n,
+                ref.watch(defaultReminderProvider).valueOrNull,
+              ),
+              style: TextStyle(color: colors.inkSoft),
+            ),
+            onTap: () => _pickDefaultReminder(context, ref),
+          ),
+          ListTile(
             title: Text(l10n.categoryTitle),
             onTap: () {
               Navigator.of(context).push<void>(
@@ -128,6 +140,48 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  static String _reminderLabel(AppLocalizations l10n, int? minutes) {
+    return switch (minutes) {
+      null => l10n.reminderNone,
+      0 => l10n.reminderAtTime,
+      60 => l10n.reminderHour,
+      1440 => l10n.reminderDay,
+      _ => l10n.reminderMinutes(minutes),
+    };
+  }
+
+  static Future<void> _pickDefaultReminder(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = context.l10n;
+    final picked = await showDialog<int>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(l10n.reminderTitle),
+          children: [
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(-1),
+              child: Text(l10n.reminderNone),
+            ),
+            for (final minutes in reminderPresetMinutes)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(minutes),
+                child: Text(_reminderLabel(l10n, minutes)),
+              ),
+          ],
+        );
+      },
+    );
+    if (picked == null) {
+      return;
+    }
+    await ref
+        .read(defaultReminderProvider.notifier)
+        .select(picked < 0 ? null : picked);
   }
 
   static String _emptyModeLabel(AppLocalizations l10n, FeedEmptyMode mode) {
