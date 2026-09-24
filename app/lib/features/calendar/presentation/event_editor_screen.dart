@@ -317,6 +317,10 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   }
 
   Future<void> _pickStart() async {
+    if (_multiDay) {
+      await _pickEnd();
+      return;
+    }
     if (_allDay) {
       final date = await showDatePicker(
         context: context,
@@ -374,46 +378,67 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   }
 
   Future<void> _pickEnd() async {
-    if (_allDay) {
-      final date = await showDatePicker(
-        context: context,
-        initialDate: _endLocal,
-        firstDate: DateTime(2000),
-        lastDate: DateTime(2100),
-      );
-      if (date == null) {
-        return;
-      }
-      setState(() {
-        _endLocal = DateTime(date.year, date.month, date.day);
-      });
-      return;
-    }
-
-    final date = await showDatePicker(
+    final start = DateTime(
+      _startLocal.year,
+      _startLocal.month,
+      _startLocal.day,
+    );
+    final initialEnd = DateTime(
+      _endLocal.year,
+      _endLocal.month,
+      _endLocal.day,
+    );
+    final end = initialEnd.isBefore(start) ? start : initialEnd;
+    final range = await showDateRangePicker(
       context: context,
-      initialDate: _endLocal,
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
+      initialDateRange: DateTimeRange(start: start, end: end),
     );
-    if (date == null || !mounted) {
+    if (range == null || !mounted) {
+      return;
+    }
+    final startDay = DateTime(
+      range.start.year,
+      range.start.month,
+      range.start.day,
+    );
+    final endDay = DateTime(range.end.year, range.end.month, range.end.day);
+    if (_allDay) {
+      setState(() {
+        _startLocal = startDay;
+        _endLocal = endDay;
+        _rangeHint = endDay.difference(startDay).inDays > 30
+            ? context.l10n.eventRangeTooLong
+            : null;
+      });
       return;
     }
     final time = await showTimePicker(
       context: context,
       initialTime: TimeOfDay.fromDateTime(_endLocal),
     );
-    if (time == null) {
+    if (time == null || !mounted) {
       return;
     }
     setState(() {
+      _startLocal = DateTime(
+        startDay.year,
+        startDay.month,
+        startDay.day,
+        _startLocal.hour,
+        _startLocal.minute,
+      );
       _endLocal = DateTime(
-        date.year,
-        date.month,
-        date.day,
+        endDay.year,
+        endDay.month,
+        endDay.day,
         time.hour,
         time.minute,
       );
+      _rangeHint = endDay.difference(startDay).inDays > 30
+          ? context.l10n.eventRangeTooLong
+          : null;
     });
   }
 
