@@ -477,6 +477,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get eventShare => 'Deel';
+
+  @override
   String get searchOpen => 'Zoeken';
 
   @override

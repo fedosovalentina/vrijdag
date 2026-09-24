@@ -1,10 +1,15 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
+import 'package:vrijdag/features/calendar/domain/event_share.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
@@ -792,6 +797,33 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     setState(() => _categoryId = picked == _categoryId ? null : picked);
   }
 
+  Future<void> _share() async {
+    final existing = widget.existing;
+    if (existing == null || !_viewing) {
+      return;
+    }
+    final l10n = context.l10n;
+    final text = eventShareText(
+      existing,
+      allDayLabel: l10n.dayTagAllDay,
+      untitled: l10n.eventUntitled,
+    );
+    final ics = eventToIcs(existing);
+    final dir = await getTemporaryDirectory();
+    final file = File('${dir.path}/vrijdag-${existing.id}.ics');
+    await file.writeAsString(ics);
+    await SharePlus.instance.share(
+      ShareParams(
+        text: text,
+        files: [XFile(file.path, mimeType: 'text/calendar')],
+      ),
+    );
+    if (!mounted) {
+      return;
+    }
+    await ref.read(analyticsProvider).track(const EventShared(format: 'ics'));
+  }
+
   Future<RecurrenceScope?> _askScope() {
     final l10n = context.l10n;
     return showDialog<RecurrenceScope>(
@@ -846,12 +878,13 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
               : (_isEdit ? l10n.calendarEditEvent : l10n.calendarNewEvent),
         ),
         actions: [
-          if (_viewing)
+          if (_viewing) ...[
+            TextButton(onPressed: _share, child: Text(l10n.eventShare)),
             TextButton(
               onPressed: () => setState(() => _viewing = false),
               child: Text(l10n.eventEdit),
-            )
-          else
+            ),
+          ] else
             TextButton(
               onPressed: _saving ? null : _cancel,
               child: Text(l10n.eventCancel),

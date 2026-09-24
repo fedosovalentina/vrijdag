@@ -476,6 +476,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get eventShare => 'Share';
+
+  @override
   String get searchOpen => 'Search';
 
   @override

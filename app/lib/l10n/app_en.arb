@@ -166,6 +166,7 @@
     }
   },
   "weekDayEmpty": "—",
+  "eventShare": "Share",
   "searchOpen": "Search",
   "searchHint": "Title or note",
   "searchEmpty": "Nothing found.",

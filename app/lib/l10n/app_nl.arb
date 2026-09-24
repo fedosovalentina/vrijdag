@@ -606,6 +606,10 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "eventShare": "Deel",
+  "@eventShare": {
+    "description": "View-mode action that opens the system share sheet."
+  },
   "searchOpen": "Zoeken",
   "@searchOpen": {
     "description": "Feed control that opens search."

@@ -974,6 +974,12 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// View-mode action that opens the system share sheet.
+  ///
+  /// In nl, this message translates to:
+  /// **'Deel'**
+  String get eventShare;
+
   /// Feed control that opens search.
   ///
   /// In nl, this message translates to:
