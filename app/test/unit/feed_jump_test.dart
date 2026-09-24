@@ -20,12 +20,7 @@ void main() {
       isTrue,
     );
     expect(
-      feedDayIsVisible(
-        rowOffset: 900,
-        rowHeight: 34,
-        pixels: 0,
-        viewport: 300,
-      ),
+      feedDayIsVisible(rowOffset: 900, rowHeight: 34, pixels: 0, viewport: 300),
       isFalse,
     );
   });
