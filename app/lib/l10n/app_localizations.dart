@@ -974,6 +974,24 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// Feed control that opens search.
+  ///
+  /// In nl, this message translates to:
+  /// **'Zoeken'**
+  String get searchOpen;
+
+  /// Search field. Title and notes, not place.
+  ///
+  /// In nl, this message translates to:
+  /// **'Titel of notitie'**
+  String get searchHint;
+
+  /// Sentence when a search has no matches.
+  ///
+  /// In nl, this message translates to:
+  /// **'Niets gevonden.'**
+  String get searchEmpty;
+
   /// Settings row for how an empty feed day is drawn.
   ///
   /// In nl, this message translates to:

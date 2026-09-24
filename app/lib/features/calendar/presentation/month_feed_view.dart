@@ -32,12 +32,14 @@ class MonthFeedView extends ConsumerStatefulWidget {
   const MonthFeedView({
     super.key,
     required this.onOpenYear,
+    required this.onOpenSearch,
     required this.onOpenDay,
     required this.onOpenEvent,
     required this.onOpenBirthday,
   });
 
   final VoidCallback onOpenYear;
+  final VoidCallback onOpenSearch;
   final ValueChanged<DateTime> onOpenDay;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
@@ -345,16 +347,32 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
             Positioned(
               top: 8,
               right: 12,
-              child: GestureDetector(
-                onTap: widget.onOpenYear,
-                child: Text(
-                  l10n.navYear,
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w500,
-                    color: Theme.of(context).vrijdagColors.ink,
+              child: Row(
+                children: [
+                  GestureDetector(
+                    onTap: widget.onOpenSearch,
+                    child: Text(
+                      l10n.searchOpen,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).vrijdagColors.ink,
+                      ),
+                    ),
                   ),
-                ),
+                  const SizedBox(width: 16),
+                  GestureDetector(
+                    onTap: widget.onOpenYear,
+                    child: Text(
+                      l10n.navYear,
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                        color: Theme.of(context).vrijdagColors.ink,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (!_todayVisible)

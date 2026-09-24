@@ -79,6 +79,11 @@ class PosthogAnalytics implements Analytics {
         await Posthog().capture(eventName: 'birthday_created');
       case BirthdayDeleted():
         await Posthog().capture(eventName: 'birthday_deleted');
+      case SearchUsed(:final resultBucket):
+        await Posthog().capture(
+          eventName: 'search_used',
+          properties: {'result_bucket': resultBucket},
+        );
       case DayFocusOpened(:final eventCountBucket):
         await Posthog().capture(
           eventName: 'day_focus_opened',

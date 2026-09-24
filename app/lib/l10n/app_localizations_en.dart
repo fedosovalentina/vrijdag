@@ -476,6 +476,15 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get searchOpen => 'Search';
+
+  @override
+  String get searchHint => 'Title or note';
+
+  @override
+  String get searchEmpty => 'Nothing found.';
+
+  @override
   String get feedEmptyDays => 'Empty days';
 
   @override

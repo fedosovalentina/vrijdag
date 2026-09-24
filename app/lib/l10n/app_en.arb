@@ -166,6 +166,9 @@
     }
   },
   "weekDayEmpty": "—",
+  "searchOpen": "Search",
+  "searchHint": "Title or note",
+  "searchEmpty": "Nothing found.",
   "feedEmptyDays": "Empty days",
   "feedEmptyCompact": "Compact",
   "feedEmptyCollapsed": "Collapsed",

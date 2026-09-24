@@ -71,6 +71,14 @@ class BirthdayDeleted extends AnalyticsEvent {
 /// Day home opened (F-007). Counts only — never titles.
 /// Feed jumped to a day (F-014). [bucket] is `YYYY-MM`, never a title.
 /// A label was saved. [countBucket] is how many labels exist, never a name.
+/// Search ran. Never include the query.
+class SearchUsed extends AnalyticsEvent {
+  const SearchUsed({required this.resultBucket});
+
+  /// `0` | `1-2` | `3-5` | `6+`
+  final String resultBucket;
+}
+
 class DayFocusOpened extends AnalyticsEvent {
   const DayFocusOpened({required this.eventCountBucket});
 

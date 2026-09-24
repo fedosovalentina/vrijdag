@@ -477,6 +477,15 @@ class AppLocalizationsNl extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get searchOpen => 'Zoeken';
+
+  @override
+  String get searchHint => 'Titel of notitie';
+
+  @override
+  String get searchEmpty => 'Niets gevonden.';
+
+  @override
   String get feedEmptyDays => 'Lege dagen';
 
   @override

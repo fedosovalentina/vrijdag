@@ -606,6 +606,18 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "searchOpen": "Zoeken",
+  "@searchOpen": {
+    "description": "Feed control that opens search."
+  },
+  "searchHint": "Titel of notitie",
+  "@searchHint": {
+    "description": "Search field. Title and notes, not place."
+  },
+  "searchEmpty": "Niets gevonden.",
+  "@searchEmpty": {
+    "description": "Sentence when a search has no matches."
+  },
   "feedEmptyDays": "Lege dagen",
   "@feedEmptyDays": {
     "description": "Settings row for how an empty feed day is drawn."
