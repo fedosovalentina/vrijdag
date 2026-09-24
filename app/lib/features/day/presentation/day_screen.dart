@@ -135,6 +135,15 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     );
   }
 
+  void _jumpFeed(DateTime day, {required String target}) {
+    final date = CalendarRange.dateOnly(day);
+    ref.read(monthFeedJumpProvider.notifier).state = date;
+    _setAnchor(date);
+    _setScale(CalendarScale.month);
+    final bucket = '${date.year}-${date.month.toString().padLeft(2, '0')}';
+    ref.read(analyticsProvider).track(FeedJump(target: target, bucket: bucket));
+  }
+
   void _setScale(CalendarScale value) {
     ref.read(calendarScaleProvider.notifier).state = value;
   }
@@ -348,6 +357,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                     },
                   ),
                   CalendarScale.month => MonthFeedView(
+                    onOpenYear: () => _setScale(CalendarScale.year),
                     onOpenEvent: (event) => _openEditor(existing: event),
                     onOpenBirthday: (birthday) async {
                       await Navigator.of(context).push<bool>(
@@ -360,10 +370,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                     },
                   ),
                   CalendarScale.year => YearView(
-                    onSelectMonth: (value) {
-                      _setAnchor(value);
-                      _setScale(CalendarScale.month);
-                    },
+                    onSelectMonth: (value) => _jumpFeed(value, target: 'month'),
+                    onSelectDay: (value) => _jumpFeed(value, target: 'day'),
                   ),
                 },
               ),

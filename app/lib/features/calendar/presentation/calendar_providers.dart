@@ -149,6 +149,9 @@ class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
   }
 }
 
+/// Day the month feed should scroll to after the year map closes.
+final monthFeedJumpProvider = StateProvider<DateTime?>((ref) => null);
+
 final monthFeedWindowProvider =
     NotifierProvider<MonthFeedWindowNotifier, MonthFeedWindow>(
       MonthFeedWindowNotifier.new,

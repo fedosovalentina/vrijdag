@@ -476,6 +476,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get feedBackToToday => 'Today';
+
+  @override
   String get feedNow => 'now';
 
   @override

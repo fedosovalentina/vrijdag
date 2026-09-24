@@ -974,6 +974,12 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// Feed control that brings today into the upper third.
+  ///
+  /// In nl, this message translates to:
+  /// **'Vandaag'**
+  String get feedBackToToday;
+
   /// Label on the current-time mark in the month feed.
   ///
   /// In nl, this message translates to:

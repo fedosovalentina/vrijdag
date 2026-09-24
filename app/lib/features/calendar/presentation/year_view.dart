@@ -16,9 +16,14 @@ import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
 /// 3×4 month map with presence ticks (Task 02 Year). Not mini-calendars.
 class YearView extends ConsumerWidget {
-  const YearView({super.key, required this.onSelectMonth});
+  const YearView({
+    super.key,
+    required this.onSelectMonth,
+    required this.onSelectDay,
+  });
 
   final ValueChanged<DateTime> onSelectMonth;
+  final ValueChanged<DateTime> onSelectDay;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -75,17 +80,14 @@ class YearView extends ConsumerWidget {
                     return Material(
                       color: colors.paper,
                       borderRadius: BorderRadius.circular(VrijdagRadii.control),
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(
-                          VrijdagRadii.control,
-                        ),
-                        onTap: () => onSelectMonth(monthDate),
-                        child: Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
+                      child: Padding(
+                        padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            GestureDetector(
+                              onTap: () => onSelectMonth(monthDate),
+                              child: Text(
                                 SpokenDate.monthShort(monthDate, locale),
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(
@@ -94,13 +96,16 @@ class YearView extends ConsumerWidget {
                                       color: colors.ink,
                                     ),
                               ),
-                              const SizedBox(height: VrijdagSpacing.xs),
-                              Wrap(
-                                spacing: 4,
-                                runSpacing: 4,
-                                children: [
-                                  for (final tick in ticks)
-                                    tick.isBirthday
+                            ),
+                            const SizedBox(height: VrijdagSpacing.xs),
+                            Wrap(
+                              spacing: 4,
+                              runSpacing: 4,
+                              children: [
+                                for (final tick in ticks)
+                                  GestureDetector(
+                                    onTap: () => onSelectDay(tick.day),
+                                    child: tick.isBirthday
                                         ? Container(
                                             width: 5,
                                             height: 5,
@@ -120,10 +125,10 @@ class YearView extends ConsumerWidget {
                                               shape: BoxShape.circle,
                                             ),
                                           ),
-                                ],
-                              ),
-                            ],
-                          ),
+                                  ),
+                              ],
+                            ),
+                          ],
                         ),
                       ),
                     );
@@ -150,9 +155,9 @@ class YearView extends ConsumerWidget {
       final bday = CalendarPresence.dayHasBirthday(birthdays, day);
       final hasEvent = CalendarPresence.dayHasEvent(events, day);
       if (bday) {
-        ticks.add(const _YearTick(isBirthday: true));
+        ticks.add(_YearTick(day: day, isBirthday: true));
       } else if (hasEvent) {
-        ticks.add(const _YearTick(isBirthday: false));
+        ticks.add(_YearTick(day: day, isBirthday: false));
       }
       if (ticks.length >= 10) {
         break;
@@ -163,7 +168,8 @@ class YearView extends ConsumerWidget {
 }
 
 class _YearTick {
-  const _YearTick({required this.isBirthday});
+  const _YearTick({required this.day, required this.isBirthday});
 
+  final DateTime day;
   final bool isBirthday;
 }

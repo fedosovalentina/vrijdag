@@ -606,6 +606,10 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "feedBackToToday": "Vandaag",
+  "@feedBackToToday": {
+    "description": "Feed control that brings today into the upper third."
+  },
   "feedNow": "nu",
   "@feedNow": {
     "description": "Label on the current-time mark in the month feed."

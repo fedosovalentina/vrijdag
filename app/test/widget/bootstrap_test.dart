@@ -120,7 +120,7 @@ void main() {
     ).format(DateTime.now()).toLowerCase();
     expect(find.textContaining(monthLabel), findsWidgets);
 
-    await tester.tap(find.text('Jaar'));
+    await tester.tap(find.text('Jaar').first);
     await tester.pumpAndSettle();
     expect(find.text('overzicht'), findsOneWidget);
     expect(find.text('afspraak'), findsOneWidget);

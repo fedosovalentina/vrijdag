@@ -3,6 +3,8 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:vrijdag/core/analytics/analytics_event.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
 import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/birthdays/domain/birthday.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
@@ -10,6 +12,7 @@ import 'package:vrijdag/features/calendar/domain/calendar_presence.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_frame.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_jump.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_month_span.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_name.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_row.dart';
@@ -26,10 +29,12 @@ import 'package:vrijdag/shared/widgets/quiet_state.dart';
 class MonthFeedView extends ConsumerStatefulWidget {
   const MonthFeedView({
     super.key,
+    required this.onOpenYear,
     required this.onOpenEvent,
     required this.onOpenBirthday,
   });
 
+  final VoidCallback onOpenYear;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
 
@@ -42,7 +47,10 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
   final _scroll = ScrollController();
   Timer? _clock;
   DateTime _now = DateTime.now();
-  DateTime? _jumpedFor;
+  var _placedToday = false;
+  var _todayVisible = true;
+  DateTime? _highlight;
+  var _offsets = const <FeedDayPlace>[];
   late final AnimationController _scaleMotion;
   FeedScale? _scaleFrom;
   FeedScale? _scaleTo;
@@ -71,6 +79,116 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
       }
     });
     _scroll.addListener(_onScroll);
+  }
+
+  void _onMetrics(List<FeedDayPlace> places) {
+    _offsets = places;
+    _updateTodayVisible();
+    final jump = ref.read(monthFeedJumpProvider);
+    if (jump != null) {
+      _reveal(jump);
+      ref.read(monthFeedJumpProvider.notifier).state = null;
+      return;
+    }
+    if (_placedToday) {
+      return;
+    }
+    final today = _placeFor(DateTime.now());
+    if (today == null || !_scroll.hasClients) {
+      return;
+    }
+    _scroll.jumpTo(
+      feedUpperThirdOffset(
+        rowOffset: today.offset,
+        viewport: _scroll.position.viewportDimension,
+        maxScroll: _scroll.position.maxScrollExtent,
+      ),
+    );
+    _placedToday = true;
+    _updateTodayVisible();
+  }
+
+  void _reveal(DateTime day) {
+    final place = _placeFor(day);
+    if (place == null || !_scroll.hasClients) {
+      ref.read(monthFeedWindowProvider.notifier).growTo(day);
+      ref.read(monthFeedJumpProvider.notifier).state = CalendarRange.dateOnly(
+        day,
+      );
+      return;
+    }
+    if (feedDayIsVisible(
+      rowOffset: place.offset,
+      rowHeight: place.height,
+      pixels: _scroll.position.pixels,
+      viewport: _scroll.position.viewportDimension,
+    )) {
+      setState(() => _highlight = CalendarRange.dateOnly(day));
+      return;
+    }
+    _scroll.animateTo(
+      feedUpperThirdOffset(
+        rowOffset: place.offset,
+        viewport: _scroll.position.viewportDimension,
+        maxScroll: _scroll.position.maxScrollExtent,
+      ),
+      duration: VrijdagMotion.resolve(
+        context,
+        const Duration(milliseconds: 200),
+      ),
+      curve: Curves.easeOut,
+    );
+  }
+
+  FeedDayPlace? _placeFor(DateTime day) {
+    final date = CalendarRange.dateOnly(day);
+    for (final place in _offsets) {
+      if (place.day == date) {
+        return place;
+      }
+    }
+    return null;
+  }
+
+  void _updateTodayVisible() {
+    if (!_scroll.hasClients) {
+      return;
+    }
+    final today = _placeFor(_now);
+    final visible =
+        today != null &&
+        feedDayIsVisible(
+          rowOffset: today.offset,
+          rowHeight: today.height,
+          pixels: _scroll.position.pixels,
+          viewport: _scroll.position.viewportDimension,
+        );
+    if (visible != _todayVisible && mounted) {
+      setState(() => _todayVisible = visible);
+    }
+  }
+
+  void _home() {
+    final today = DateTime.now();
+    final place = _placeFor(today);
+    final visible =
+        place != null &&
+        _scroll.hasClients &&
+        feedDayIsVisible(
+          rowOffset: place.offset,
+          rowHeight: place.height,
+          pixels: _scroll.position.pixels,
+          viewport: _scroll.position.viewportDimension,
+        );
+    if (visible) {
+      setState(() => _highlight = CalendarRange.dateOnly(today));
+    } else {
+      _reveal(today);
+    }
+    final bucket = '${today.year}-${today.month.toString().padLeft(2, '0')}';
+    ref
+        .read(analyticsProvider)
+        .track(FeedJump(target: 'today', bucket: bucket));
   }
 
   @override
@@ -126,6 +244,7 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
     if (pos.maxScrollExtent - pos.pixels < 240) {
       ref.read(monthFeedWindowProvider.notifier).growTo(window.to);
     }
+    _updateTodayVisible();
   }
 
   @override
@@ -137,6 +256,17 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
         .watch(birthdaysListProvider)
         .maybeWhen(data: (items) => items, orElse: () => const <Birthday>[]);
     final window = ref.watch(monthFeedWindowProvider);
+    final jump = ref.watch(monthFeedJumpProvider);
+    if (jump != null) {
+      final date = CalendarRange.dateOnly(jump);
+      if (date.isBefore(window.from) || !date.isBefore(window.to)) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (mounted) {
+            ref.read(monthFeedWindowProvider.notifier).growTo(date);
+          }
+        });
+      }
+    }
 
     return eventsAsync.when(
       loading: () => const Center(child: CircularProgressIndicator()),
@@ -167,31 +297,62 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
         });
         final scale = _visualScale ?? computed;
         final slotCount = window.slotCount < used ? used : window.slotCount;
-        return _FeedList(
-          scroll: _scroll,
-          window: window,
-          entries: entries,
-          birthdays: birthdays,
-          scale: scale,
-          slotCount: slotCount,
-          slots: {for (final s in assigned) s.id: s.slot},
-          now: _now,
-          locale: locale,
-          onOpenEvent: widget.onOpenEvent,
-          onOpenBirthday: widget.onOpenBirthday,
-          onJumpReady: (offset) {
-            final month = DateTime(window.from.year, window.from.month);
-            if (_jumpedFor == month || !_scroll.hasClients) {
-              return;
-            }
-            final viewport = _scroll.position.viewportDimension;
-            final target = (offset - viewport / 3).clamp(
-              0.0,
-              _scroll.position.maxScrollExtent,
-            );
-            _scroll.jumpTo(target);
-            _jumpedFor = month;
-          },
+        return Stack(
+          children: [
+            _FeedList(
+              scroll: _scroll,
+              window: window,
+              entries: entries,
+              birthdays: birthdays,
+              scale: scale,
+              slotCount: slotCount,
+              slots: {for (final s in assigned) s.id: s.slot},
+              now: _now,
+              locale: locale,
+              onOpenYear: widget.onOpenYear,
+              highlight: _highlight,
+              onOpenEvent: widget.onOpenEvent,
+              onOpenBirthday: widget.onOpenBirthday,
+              onMetrics: (places) {
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) {
+                    _onMetrics(places);
+                  }
+                });
+              },
+            ),
+            Positioned(
+              top: 8,
+              right: 12,
+              child: GestureDetector(
+                onTap: widget.onOpenYear,
+                child: Text(
+                  l10n.navYear,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).vrijdagColors.ink,
+                  ),
+                ),
+              ),
+            ),
+            if (!_todayVisible)
+              Positioned(
+                right: 12,
+                bottom: 12,
+                child: GestureDetector(
+                  onTap: _home,
+                  child: Text(
+                    l10n.feedBackToToday,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Theme.of(context).vrijdagColors.ink,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         );
       },
     );
@@ -209,9 +370,11 @@ class _FeedList extends StatelessWidget {
     required this.slots,
     required this.now,
     required this.locale,
+    required this.onOpenYear,
+    required this.highlight,
     required this.onOpenEvent,
     required this.onOpenBirthday,
-    required this.onJumpReady,
+    required this.onMetrics,
   });
 
   final ScrollController scroll;
@@ -223,9 +386,11 @@ class _FeedList extends StatelessWidget {
   final Map<String, int> slots;
   final DateTime now;
   final Locale locale;
+  final VoidCallback onOpenYear;
+  final DateTime? highlight;
   final ValueChanged<PersonalEvent> onOpenEvent;
   final ValueChanged<Birthday> onOpenBirthday;
-  final ValueChanged<double> onJumpReady;
+  final ValueChanged<List<FeedDayPlace>> onMetrics;
 
   @override
   Widget build(BuildContext context) {
@@ -237,7 +402,7 @@ class _FeedList extends StatelessWidget {
     final spineX = 28 + weekdayWidth + slotWidth;
     final months = _months(window.from, window.to);
     var running = 0.0;
-    double? todayOffset;
+    final places = <FeedDayPlace>[];
 
     final slivers = <Widget>[];
     for (var m = 0; m < months.length; m++) {
@@ -257,6 +422,7 @@ class _FeedList extends StatelessWidget {
             scale: scale,
             spineX: spineX,
             topGap: m == 0 ? 0 : 8,
+            onOpenYear: onOpenYear,
           ),
         ),
       );
@@ -288,6 +454,11 @@ class _FeedList extends StatelessWidget {
             final chips = [...singleAllDay, ...timed];
             return _DayRow(
               day: day,
+              highlighted:
+                  highlight != null &&
+                  day.year == highlight!.year &&
+                  day.month == highlight!.month &&
+                  day.day == highlight!.day,
               chips: chips,
               birthdays: dayBirthdays,
               spans: _spansOn(day, entries, slots),
@@ -319,21 +490,12 @@ class _FeedList extends StatelessWidget {
             CalendarPresence.birthdaysOnDay(birthdays, day).isNotEmpty &&
             count == 0;
         final height = layoutFeedDay(birthdayOnly ? 1 : count).rowHeight;
-        final today =
-            day.year == now.year &&
-            day.month == now.month &&
-            day.day == now.day;
-        if (today) {
-          todayOffset = running;
-        }
+        places.add(FeedDayPlace(day: day, offset: running, height: height));
         running += height;
       }
     }
 
-    if (todayOffset != null) {
-      final offset = todayOffset;
-      WidgetsBinding.instance.addPostFrameCallback((_) => onJumpReady(offset));
-    }
+    onMetrics(places);
 
     return Stack(
       children: [
@@ -357,6 +519,7 @@ class _FeedList extends StatelessWidget {
 class _DayRow extends StatefulWidget {
   const _DayRow({
     required this.day,
+    required this.highlighted,
     required this.chips,
     required this.birthdays,
     required this.spans,
@@ -374,6 +537,7 @@ class _DayRow extends StatefulWidget {
   });
 
   final DateTime day;
+  final bool highlighted;
   final List<FeedEntry> chips;
   final List<Birthday> birthdays;
   final List<({int slot, PersonalEvent event})> spans;
@@ -412,166 +576,183 @@ class _DayRowState extends State<_DayRow> {
       widget.locale.toLanguageTag(),
     ).format(widget.day);
 
-    return SizedBox(
-      height: onlyBirthday ? 34 : layout.rowHeight,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          SizedBox(
-            width: 28,
-            // Today bar sits in the 6px left pad so the day number still fits
-            // the fixed 28px column (spec §1) — a Row overflowed by ~4.5px.
-            child: Stack(
-              alignment: Alignment.centerLeft,
-              children: [
-                if (today)
-                  Positioned(
-                    left: 2,
-                    child: Container(width: 3, height: 14, color: colors.ink),
-                  ),
-                Padding(
-                  padding: const EdgeInsets.only(left: 6),
-                  child: Text(
-                    '${widget.day.day}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: today ? FontWeight.w700 : FontWeight.w400,
-                      color: past && !today ? colors.warmGrey : colors.ink,
+    return ColoredBox(
+      color: widget.highlighted
+          ? colors.banner
+          : colors.paper.withValues(alpha: 0),
+      child: SizedBox(
+        height: onlyBirthday ? 34 : layout.rowHeight,
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            SizedBox(
+              width: 28,
+              // Today bar sits in the 6px left pad so the day number still fits
+              // the fixed 28px column (spec §1) — a Row overflowed by ~4.5px.
+              child: Stack(
+                alignment: Alignment.centerLeft,
+                children: [
+                  if (today)
+                    Positioned(
+                      left: 2,
+                      child: Container(width: 3, height: 14, color: colors.ink),
+                    ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 6),
+                    child: Text(
+                      '${widget.day.day}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: today ? FontWeight.w700 : FontWeight.w400,
+                        color: past && !today ? colors.warmGrey : colors.ink,
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-          SizedBox(
-            width: widget.weekdayWidth,
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: Padding(
-                padding: const EdgeInsets.only(right: 9),
-                child: Text(
-                  weekday,
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: today ? FontWeight.w600 : FontWeight.w400,
-                    color: past && !today ? colors.warmGrey : colors.inkSoft,
+            SizedBox(
+              width: widget.weekdayWidth,
+              child: Align(
+                alignment: Alignment.centerRight,
+                child: Padding(
+                  padding: const EdgeInsets.only(right: 9),
+                  child: Text(
+                    weekday,
+                    style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: today ? FontWeight.w600 : FontWeight.w400,
+                      color: past && !today ? colors.warmGrey : colors.inkSoft,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          SizedBox(
-            width: 14.0 * widget.slotCount,
-            child: Stack(
-              children: [
-                for (final span in widget.spans)
-                  if (span.slot >= 0)
-                    Positioned(
-                      left: span.slot * 16,
-                      width: 14,
-                      top: 0,
-                      bottom: 0,
-                      child: GestureDetector(
-                        onTap: () => widget.onOpenEvent(span.event),
-                        child: ColoredBox(
-                          color: _slotColor(colors, span.slot),
-                          child: _SpanLabel(
-                            event: span.event,
-                            day: widget.day,
-                            color: colors.paper,
+            SizedBox(
+              width: 14.0 * widget.slotCount,
+              child: Stack(
+                children: [
+                  for (final span in widget.spans)
+                    if (span.slot >= 0)
+                      Positioned(
+                        left: span.slot * 16,
+                        width: 14,
+                        top: 0,
+                        bottom: 0,
+                        child: GestureDetector(
+                          onTap: () => widget.onOpenEvent(span.event),
+                          child: ColoredBox(
+                            color: _slotColor(colors, span.slot),
+                            child: _SpanLabel(
+                              event: span.event,
+                              day: widget.day,
+                              color: colors.paper,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                if (widget.birthdays.isNotEmpty && widget.chips.isNotEmpty)
-                  Center(
-                    child: GestureDetector(
-                      onTap: () =>
-                          widget.onOpenBirthday(widget.birthdays.first),
-                      child: Icon(
-                        Icons.star,
-                        size: 13,
-                        color: colors.goldBright,
+                  if (widget.birthdays.isNotEmpty && widget.chips.isNotEmpty)
+                    Center(
+                      child: GestureDetector(
+                        onTap: () =>
+                            widget.onOpenBirthday(widget.birthdays.first),
+                        child: Icon(
+                          Icons.star,
+                          size: 13,
+                          color: colors.goldBright,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             ),
-          ),
-          Expanded(
-            child: Opacity(
-              opacity: past && !today ? 0.45 : 1,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 9, right: 8),
-                child: Stack(
-                  children: [
-                    onlyBirthday
-                        ? _BirthdayLine(
-                            birthday: widget.birthdays.first,
-                            color: colors.gold,
-                            onTap: () =>
-                                widget.onOpenBirthday(widget.birthdays.first),
-                          )
-                        : widget.chips.isEmpty
-                        ? const _DashedEmpty()
-                        : Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              for (final entry in shown)
-                                SizedBox(
-                                  height: layout.chipHeight,
-                                  child: _Chip(
-                                    entry: entry,
-                                    day: widget.day,
-                                    scale: widget.scale,
-                                    locale: widget.locale,
-                                    onTap: () =>
-                                        widget.onOpenEvent(entry.event),
+            Expanded(
+              child: Opacity(
+                opacity: past && !today ? 0.45 : 1,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 9, right: 8),
+                  child: Stack(
+                    children: [
+                      onlyBirthday
+                          ? _BirthdayLine(
+                              birthday: widget.birthdays.first,
+                              color: colors.gold,
+                              onTap: () =>
+                                  widget.onOpenBirthday(widget.birthdays.first),
+                            )
+                          : widget.chips.isEmpty
+                          ? const _DashedEmpty()
+                          : Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                for (final entry in shown)
+                                  SizedBox(
+                                    height: layout.chipHeight,
+                                    child: _Chip(
+                                      entry: entry,
+                                      day: widget.day,
+                                      scale: widget.scale,
+                                      locale: widget.locale,
+                                      onTap: () =>
+                                          widget.onOpenEvent(entry.event),
+                                    ),
                                   ),
-                                ),
-                              if (widget.chips.length > 3)
-                                GestureDetector(
-                                  onTap: () =>
-                                      setState(() => _expanded = !_expanded),
-                                  child: Text(
-                                    _expanded
-                                        ? widget.lessLabel
-                                        : widget.moreLabel(
-                                            widget.chips.length - 3,
-                                          ),
+                                if (widget.chips.length > 3)
+                                  GestureDetector(
+                                    onTap: () =>
+                                        setState(() => _expanded = !_expanded),
+                                    child: Text(
+                                      _expanded
+                                          ? widget.lessLabel
+                                          : widget.moreLabel(
+                                              widget.chips.length - 3,
+                                            ),
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: colors.warmGrey,
+                                      ),
+                                    ),
+                                  ),
+                                if (widget.dstLabel != null)
+                                  Text(
+                                    widget.dstLabel!,
                                     style: TextStyle(
-                                      fontSize: 10,
+                                      fontSize: 9,
                                       color: colors.warmGrey,
                                     ),
                                   ),
-                                ),
-                              if (widget.dstLabel != null)
-                                Text(
-                                  widget.dstLabel!,
-                                  style: TextStyle(
-                                    fontSize: 9,
-                                    color: colors.warmGrey,
-                                  ),
-                                ),
-                            ],
+                              ],
+                            ),
+                      if (today)
+                        Positioned.fill(
+                          child: _NowMark(
+                            scale: widget.scale,
+                            now: widget.now,
+                            label: widget.l10nNow,
                           ),
-                    if (today)
-                      Positioned.fill(
-                        child: _NowMark(
-                          scale: widget.scale,
-                          now: widget.now,
-                          label: widget.l10nNow,
                         ),
-                      ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
+}
+
+class FeedDayPlace {
+  const FeedDayPlace({
+    required this.day,
+    required this.offset,
+    required this.height,
+  });
+
+  final DateTime day;
+  final double offset;
+  final double height;
 }
 
 class _Chip extends StatelessWidget {
@@ -642,6 +823,7 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.scale,
     required this.spineX,
     required this.topGap,
+    required this.onOpenYear,
   });
 
   final DateTime month;
@@ -649,6 +831,7 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
   final FeedScale scale;
   final double spineX;
   final double topGap;
+  final VoidCallback onOpenYear;
 
   @override
   double get minExtent => 46 + topGap;
@@ -679,14 +862,26 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w600,
-                letterSpacing: 0.2,
-                color: colors.ink,
-              ),
+            Row(
+              children: [
+                GestureDetector(
+                  onHorizontalDragEnd: (details) {
+                    final velocity = details.primaryVelocity;
+                    if (velocity != null && velocity.abs() > 200) {
+                      onOpenYear();
+                    }
+                  },
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      letterSpacing: 0.2,
+                      color: colors.ink,
+                    ),
+                  ),
+                ),
+              ],
             ),
             SizedBox(
               height: 16,

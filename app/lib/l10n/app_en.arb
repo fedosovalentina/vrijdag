@@ -166,6 +166,7 @@
     }
   },
   "weekDayEmpty": "—",
+  "feedBackToToday": "Today",
   "feedNow": "now",
   "feedMore": "+{count} more",
   "@feedMore": {

@@ -69,6 +69,15 @@ class BirthdayDeleted extends AnalyticsEvent {
 }
 
 /// Day home opened (F-007). Counts only — never titles.
+/// Feed jumped to a day (F-014). [bucket] is `YYYY-MM`, never a title.
+class FeedJump extends AnalyticsEvent {
+  const FeedJump({required this.target, required this.bucket});
+
+  /// `today` | `day` | `month`
+  final String target;
+  final String bucket;
+}
+
 class TodayOpened extends AnalyticsEvent {
   const TodayOpened({required this.hasEvents, required this.eventCountBucket});
 
