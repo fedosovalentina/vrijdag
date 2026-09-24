@@ -29,6 +29,18 @@ void main() {
     );
   });
 
+  test('stores excluded dates in the existing rule text', () {
+    const rule = RecurrenceRule(frequency: RecurrenceFrequency.daily);
+    final encoded = encodeStoredRecurrence(rule, [
+      DateTime(2026, 9, 8),
+      DateTime(2026, 9, 15),
+    ]);
+    final stored = decodeStoredRecurrence(encoded);
+    expect(stored.rule?.frequency, RecurrenceFrequency.daily);
+    expect(stored.exdates, [DateTime(2026, 9, 8), DateTime(2026, 9, 15)]);
+    expect(decodeStoredRecurrence('FREQ=WEEKLY').exdates, isEmpty);
+  });
+
   test('parses RRULE prefix', () {
     final parsed = RecurrenceRule.parse('RRULE:FREQ=YEARLY');
     expect(parsed.frequency, RecurrenceFrequency.yearly);

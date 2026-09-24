@@ -82,7 +82,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'all_day': false,
       'source': 'vrijdag',
       'source_of_truth': 'vrijdag',
-      'recurrence_rule': draft.recurrenceRule?.toRrule(),
+      'recurrence_rule': encodeStoredRecurrence(draft.recurrenceRule, const []),
       'recurrence_until': draft.recurrenceUntil == null
           ? null
           : _dateOnly(draft.recurrenceUntil!),
@@ -126,7 +126,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'all_day': true,
       'source': 'vrijdag',
       'source_of_truth': 'vrijdag',
-      'recurrence_rule': recurrenceRule?.toRrule(),
+      'recurrence_rule': encodeStoredRecurrence(recurrenceRule, const []),
       'recurrence_until': recurrenceUntil == null
           ? null
           : _dateOnly(recurrenceUntil),
@@ -240,13 +240,13 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           event.timed?.timezone ??
           (event.allDay != null ? 'Europe/Amsterdam' : 'UTC'),
       'all_day': event.isAllDay,
-      'recurrence_rule': event.recurrenceRule?.toRrule(),
+      'recurrence_rule': encodeStoredRecurrence(
+        event.recurrenceRule,
+        event.recurrenceExdates,
+      ),
       'recurrence_until': event.recurrenceUntil == null
           ? null
           : _dateOnly(event.recurrenceUntil!),
-      'recurrence_exdates': [
-        for (final day in event.recurrenceExdates) _dateOnly(day),
-      ],
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
     };
@@ -255,15 +255,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
   PersonalEvent _fromRow(Map<String, dynamic> row) {
     final allDay = row['all_day'] as bool? ?? false;
     final timezone = row['timezone'] as String? ?? 'Europe/Amsterdam';
-    final ruleRaw = row['recurrence_rule'] as String?;
-    RecurrenceRule? rule;
-    if (ruleRaw != null && ruleRaw.trim().isNotEmpty) {
-      try {
-        rule = RecurrenceRule.parse(ruleRaw);
-      } on Object {
-        rule = null;
-      }
-    }
+    final stored = decodeStoredRecurrence(row['recurrence_rule'] as String?);
     final untilRaw = row['recurrence_until'];
     DateTime? until;
     if (untilRaw is String && untilRaw.isNotEmpty) {
@@ -291,9 +283,9 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
               endDate: DateTime.parse(row['end_date'] as String),
             )
           : null,
-      recurrenceRule: rule,
+      recurrenceRule: stored.rule,
       recurrenceUntil: until,
-      recurrenceExdates: _exdates(row['recurrence_exdates']),
+      recurrenceExdates: stored.exdates,
       source: _parseSource(row['source'] as String?),
       sourceOfTruth: _parseSourceOfTruth(row['source_of_truth'] as String?),
       deletedAt: row['deleted_at'] == null
@@ -320,16 +312,6 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           b.allDay!.startDate.day,
         );
     return aStart.compareTo(bStart);
-  }
-
-  List<DateTime> _exdates(Object? raw) {
-    if (raw is! List) {
-      return const [];
-    }
-    return [
-      for (final item in raw)
-        if (item is String && item.isNotEmpty) DateTime.parse(item),
-    ];
   }
 
   String _dateOnly(DateTime value) {

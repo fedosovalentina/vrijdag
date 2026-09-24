@@ -66,13 +66,13 @@ class DriftPersonalEventsCache {
           : _dateOnly(event.allDay!.endDate),
       'source': event.source.name,
       'source_of_truth': event.sourceOfTruth.name,
-      'recurrence_rule': event.recurrenceRule?.toRrule(),
+      'recurrence_rule': encodeStoredRecurrence(
+        event.recurrenceRule,
+        event.recurrenceExdates,
+      ),
       'recurrence_until': event.recurrenceUntil == null
           ? null
           : _dateOnly(event.recurrenceUntil!),
-      'recurrence_exdates': [
-        for (final day in event.recurrenceExdates) _dateOnly(day),
-      ],
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
       'created_at': event.createdAt.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
@@ -81,15 +81,7 @@ class DriftPersonalEventsCache {
 
   PersonalEvent _fromJson(Map<String, dynamic> row) {
     final allDay = row['all_day'] as bool? ?? false;
-    RecurrenceRule? rule;
-    final ruleRaw = row['recurrence_rule'] as String?;
-    if (ruleRaw != null && ruleRaw.trim().isNotEmpty) {
-      try {
-        rule = RecurrenceRule.parse(ruleRaw);
-      } on Object {
-        rule = null;
-      }
-    }
+    final stored = decodeStoredRecurrence(row['recurrence_rule'] as String?);
     DateTime? until;
     final untilRaw = row['recurrence_until'];
     if (untilRaw is String && untilRaw.isNotEmpty) {
@@ -114,9 +106,9 @@ class DriftPersonalEventsCache {
               endDate: DateTime.parse(row['end_date'] as String),
             )
           : null,
-      recurrenceRule: rule,
+      recurrenceRule: stored.rule,
       recurrenceUntil: until,
-      recurrenceExdates: _exdates(row['recurrence_exdates']),
+      recurrenceExdates: stored.exdates,
       source: switch (row['source'] as String?) {
         'google' => EventSource.google,
         'imported' => EventSource.imported,
@@ -132,16 +124,6 @@ class DriftPersonalEventsCache {
       createdAt: DateTime.parse(row['created_at'] as String).toUtc(),
       updatedAt: DateTime.parse(row['updated_at'] as String).toUtc(),
     );
-  }
-
-  List<DateTime> _exdates(Object? raw) {
-    if (raw is! List) {
-      return const [];
-    }
-    return [
-      for (final item in raw)
-        if (item is String && item.isNotEmpty) DateTime.parse(item),
-    ];
   }
 
   String _dateOnly(DateTime value) {

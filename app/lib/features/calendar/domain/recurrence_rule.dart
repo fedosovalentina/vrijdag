@@ -118,3 +118,74 @@ class RecurrenceRule {
 }
 
 enum RecurrenceFrequency { daily, weekly, monthly, yearly }
+
+class StoredRecurrence {
+  const StoredRecurrence({this.rule, this.exdates = const []});
+
+  final RecurrenceRule? rule;
+  final List<DateTime> exdates;
+}
+
+/// RRULE in the existing text column, with EXDATE lines when a day is skipped.
+String? encodeStoredRecurrence(RecurrenceRule? rule, List<DateTime> exdates) {
+  if (rule == null) {
+    return null;
+  }
+  final body = rule.toRrule();
+  if (exdates.isEmpty) {
+    return body;
+  }
+  final dates = exdates.map(_formatExdate).join(',');
+  return '$body\nEXDATE:$dates';
+}
+
+StoredRecurrence decodeStoredRecurrence(String? raw) {
+  if (raw == null || raw.trim().isEmpty) {
+    return const StoredRecurrence();
+  }
+  String? ruleLine;
+  final exdates = <DateTime>[];
+  for (final line in raw.split(RegExp(r'\r?\n'))) {
+    final trimmed = line.trim();
+    if (trimmed.isEmpty) {
+      continue;
+    }
+    if (trimmed.toUpperCase().startsWith('EXDATE:')) {
+      exdates.addAll(_parseExdates(trimmed.substring(7)));
+    } else {
+      ruleLine = trimmed;
+    }
+  }
+  RecurrenceRule? rule;
+  if (ruleLine != null) {
+    try {
+      rule = RecurrenceRule.parse(ruleLine);
+    } on Object {
+      rule = null;
+    }
+  }
+  return StoredRecurrence(rule: rule, exdates: exdates);
+}
+
+String _formatExdate(DateTime day) {
+  String two(int n) => n.toString().padLeft(2, '0');
+  return '${day.year}${two(day.month)}${two(day.day)}';
+}
+
+List<DateTime> _parseExdates(String raw) {
+  final out = <DateTime>[];
+  for (final part in raw.split(',')) {
+    final value = part.trim();
+    if (value.length < 8) {
+      continue;
+    }
+    final y = int.tryParse(value.substring(0, 4));
+    final m = int.tryParse(value.substring(4, 6));
+    final d = int.tryParse(value.substring(6, 8));
+    if (y == null || m == null || d == null) {
+      continue;
+    }
+    out.add(DateTime(y, m, d));
+  }
+  return out;
+}
