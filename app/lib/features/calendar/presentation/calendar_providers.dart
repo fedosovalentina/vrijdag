@@ -4,6 +4,8 @@ import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/data/caching_personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/data/supabase_personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_scale.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/personal_events_repository.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_materializer.dart';
@@ -77,4 +79,88 @@ final dayEventsProvider = FutureProvider.autoDispose<List<PersonalEvent>>((
       .watch(personalEventsRepositoryProvider)
       .listOverlapping(from: from, to: to);
   return RecurrenceMaterializer.materialize(masters, from: from, to: to);
+});
+
+class MonthFeedWindow {
+  const MonthFeedWindow({
+    required this.from,
+    required this.to,
+    this.scale,
+    this.slotCount = 1,
+  });
+
+  final DateTime from;
+  final DateTime to;
+  final FeedScale? scale;
+  final int slotCount;
+
+  MonthFeedWindow copyWith({
+    DateTime? from,
+    DateTime? to,
+    FeedScale? scale,
+    int? slotCount,
+  }) {
+    return MonthFeedWindow(
+      from: from ?? this.from,
+      to: to ?? this.to,
+      scale: scale ?? this.scale,
+      slotCount: slotCount ?? this.slotCount,
+    );
+  }
+}
+
+class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
+  @override
+  MonthFeedWindow build() {
+    final anchor = ref.watch(calendarAnchorProvider);
+    return MonthFeedWindow(
+      from: DateTime(anchor.year, anchor.month - 1, 1),
+      to: DateTime(anchor.year, anchor.month + 2, 1),
+    );
+  }
+
+  void growTo(DateTime day) {
+    final date = DateTime(day.year, day.month, day.day);
+    var from = state.from;
+    var to = state.to;
+    if (!date.isBefore(from) && date.isBefore(to)) {
+      return;
+    }
+    if (date.isBefore(from)) {
+      from = DateTime(date.year, date.month, 1);
+    }
+    if (!date.isBefore(to)) {
+      to = DateTime(date.year, date.month + 1, 1);
+    }
+    state = state.copyWith(from: from, to: to);
+  }
+
+  void adoptScale(FeedScale next, {required int slots}) {
+    final scale = state.scale == null ? next : state.scale!.expandTo(next);
+    final slotCount = slots > state.slotCount ? slots : state.slotCount;
+    final sameScale =
+        state.scale != null &&
+        state.scale!.startMinute == scale.startMinute &&
+        state.scale!.endMinute == scale.endMinute;
+    if (sameScale && slotCount == state.slotCount) {
+      return;
+    }
+    state = state.copyWith(scale: scale, slotCount: slotCount);
+  }
+}
+
+final monthFeedWindowProvider =
+    NotifierProvider<MonthFeedWindowNotifier, MonthFeedWindow>(
+      MonthFeedWindowNotifier.new,
+    );
+
+final monthFeedEventsProvider = FutureProvider.autoDispose<List<FeedEntry>>((
+  ref,
+) async {
+  final from = ref.watch(monthFeedWindowProvider.select((w) => w.from));
+  final to = ref.watch(monthFeedWindowProvider.select((w) => w.to));
+  final masters = await ref
+      .watch(personalEventsRepositoryProvider)
+      .listOverlapping(from: from.toUtc(), to: to.toUtc());
+  return projectFeedEntries(masters, from: from.toUtc(), to: to.toUtc());
 });

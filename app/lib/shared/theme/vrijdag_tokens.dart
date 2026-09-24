@@ -12,6 +12,8 @@ class VrijdagColorTokens {
     required this.moss,
     required this.rust,
     required this.banner,
+    required this.gold,
+    required this.goldBright,
   });
 
   final Color paper;
@@ -25,6 +27,12 @@ class VrijdagColorTokens {
   /// System-state fill (offline banner). Seasonal derived token (Task 02).
   final Color banner;
 
+  /// Current-time mark and a birthday that stands alone (month feed).
+  final Color gold;
+
+  /// Birthday star drawn on top of a dark multi-day bar.
+  final Color goldBright;
+
   /// Ink at 12% — hairlines between nav chrome (Task 02).
   Color get hair => ink.withValues(alpha: 0.12);
 
@@ -37,6 +45,8 @@ class VrijdagColorTokens {
     moss: Color(0xFF2D5016),
     rust: Color(0xFF9E4A3A),
     banner: Color(0xFFE8E0D4),
+    gold: Color(0xFFA9790C),
+    goldBright: Color(0xFFF0C24B),
   );
 
   static const autumnDark = VrijdagColorTokens(
@@ -48,6 +58,8 @@ class VrijdagColorTokens {
     moss: Color(0xFF8FBF6A),
     rust: Color(0xFFD4886A),
     banner: Color(0xFF24201A),
+    gold: Color(0xFFA9790C),
+    goldBright: Color(0xFFF0C24B),
   );
 }
 

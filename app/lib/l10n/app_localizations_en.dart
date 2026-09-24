@@ -474,4 +474,21 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get weekDayEmpty => '—';
+
+  @override
+  String get feedNow => 'now';
+
+  @override
+  String feedMore(int count) {
+    return '+$count more';
+  }
+
+  @override
+  String get feedShowLess => 'show less';
+
+  @override
+  String get feedDstPlus => '+1h';
+
+  @override
+  String get feedDstMinus => '−1h';
 }

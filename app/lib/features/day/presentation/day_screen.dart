@@ -15,7 +15,7 @@ import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_nav.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
-import 'package:vrijdag/features/calendar/presentation/month_view.dart';
+import 'package:vrijdag/features/calendar/presentation/month_feed_view.dart';
 import 'package:vrijdag/features/calendar/presentation/week_view.dart';
 import 'package:vrijdag/features/calendar/presentation/year_view.dart';
 import 'package:vrijdag/features/settings/presentation/settings_screen.dart';
@@ -298,6 +298,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             Expanded(
               child: GestureDetector(
                 onHorizontalDragEnd: (details) {
+                  if (scale == CalendarScale.month) {
+                    return;
+                  }
                   final v = details.primaryVelocity;
                   if (v == null) {
                     return;
@@ -343,10 +346,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                       _setScale(CalendarScale.day);
                     },
                   ),
-                  CalendarScale.month => MonthView(
-                    onSelectDay: (value) {
-                      _setAnchor(value);
-                      _setScale(CalendarScale.day);
+                  CalendarScale.month => MonthFeedView(
+                    onOpenEvent: (event) => _openEditor(existing: event),
+                    onOpenBirthday: (birthday) async {
+                      await Navigator.of(context).push<bool>(
+                        MaterialPageRoute(
+                          builder: (_) =>
+                              BirthdayEditorScreen(existing: birthday),
+                        ),
+                      );
+                      ref.invalidate(birthdaysListProvider);
                     },
                   ),
                   CalendarScale.year => YearView(

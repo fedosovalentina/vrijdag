@@ -973,6 +973,36 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'—'**
   String get weekDayEmpty;
+
+  /// Label on the current-time mark in the month feed.
+  ///
+  /// In nl, this message translates to:
+  /// **'nu'**
+  String get feedNow;
+
+  /// Collapsed overflow on a month-feed day.
+  ///
+  /// In nl, this message translates to:
+  /// **'+{count} meer'**
+  String feedMore(int count);
+
+  /// Collapse an expanded overflow row in the month feed.
+  ///
+  /// In nl, this message translates to:
+  /// **'minder'**
+  String get feedShowLess;
+
+  /// Day mark when local midnight-to-midnight is 25 hours.
+  ///
+  /// In nl, this message translates to:
+  /// **'+1u'**
+  String get feedDstPlus;
+
+  /// Day mark when local midnight-to-midnight is 23 hours.
+  ///
+  /// In nl, this message translates to:
+  /// **'−1u'**
+  String get feedDstMinus;
 }
 
 class _AppLocalizationsDelegate

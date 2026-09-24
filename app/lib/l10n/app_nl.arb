@@ -605,5 +605,28 @@
   "weekDayEmpty": "—",
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
+  },
+  "feedNow": "nu",
+  "@feedNow": {
+    "description": "Label on the current-time mark in the month feed."
+  },
+  "feedMore": "+{count} meer",
+  "@feedMore": {
+    "description": "Collapsed overflow on a month-feed day.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
+  "feedShowLess": "minder",
+  "@feedShowLess": {
+    "description": "Collapse an expanded overflow row in the month feed."
+  },
+  "feedDstPlus": "+1u",
+  "@feedDstPlus": {
+    "description": "Day mark when local midnight-to-midnight is 25 hours."
+  },
+  "feedDstMinus": "−1u",
+  "@feedDstMinus": {
+    "description": "Day mark when local midnight-to-midnight is 23 hours."
   }
 }
