@@ -41,6 +41,7 @@ abstract final class RecurrenceMaterializer {
         seriesStart: seriesStart,
         from: from.toUtc(),
         to: to.toUtc(),
+        exdates: event.recurrenceExdates,
       );
 
       final duration = event.timed == null
@@ -68,6 +69,7 @@ abstract final class RecurrenceMaterializer {
                 timezone: event.timed!.timezone,
               ),
               clearRecurrence: true,
+              seriesMaster: event,
             ),
           );
         } else {
@@ -83,6 +85,7 @@ abstract final class RecurrenceMaterializer {
                 endDate: start.add(Duration(days: allDayLength)),
               ),
               clearRecurrence: true,
+              seriesMaster: event,
             ),
           );
         }

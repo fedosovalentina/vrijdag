@@ -54,7 +54,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
     final events = <PersonalEvent>[];
     for (final row in rows as List<dynamic>) {
       final event = _fromRow(Map<String, dynamic>.from(row as Map));
-      if (_overlaps(event, from, to)) {
+      if (event.overlaps(from, to)) {
         events.add(event);
       }
     }
@@ -244,6 +244,9 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       'recurrence_until': event.recurrenceUntil == null
           ? null
           : _dateOnly(event.recurrenceUntil!),
+      'recurrence_exdates': [
+        for (final day in event.recurrenceExdates) _dateOnly(day),
+      ],
       'deleted_at': event.deletedAt?.toUtc().toIso8601String(),
       'updated_at': event.updatedAt.toUtc().toIso8601String(),
     };
@@ -290,6 +293,7 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           : null,
       recurrenceRule: rule,
       recurrenceUntil: until,
+      recurrenceExdates: _exdates(row['recurrence_exdates']),
       source: _parseSource(row['source'] as String?),
       sourceOfTruth: _parseSourceOfTruth(row['source_of_truth'] as String?),
       deletedAt: row['deleted_at'] == null
@@ -298,25 +302,6 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
       createdAt: createdRaw == null ? now : DateTime.parse(createdRaw).toUtc(),
       updatedAt: updatedRaw == null ? now : DateTime.parse(updatedRaw).toUtc(),
     );
-  }
-
-  bool _overlaps(PersonalEvent event, DateTime from, DateTime to) {
-    if (event.timed != null) {
-      return event.timed!.startsAt.isBefore(to) &&
-          event.timed!.endsAt.isAfter(from);
-    }
-    final span = event.allDay!;
-    final start = DateTime.utc(
-      span.startDate.year,
-      span.startDate.month,
-      span.startDate.day,
-    );
-    final endExclusive = DateTime.utc(
-      span.endDate.year,
-      span.endDate.month,
-      span.endDate.day,
-    ).add(const Duration(days: 1));
-    return start.isBefore(to) && endExclusive.isAfter(from);
   }
 
   int _compare(PersonalEvent a, PersonalEvent b) {
@@ -335,6 +320,16 @@ class SupabasePersonalEventsRepository implements PersonalEventsRepository {
           b.allDay!.startDate.day,
         );
     return aStart.compareTo(bStart);
+  }
+
+  List<DateTime> _exdates(Object? raw) {
+    if (raw is! List) {
+      return const [];
+    }
+    return [
+      for (final item in raw)
+        if (item is String && item.isNotEmpty) DateTime.parse(item),
+    ];
   }
 
   String _dateOnly(DateTime value) {

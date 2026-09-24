@@ -8,6 +8,7 @@ import 'package:vrijdag/features/auth/domain/profile_defaults.dart';
 import 'package:vrijdag/features/calendar/domain/event_time.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/domain/recurrence_rule.dart';
+import 'package:vrijdag/features/calendar/domain/recurrence_scope.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 
@@ -54,8 +55,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     _title = TextEditingController(text: existing?.title ?? '');
     _location = TextEditingController(text: existing?.location ?? '');
     _notes = TextEditingController(text: existing?.notes ?? '');
-    _frequency = existing?.recurrenceRule?.frequency;
-    final until = existing?.recurrenceUntil;
+    final seriesRule = existing?.seriesMaster ?? existing;
+    _frequency = seriesRule?.recurrenceRule?.frequency;
+    final until = seriesRule?.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
         : DateTime(until.year, until.month, until.day);
@@ -98,8 +100,9 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     _title.text = existing.title;
     _location.text = existing.location ?? '';
     _notes.text = existing.notes ?? '';
-    _frequency = existing.recurrenceRule?.frequency;
-    final until = existing.recurrenceUntil;
+    final seriesRule = existing.seriesMaster ?? existing;
+    _frequency = seriesRule.recurrenceRule?.frequency;
+    final until = seriesRule.recurrenceUntil;
     _recurrenceUntil = until == null
         ? null
         : DateTime(until.year, until.month, until.day);
@@ -433,9 +436,94 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       final timezone = await resolveDeviceTimezoneId();
       final recurrenceRule = _buildRecurrenceRule();
       final recurrenceUntil = _effectiveRecurrenceUntil;
+      final opened = widget.existing;
+      final series =
+          opened?.seriesMaster ??
+          (opened != null && opened.isRecurring ? opened : null);
+      var singleOccurrence = false;
 
-      if (_isEdit) {
-        // V1: editing a recurring master updates the whole series.
+      if (series != null && series.isRecurring) {
+        final scope = await _askScope();
+        if (scope == null || !mounted) {
+          setState(() => _saving = false);
+          return;
+        }
+        singleOccurrence = scope == RecurrenceScope.thisEvent;
+        final occurrence =
+            widget.existing!.timed?.startsAt.toLocal() ??
+            widget.existing!.allDay!.startDate;
+        final plan = planRecurrenceEdit(
+          scope: scope,
+          occurrence: occurrence,
+          existingExdates: series.recurrenceExdates,
+          deleting: false,
+        );
+        final masterTimed = plan.applyToSeries
+            ? (_allDay
+                  ? null
+                  : TimedEventSpan(
+                      startsAt: _startLocal.toUtc(),
+                      endsAt: _endLocal.toUtc(),
+                      timezone: timezone,
+                    ))
+            : series.timed;
+        final masterAllDay = plan.applyToSeries
+            ? (_allDay
+                  ? AllDayEventSpan(
+                      startDate: DateTime(
+                        _startLocal.year,
+                        _startLocal.month,
+                        _startLocal.day,
+                      ),
+                      endDate: DateTime(
+                        _endLocal.year,
+                        _endLocal.month,
+                        _endLocal.day,
+                      ),
+                    )
+                  : null)
+            : series.allDay;
+        await repo.update(
+          PersonalEvent(
+            id: series.id,
+            userId: series.userId,
+            title: plan.applyToSeries ? title : series.title,
+            notes: plan.applyToSeries ? notes : series.notes,
+            location: plan.applyToSeries ? location : series.location,
+            timed: masterTimed,
+            allDay: masterAllDay,
+            recurrenceRule: plan.applyToSeries
+                ? recurrenceRule
+                : series.recurrenceRule,
+            recurrenceUntil: plan.replaceUntil
+                ? plan.seriesUntil
+                : (plan.applyToSeries
+                      ? recurrenceUntil
+                      : series.recurrenceUntil),
+            recurrenceExdates: plan.exdates,
+            source: series.source,
+            sourceOfTruth: series.sourceOfTruth,
+            createdAt: series.createdAt,
+            updatedAt: DateTime.now().toUtc(),
+          ),
+        );
+        if (!plan.detachOccurrence) {
+          await analytics.track(EventEdited(source: series.source.name));
+          if (!mounted) {
+            return;
+          }
+          ref.invalidate(todaysEventsProvider);
+          ref.invalidate(dayEventsProvider);
+          ref.invalidate(visibleEventsProvider);
+          Navigator.of(context).pop(true);
+          return;
+        }
+      }
+
+      final writeRule = singleOccurrence ? null : recurrenceRule;
+      final writeUntil = singleOccurrence ? null : recurrenceUntil;
+
+      if (_isEdit && series == null) {
         final existing = widget.existing!;
         final updated = PersonalEvent(
           id: existing.id,
@@ -464,8 +552,8 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
                   ),
                 )
               : null,
-          recurrenceRule: recurrenceRule,
-          recurrenceUntil: recurrenceUntil,
+          recurrenceRule: writeRule,
+          recurrenceUntil: writeUntil,
           source: existing.source,
           sourceOfTruth: existing.sourceOfTruth,
           deletedAt: existing.deletedAt,
@@ -486,8 +574,8 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           timezone: timezone,
           notes: notes,
           location: location,
-          recurrenceRule: recurrenceRule,
-          recurrenceUntil: recurrenceUntil,
+          recurrenceRule: writeRule,
+          recurrenceUntil: writeUntil,
         );
         await analytics.track(
           EventCreated(
@@ -505,8 +593,8 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
             duration: _endLocal.difference(_startLocal),
             notes: notes,
             location: location,
-            recurrenceRule: recurrenceRule,
-            recurrenceUntil: recurrenceUntil,
+            recurrenceRule: writeRule,
+            recurrenceUntil: writeUntil,
           ),
         );
         await analytics.track(
@@ -541,28 +629,43 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     if (existing == null) {
       return;
     }
-    final l10n = context.l10n;
 
-    if (existing.isRecurring) {
-      // V1: series-only — only "all events" is offered for delete.
-      final confirmed = await showDialog<bool>(
-        context: context,
-        builder: (context) {
-          return SimpleDialog(
-            title: Text(l10n.calendarRecurrenceScopeTitle),
-            children: [
-              SimpleDialogOption(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: Text(l10n.calendarRecurrenceAllEvents),
-              ),
-            ],
-          );
-        },
-      );
-      if (confirmed != true || !mounted) {
+    final series =
+        existing.seriesMaster ?? (existing.isRecurring ? existing : null);
+    if (series != null && series.isRecurring) {
+      final scope = await _askScope();
+      if (scope == null || !mounted) {
         return;
       }
-      await _performSoftDelete(existing, showUndo: false);
+      if (scope == RecurrenceScope.all) {
+        await _performSoftDelete(series, showUndo: false);
+        return;
+      }
+      final occurrence =
+          existing.timed?.startsAt.toLocal() ?? existing.allDay!.startDate;
+      final plan = planRecurrenceEdit(
+        scope: scope,
+        occurrence: occurrence,
+        existingExdates: series.recurrenceExdates,
+        deleting: true,
+      );
+      final repo = ref.read(personalEventsRepositoryProvider);
+      await repo.update(
+        series.copyWith(
+          recurrenceExdates: plan.exdates,
+          recurrenceUntil: plan.replaceUntil
+              ? plan.seriesUntil
+              : series.recurrenceUntil,
+          updatedAt: DateTime.now().toUtc(),
+        ),
+      );
+      if (!mounted) {
+        return;
+      }
+      ref.invalidate(todaysEventsProvider);
+      ref.invalidate(dayEventsProvider);
+      ref.invalidate(visibleEventsProvider);
+      Navigator.of(context).pop(true);
       return;
     }
 
@@ -639,6 +742,34 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
       return _formatDate(value);
     }
     return '${_formatDate(value)} ${two(value.hour)}:${two(value.minute)}';
+  }
+
+  Future<RecurrenceScope?> _askScope() {
+    final l10n = context.l10n;
+    return showDialog<RecurrenceScope>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(l10n.calendarRecurrenceScopeTitle),
+          children: [
+            SimpleDialogOption(
+              onPressed: () =>
+                  Navigator.of(context).pop(RecurrenceScope.thisEvent),
+              child: Text(l10n.calendarRecurrenceThisOccurrence),
+            ),
+            SimpleDialogOption(
+              onPressed: () =>
+                  Navigator.of(context).pop(RecurrenceScope.thisAndFollowing),
+              child: Text(l10n.calendarRecurrenceThisAndFollowing),
+            ),
+            SimpleDialogOption(
+              onPressed: () => Navigator.of(context).pop(RecurrenceScope.all),
+              child: Text(l10n.calendarRecurrenceAllEvents),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _cancel() {

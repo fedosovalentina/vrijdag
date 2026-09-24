@@ -32,7 +32,7 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
     final cached = await _cache.listForUser(_currentUserId());
     return cached
         .where((e) => !e.isDeleted)
-        .where((e) => _overlaps(e, from, to))
+        .where((e) => e.overlaps(from, to))
         .toList()
       ..sort(_compare);
   }
@@ -112,25 +112,6 @@ class CachingPersonalEventsRepository implements PersonalEventsRepository {
       }
     }
     return null;
-  }
-
-  bool _overlaps(PersonalEvent event, DateTime from, DateTime to) {
-    if (event.timed != null) {
-      return event.timed!.startsAt.isBefore(to) &&
-          event.timed!.endsAt.isAfter(from);
-    }
-    final span = event.allDay!;
-    final start = DateTime.utc(
-      span.startDate.year,
-      span.startDate.month,
-      span.startDate.day,
-    );
-    final endExclusive = DateTime.utc(
-      span.endDate.year,
-      span.endDate.month,
-      span.endDate.day,
-    ).add(const Duration(days: 1));
-    return start.isBefore(to) && endExclusive.isAfter(from);
   }
 
   int _compare(PersonalEvent a, PersonalEvent b) {

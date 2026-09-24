@@ -17,6 +17,8 @@ class PersonalEvent {
     this.allDay,
     this.recurrenceRule,
     this.recurrenceUntil,
+    this.recurrenceExdates = const [],
+    this.seriesMaster,
     required this.source,
     required this.sourceOfTruth,
     this.deletedAt,
@@ -33,6 +35,10 @@ class PersonalEvent {
   final AllDayEventSpan? allDay;
   final RecurrenceRule? recurrenceRule;
   final DateTime? recurrenceUntil;
+  final List<DateTime> recurrenceExdates;
+
+  /// The stored series row, when this object is one expanded occurrence.
+  final PersonalEvent? seriesMaster;
   final EventSource source;
   final SourceOfTruth sourceOfTruth;
   final DateTime? deletedAt;
@@ -52,6 +58,8 @@ class PersonalEvent {
     AllDayEventSpan? allDay,
     RecurrenceRule? recurrenceRule,
     DateTime? recurrenceUntil,
+    List<DateTime>? recurrenceExdates,
+    PersonalEvent? seriesMaster,
     bool clearRecurrence = false,
     DateTime? deletedAt,
     bool clearDeletedAt = false,
@@ -71,6 +79,8 @@ class PersonalEvent {
       recurrenceUntil: clearRecurrence
           ? null
           : (recurrenceUntil ?? this.recurrenceUntil),
+      recurrenceExdates: recurrenceExdates ?? this.recurrenceExdates,
+      seriesMaster: seriesMaster ?? this.seriesMaster,
       source: source,
       sourceOfTruth: sourceOfTruth,
       deletedAt: clearDeletedAt ? null : (deletedAt ?? this.deletedAt),
@@ -92,6 +102,53 @@ class PersonalEvent {
     timed?.validate();
     allDay?.validate();
     recurrenceRule?.validate();
+  }
+
+  /// Whether this row can produce an occurrence inside [from, to).
+  ///
+  /// A repeating series overlaps the window when it has started and has not
+  /// ended, even if the stored start sits before [from].
+  bool overlaps(DateTime from, DateTime to) {
+    if (!rangeStart.isBefore(to)) {
+      return false;
+    }
+    if (isRecurring) {
+      final until = recurrenceUntil ?? recurrenceRule?.until;
+      if (until == null) {
+        return true;
+      }
+      final inclusiveEnd = DateTime.utc(
+        until.year,
+        until.month,
+        until.day,
+      ).add(const Duration(days: 1));
+      return inclusiveEnd.isAfter(from);
+    }
+    return rangeEnd.isAfter(from);
+  }
+
+  DateTime get rangeStart {
+    if (timed != null) {
+      return timed!.startsAt;
+    }
+    final span = allDay!;
+    return DateTime.utc(
+      span.startDate.year,
+      span.startDate.month,
+      span.startDate.day,
+    );
+  }
+
+  DateTime get rangeEnd {
+    if (timed != null) {
+      return timed!.endsAt;
+    }
+    final span = allDay!;
+    return DateTime.utc(
+      span.endDate.year,
+      span.endDate.month,
+      span.endDate.day,
+    ).add(const Duration(days: 1));
   }
 }
 

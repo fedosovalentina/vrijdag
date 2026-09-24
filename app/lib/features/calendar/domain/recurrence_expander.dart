@@ -19,6 +19,7 @@ class RecurrenceExpander {
     required DateTime seriesStart,
     required DateTime from,
     required DateTime to,
+    List<DateTime> exdates = const [],
     int safetyLimit = 732,
   }) {
     rule.validate();
@@ -48,7 +49,9 @@ class RecurrenceExpander {
       }
 
       if (_matches(rule, start, candidate)) {
-        if (!candidate.isBefore(from) && candidate.isBefore(to)) {
+        if (!_excluded(candidate, exdates) &&
+            !candidate.isBefore(from) &&
+            candidate.isBefore(to)) {
           results.add(RecurrenceOccurrence(startsAt: candidate));
         }
         emitted++;
@@ -61,6 +64,15 @@ class RecurrenceExpander {
     }
 
     return results;
+  }
+
+  bool _excluded(DateTime candidate, List<DateTime> exdates) {
+    return exdates.any(
+      (day) =>
+          day.year == candidate.year &&
+          day.month == candidate.month &&
+          day.day == candidate.day,
+    );
   }
 
   bool _matches(RecurrenceRule rule, DateTime seriesStart, DateTime candidate) {
