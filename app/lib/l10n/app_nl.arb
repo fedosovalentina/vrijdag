@@ -628,5 +628,29 @@
   "feedDstMinus": "−1u",
   "@feedDstMinus": {
     "description": "Day mark when local midnight-to-midnight is 23 hours."
+  },
+  "eventUntitled": "Zonder titel",
+  "@eventUntitled": {
+    "description": "Saved title when the event name was left empty."
+  },
+  "eventEdit": "Wijzig",
+  "@eventEdit": {
+    "description": "Switch the event screen from view to edit."
+  },
+  "eventCancel": "Annuleer",
+  "@eventCancel": {
+    "description": "Leave edit. Existing event returns to view."
+  },
+  "eventMakeMultiDay": "Meerdere dagen",
+  "@eventMakeMultiDay": {
+    "description": "Reveal the end date for a one-day event."
+  },
+  "eventRangeTooLong": "Een afspraak duurt hier hoogstens 30 dagen.",
+  "@eventRangeTooLong": {
+    "description": "Inline hint when a date range is longer than 30 days."
+  },
+  "eventMoreDetails": "Meer",
+  "@eventMoreDetails": {
+    "description": "Expand location, recurrence, and notes."
   }
 }

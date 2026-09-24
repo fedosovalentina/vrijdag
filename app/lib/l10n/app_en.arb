@@ -175,5 +175,11 @@
   },
   "feedShowLess": "show less",
   "feedDstPlus": "+1h",
-  "feedDstMinus": "−1h"
+  "feedDstMinus": "−1h",
+  "eventUntitled": "Untitled",
+  "eventEdit": "Edit",
+  "eventCancel": "Cancel",
+  "eventMakeMultiDay": "Several days",
+  "eventRangeTooLong": "An event here lasts at most 30 days.",
+  "eventMoreDetails": "More"
 }

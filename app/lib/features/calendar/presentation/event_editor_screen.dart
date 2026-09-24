@@ -34,9 +34,18 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
   RecurrenceFrequency? _frequency;
   DateTime? _recurrenceUntil;
   var _saving = false;
+  var _viewing = false;
+  var _multiDay = false;
+  var _detailsOpen = false;
   String? _error;
+  String? _rangeHint;
 
   bool get _isEdit => widget.existing != null;
+
+  bool get _hasDetails =>
+      _location.text.trim().isNotEmpty ||
+      _notes.text.trim().isNotEmpty ||
+      _frequency != null;
 
   @override
   void initState() {
@@ -76,6 +85,46 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
           : DateTime(seed.year, seed.month, seed.day, seed.hour);
       _endLocal = _startLocal.add(defaultTimedEventDuration);
     }
+    _viewing = existing != null;
+    _multiDay = !_sameDay(_startLocal, _endLocal);
+    _detailsOpen = _hasDetails;
+  }
+
+  void _restoreSaved() {
+    final existing = widget.existing;
+    if (existing == null) {
+      return;
+    }
+    _title.text = existing.title;
+    _location.text = existing.location ?? '';
+    _notes.text = existing.notes ?? '';
+    _frequency = existing.recurrenceRule?.frequency;
+    final until = existing.recurrenceUntil;
+    _recurrenceUntil = until == null
+        ? null
+        : DateTime(until.year, until.month, until.day);
+    if (existing.timed != null) {
+      _allDay = false;
+      _startLocal = existing.timed!.startsAt.toLocal();
+      _endLocal = existing.timed!.endsAt.toLocal();
+    } else if (existing.allDay != null) {
+      _allDay = true;
+      final span = existing.allDay!;
+      _startLocal = DateTime(
+        span.startDate.year,
+        span.startDate.month,
+        span.startDate.day,
+      );
+      _endLocal = DateTime(
+        span.endDate.year,
+        span.endDate.month,
+        span.endDate.day,
+      );
+    }
+    _multiDay = !_sameDay(_startLocal, _endLocal);
+    _detailsOpen = _hasDetails;
+    _error = null;
+    _rangeHint = null;
   }
 
   @override
@@ -84,6 +133,19 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     _location.dispose();
     _notes.dispose();
     super.dispose();
+  }
+
+  bool _sameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
+  bool _rangeExceedsCap() {
+    final start = DateTime(
+      _startLocal.year,
+      _startLocal.month,
+      _startLocal.day,
+    );
+    final end = DateTime(_endLocal.year, _endLocal.month, _endLocal.day);
+    return end.difference(start).inDays > 30;
   }
 
   DateTime _roundToNextQuarter(DateTime value) {
@@ -331,9 +393,12 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
 
   Future<void> _save() async {
     final l10n = context.l10n;
-    final title = _title.text.trim();
-    if (title.isEmpty) {
-      setState(() => _error = l10n.calendarTitleRequired);
+    final title = _title.text.trim().isEmpty
+        ? l10n.eventUntitled
+        : _title.text.trim();
+
+    if (_rangeExceedsCap()) {
+      setState(() => _rangeHint = l10n.eventRangeTooLong);
       return;
     }
 
@@ -576,97 +641,183 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
     return '${_formatDate(value)} ${two(value.hour)}:${two(value.minute)}';
   }
 
+  void _cancel() {
+    if (!_isEdit) {
+      Navigator.of(context).pop(false);
+      return;
+    }
+    setState(() {
+      _restoreSaved();
+      _viewing = true;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
+    final showDetails = _viewing ? _hasDetails : _detailsOpen;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? l10n.calendarEditEvent : l10n.calendarNewEvent),
+        title: Text(
+          _viewing
+              ? (_title.text.trim().isEmpty
+                    ? l10n.eventUntitled
+                    : _title.text.trim())
+              : (_isEdit ? l10n.calendarEditEvent : l10n.calendarNewEvent),
+        ),
+        actions: [
+          if (_viewing)
+            TextButton(
+              onPressed: () => setState(() => _viewing = false),
+              child: Text(l10n.eventEdit),
+            )
+          else
+            TextButton(
+              onPressed: _saving ? null : _cancel,
+              child: Text(l10n.eventCancel),
+            ),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(24),
         children: [
-          TextField(
-            controller: _title,
-            decoration: InputDecoration(labelText: l10n.calendarTitleLabel),
-            textCapitalization: TextCapitalization.sentences,
-            enabled: !_saving,
-          ),
+          if (_viewing)
+            Text(
+              _title.text.trim().isEmpty
+                  ? l10n.eventUntitled
+                  : _title.text.trim(),
+              style: Theme.of(context).textTheme.titleLarge,
+            )
+          else
+            TextField(
+              controller: _title,
+              autofocus: !_isEdit,
+              decoration: InputDecoration(labelText: l10n.calendarTitleLabel),
+              textCapitalization: TextCapitalization.sentences,
+              enabled: !_saving,
+            ),
           const SizedBox(height: 8),
-          SwitchListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.calendarAllDay),
-            value: _allDay,
-            onChanged: _saving
-                ? null
-                : (value) {
-                    setState(() {
-                      _allDay = value;
-                      if (value) {
-                        _startLocal = DateTime(
-                          _startLocal.year,
-                          _startLocal.month,
-                          _startLocal.day,
-                        );
-                        _endLocal = DateTime(
-                          _endLocal.year,
-                          _endLocal.month,
-                          _endLocal.day,
-                        );
-                        if (_endLocal.isBefore(_startLocal)) {
-                          _endLocal = _startLocal;
+          if (_viewing)
+            Text(
+              _allDay
+                  ? (_multiDay
+                        ? '${_formatDate(_startLocal)} – ${_formatDate(_endLocal)}'
+                        : l10n.calendarAllDay)
+                  : '${_formatDateTime(_startLocal)} – ${_formatDateTime(_endLocal)}',
+            )
+          else
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.calendarAllDay),
+              value: _allDay,
+              onChanged: _saving
+                  ? null
+                  : (value) {
+                      setState(() {
+                        _allDay = value;
+                        if (value) {
+                          _startLocal = DateTime(
+                            _startLocal.year,
+                            _startLocal.month,
+                            _startLocal.day,
+                          );
+                          _endLocal = DateTime(
+                            _endLocal.year,
+                            _endLocal.month,
+                            _endLocal.day,
+                          );
+                          if (_endLocal.isBefore(_startLocal)) {
+                            _endLocal = _startLocal;
+                          }
+                        } else {
+                          _startLocal = _roundToNextQuarter(DateTime.now());
+                          _endLocal = _startLocal.add(
+                            defaultTimedEventDuration,
+                          );
                         }
-                      } else {
-                        _startLocal = _roundToNextQuarter(DateTime.now());
-                        _endLocal = _startLocal.add(defaultTimedEventDuration);
-                      }
-                    });
-                  },
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.calendarStartsLabel),
-            subtitle: Text(_formatDateTime(_startLocal)),
-            onTap: _saving ? null : _pickStart,
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.calendarEndsLabel),
-            subtitle: Text(_formatDateTime(_endLocal)),
-            onTap: _saving ? null : _pickEnd,
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.calendarRecurrenceLabel),
-            subtitle: Text(_frequencyLabel(l10n)),
-            onTap: _saving ? null : _pickFrequencyChoice,
-          ),
-          if (_frequency != null)
+                      });
+                    },
+            ),
+          if (!_viewing)
             ListTile(
               contentPadding: EdgeInsets.zero,
-              title: Text(
-                _recurrenceUntil == null
-                    ? l10n.calendarRecurrenceEndsNever
-                    : l10n.calendarRecurrenceEndsOnDate,
-              ),
-              subtitle: _recurrenceUntil == null
-                  ? null
-                  : Text(_formatDate(_recurrenceUntil!)),
-              onTap: _saving ? null : _pickRecurrenceEnds,
+              title: Text(l10n.calendarStartsLabel),
+              subtitle: Text(_formatDateTime(_startLocal)),
+              onTap: _saving ? null : _pickStart,
             ),
-          TextField(
-            controller: _location,
-            decoration: InputDecoration(labelText: l10n.calendarLocationLabel),
-            enabled: !_saving,
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            controller: _notes,
-            decoration: InputDecoration(labelText: l10n.calendarNotesLabel),
-            maxLines: 3,
-            enabled: !_saving,
-          ),
+          if (!_viewing && !_multiDay)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: _saving
+                    ? null
+                    : () => setState(() => _multiDay = true),
+                child: Text(l10n.eventMakeMultiDay),
+              ),
+            ),
+          if (!_viewing && _multiDay)
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.calendarEndsLabel),
+              subtitle: Text(_formatDateTime(_endLocal)),
+              onTap: _saving ? null : _pickEnd,
+            ),
+          if (_viewing && _multiDay) Text(_formatDateTime(_endLocal)),
+          if (_rangeHint != null)
+            Text(
+              _rangeHint!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            ),
+          if (!_viewing && !_detailsOpen)
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton(
+                onPressed: () => setState(() => _detailsOpen = true),
+                child: Text(l10n.eventMoreDetails),
+              ),
+            ),
+          if (showDetails) ...[
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.calendarRecurrenceLabel),
+              subtitle: Text(_frequencyLabel(l10n)),
+              onTap: _viewing || _saving ? null : _pickFrequencyChoice,
+            ),
+            if (_frequency != null)
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: Text(
+                  _recurrenceUntil == null
+                      ? l10n.calendarRecurrenceEndsNever
+                      : l10n.calendarRecurrenceEndsOnDate,
+                ),
+                subtitle: _recurrenceUntil == null
+                    ? null
+                    : Text(_formatDate(_recurrenceUntil!)),
+                onTap: _viewing || _saving ? null : _pickRecurrenceEnds,
+              ),
+            if (_viewing && _location.text.trim().isNotEmpty)
+              Text(_location.text.trim())
+            else if (!_viewing)
+              TextField(
+                controller: _location,
+                decoration: InputDecoration(
+                  labelText: l10n.calendarLocationLabel,
+                ),
+                enabled: !_saving,
+              ),
+            const SizedBox(height: 16),
+            if (_viewing && _notes.text.trim().isNotEmpty)
+              Text(_notes.text.trim())
+            else if (!_viewing)
+              TextField(
+                controller: _notes,
+                decoration: InputDecoration(labelText: l10n.calendarNotesLabel),
+                maxLines: 3,
+                enabled: !_saving,
+              ),
+          ],
           if (_error != null) ...[
             const SizedBox(height: 12),
             Text(
@@ -675,11 +826,12 @@ class _EventEditorScreenState extends ConsumerState<EventEditorScreen> {
             ),
           ],
           const SizedBox(height: 24),
-          FilledButton(
-            onPressed: _saving ? null : _save,
-            child: Text(l10n.commonSave),
-          ),
-          if (_isEdit) ...[
+          if (!_viewing)
+            FilledButton(
+              onPressed: _saving ? null : _save,
+              child: Text(l10n.commonSave),
+            ),
+          if (_isEdit && !_viewing) ...[
             const SizedBox(height: 12),
             TextButton(
               onPressed: _saving ? null : _delete,

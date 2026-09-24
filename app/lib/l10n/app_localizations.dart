@@ -1003,6 +1003,42 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'−1u'**
   String get feedDstMinus;
+
+  /// Saved title when the event name was left empty.
+  ///
+  /// In nl, this message translates to:
+  /// **'Zonder titel'**
+  String get eventUntitled;
+
+  /// Switch the event screen from view to edit.
+  ///
+  /// In nl, this message translates to:
+  /// **'Wijzig'**
+  String get eventEdit;
+
+  /// Leave edit. Existing event returns to view.
+  ///
+  /// In nl, this message translates to:
+  /// **'Annuleer'**
+  String get eventCancel;
+
+  /// Reveal the end date for a one-day event.
+  ///
+  /// In nl, this message translates to:
+  /// **'Meerdere dagen'**
+  String get eventMakeMultiDay;
+
+  /// Inline hint when a date range is longer than 30 days.
+  ///
+  /// In nl, this message translates to:
+  /// **'Een afspraak duurt hier hoogstens 30 dagen.'**
+  String get eventRangeTooLong;
+
+  /// Expand location, recurrence, and notes.
+  ///
+  /// In nl, this message translates to:
+  /// **'Meer'**
+  String get eventMoreDetails;
 }
 
 class _AppLocalizationsDelegate

@@ -125,6 +125,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     ref.invalidate(dayEventsProvider);
     ref.invalidate(todaysEventsProvider);
     ref.invalidate(visibleEventsProvider);
+    ref.invalidate(monthFeedEventsProvider);
     ref.invalidate(pendingWriteCountProvider);
   }
 

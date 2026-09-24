@@ -492,4 +492,22 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get feedDstMinus => '−1u';
+
+  @override
+  String get eventUntitled => 'Zonder titel';
+
+  @override
+  String get eventEdit => 'Wijzig';
+
+  @override
+  String get eventCancel => 'Annuleer';
+
+  @override
+  String get eventMakeMultiDay => 'Meerdere dagen';
+
+  @override
+  String get eventRangeTooLong => 'Een afspraak duurt hier hoogstens 30 dagen.';
+
+  @override
+  String get eventMoreDetails => 'Meer';
 }

@@ -491,4 +491,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get feedDstMinus => '−1h';
+
+  @override
+  String get eventUntitled => 'Untitled';
+
+  @override
+  String get eventEdit => 'Edit';
+
+  @override
+  String get eventCancel => 'Cancel';
+
+  @override
+  String get eventMakeMultiDay => 'Several days';
+
+  @override
+  String get eventRangeTooLong => 'An event here lasts at most 30 days.';
+
+  @override
+  String get eventMoreDetails => 'More';
 }
