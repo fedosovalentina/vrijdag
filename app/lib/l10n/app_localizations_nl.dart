@@ -477,6 +477,23 @@ class AppLocalizationsNl extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get feedEmptyDays => 'Lege dagen';
+
+  @override
+  String get feedEmptyCompact => 'Compact';
+
+  @override
+  String get feedEmptyCollapsed => 'Ingeklapt';
+
+  @override
+  String get feedEmptyHidden => 'Verborgen';
+
+  @override
+  String feedEmptyGroup(int count) {
+    return '$count lege dagen';
+  }
+
+  @override
   String get categoryTitle => 'Categorieën';
 
   @override

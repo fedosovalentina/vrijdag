@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vrijdag/core/database/database_providers.dart';
 import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/features/calendar/data/caching_personal_events_repository.dart';
@@ -7,6 +8,7 @@ import 'package:vrijdag/features/auth/domain/auth_session.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/event_category.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_empty.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_scale.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
@@ -154,6 +156,32 @@ class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
 
 /// Day the month feed should scroll to after the year map closes.
 final monthFeedJumpProvider = StateProvider<DateTime?>((ref) => null);
+
+const feedEmptyModePrefsKey = 'feed_empty_mode';
+
+/// Empty days are hidden until the person chooses otherwise.
+final feedEmptyModeProvider =
+    AsyncNotifierProvider<FeedEmptyModeNotifier, FeedEmptyMode>(
+      FeedEmptyModeNotifier.new,
+    );
+
+class FeedEmptyModeNotifier extends AsyncNotifier<FeedEmptyMode> {
+  @override
+  Future<FeedEmptyMode> build() async {
+    final prefs = await SharedPreferences.getInstance();
+    final raw = prefs.getString(feedEmptyModePrefsKey);
+    if (raw == null) {
+      return FeedEmptyMode.hidden;
+    }
+    return FeedEmptyMode.fromName(raw);
+  }
+
+  Future<void> select(FeedEmptyMode mode) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(feedEmptyModePrefsKey, mode.name);
+    state = AsyncData(mode);
+  }
+}
 
 final eventCategoriesProvider =
     AsyncNotifierProvider<EventCategoriesNotifier, List<EventCategory>>(

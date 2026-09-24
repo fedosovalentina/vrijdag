@@ -12,6 +12,8 @@ import 'package:vrijdag/features/auth/domain/school_holiday_region.dart';
 import 'package:vrijdag/features/auth/domain/user_profile.dart';
 import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthdays_panel.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_empty.dart';
+import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/category_list_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
 import 'package:vrijdag/shared/theme/vrijdag_theme.dart';
@@ -85,6 +87,18 @@ class SettingsScreen extends ConsumerWidget {
           ),
           const Divider(),
           ListTile(
+            title: Text(l10n.feedEmptyDays),
+            subtitle: Text(
+              _emptyModeLabel(
+                l10n,
+                ref.watch(feedEmptyModeProvider).valueOrNull ??
+                    FeedEmptyMode.hidden,
+              ),
+              style: TextStyle(color: colors.inkSoft),
+            ),
+            onTap: () => _pickEmptyMode(context, ref),
+          ),
+          ListTile(
             title: Text(l10n.categoryTitle),
             onTap: () {
               Navigator.of(context).push<void>(
@@ -114,6 +128,43 @@ class SettingsScreen extends ConsumerWidget {
         ],
       ),
     );
+  }
+
+  static String _emptyModeLabel(AppLocalizations l10n, FeedEmptyMode mode) {
+    return switch (mode) {
+      FeedEmptyMode.compact => l10n.feedEmptyCompact,
+      FeedEmptyMode.collapsed => l10n.feedEmptyCollapsed,
+      FeedEmptyMode.hidden => l10n.feedEmptyHidden,
+    };
+  }
+
+  static Future<void> _pickEmptyMode(
+    BuildContext context,
+    WidgetRef ref,
+  ) async {
+    final l10n = context.l10n;
+    final picked = await showDialog<FeedEmptyMode>(
+      context: context,
+      builder: (context) {
+        return SimpleDialog(
+          title: Text(l10n.feedEmptyDays),
+          children: [
+            for (final mode in FeedEmptyMode.values)
+              SimpleDialogOption(
+                onPressed: () => Navigator.of(context).pop(mode),
+                child: Text(_emptyModeLabel(l10n, mode)),
+              ),
+          ],
+        );
+      },
+    );
+    if (picked == null) {
+      return;
+    }
+    await ref.read(feedEmptyModeProvider.notifier).select(picked);
+    await ref
+        .read(analyticsProvider)
+        .track(FeedEmptyModeSet(mode: picked.name));
   }
 
   static String _languageLabel(AppLocalizations l10n, String? language) {

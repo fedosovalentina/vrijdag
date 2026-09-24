@@ -606,6 +606,29 @@
   "@weekDayEmpty": {
     "description": "Empty day fragment on Week. A dash, not a sentence."
   },
+  "feedEmptyDays": "Lege dagen",
+  "@feedEmptyDays": {
+    "description": "Settings row for how an empty feed day is drawn."
+  },
+  "feedEmptyCompact": "Compact",
+  "@feedEmptyCompact": {
+    "description": "Empty day stays a short row."
+  },
+  "feedEmptyCollapsed": "Ingeklapt",
+  "@feedEmptyCollapsed": {
+    "description": "Three or more empty days fold into one row."
+  },
+  "feedEmptyHidden": "Verborgen",
+  "@feedEmptyHidden": {
+    "description": "Empty days are left out of the feed."
+  },
+  "feedEmptyGroup": "{count} lege dagen",
+  "@feedEmptyGroup": {
+    "description": "Folded run of empty days.",
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "categoryTitle": "Categorieën",
   "@categoryTitle": {
     "description": "Settings list of labels the person created for events."

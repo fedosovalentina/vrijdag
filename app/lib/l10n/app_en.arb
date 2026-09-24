@@ -166,6 +166,16 @@
     }
   },
   "weekDayEmpty": "—",
+  "feedEmptyDays": "Empty days",
+  "feedEmptyCompact": "Compact",
+  "feedEmptyCollapsed": "Collapsed",
+  "feedEmptyHidden": "Hidden",
+  "feedEmptyGroup": "{count} empty days",
+  "@feedEmptyGroup": {
+    "placeholders": {
+      "count": {"type": "int"}
+    }
+  },
   "categoryTitle": "Categories",
   "categoryAdd": "New",
   "categoryName": "Name",

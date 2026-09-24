@@ -476,6 +476,23 @@ class AppLocalizationsEn extends AppLocalizations {
   String get weekDayEmpty => '—';
 
   @override
+  String get feedEmptyDays => 'Empty days';
+
+  @override
+  String get feedEmptyCompact => 'Compact';
+
+  @override
+  String get feedEmptyCollapsed => 'Collapsed';
+
+  @override
+  String get feedEmptyHidden => 'Hidden';
+
+  @override
+  String feedEmptyGroup(int count) {
+    return '$count empty days';
+  }
+
+  @override
   String get categoryTitle => 'Categories';
 
   @override

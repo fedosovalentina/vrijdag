@@ -11,6 +11,7 @@ import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart'
 import 'package:vrijdag/features/calendar/domain/calendar_presence.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/event_category.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_empty.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_frame.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_jump.dart';
@@ -49,6 +50,7 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
   Timer? _clock;
   DateTime _now = DateTime.now();
   var _placedToday = false;
+  var _openFolds = <DateTime>{};
   var _todayVisible = true;
   DateTime? _highlight;
   var _offsets = const <FeedDayPlace>[];
@@ -112,10 +114,13 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
   void _reveal(DateTime day) {
     final place = _placeFor(day);
     if (place == null || !_scroll.hasClients) {
+      final window = ref.read(monthFeedWindowProvider);
+      final date = CalendarRange.dateOnly(day);
+      if (!date.isBefore(window.from) && date.isBefore(window.to)) {
+        return;
+      }
       ref.read(monthFeedWindowProvider.notifier).growTo(day);
-      ref.read(monthFeedJumpProvider.notifier).state = CalendarRange.dateOnly(
-        day,
-      );
+      ref.read(monthFeedJumpProvider.notifier).state = date;
       return;
     }
     if (feedDayIsVisible(
@@ -299,6 +304,9 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
         final categories =
             ref.watch(eventCategoriesProvider).valueOrNull ??
             const <EventCategory>[];
+        final emptyMode =
+            ref.watch(feedEmptyModeProvider).valueOrNull ??
+            FeedEmptyMode.hidden;
         final scale = _visualScale ?? computed;
         final slotCount = window.slotCount < used ? used : window.slotCount;
         return Stack(
@@ -312,6 +320,11 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               slotCount: slotCount,
               slots: {for (final s in assigned) s.id: s.slot},
               categories: categories,
+              emptyMode: emptyMode,
+              openFolds: _openFolds,
+              onOpenFold: (day) {
+                setState(() => _openFolds = {..._openFolds, day});
+              },
               now: _now,
               locale: locale,
               onOpenYear: widget.onOpenYear,
@@ -374,6 +387,9 @@ class _FeedList extends StatelessWidget {
     required this.slotCount,
     required this.slots,
     required this.categories,
+    required this.emptyMode,
+    required this.openFolds,
+    required this.onOpenFold,
     required this.now,
     required this.locale,
     required this.onOpenYear,
@@ -391,6 +407,9 @@ class _FeedList extends StatelessWidget {
   final int slotCount;
   final Map<String, int> slots;
   final List<EventCategory> categories;
+  final FeedEmptyMode emptyMode;
+  final Set<DateTime> openFolds;
+  final ValueChanged<DateTime> onOpenFold;
   final DateTime now;
   final Locale locale;
   final VoidCallback onOpenYear;
@@ -433,11 +452,27 @@ class _FeedList extends StatelessWidget {
           ),
         ),
       );
-      final days = DateTime(month.year, month.month + 1, 0).day;
+      final lastDay = DateTime(month.year, month.month + 1, 0).day;
+      final monthDays = [
+        for (var d = 1; d <= lastDay; d++) DateTime(month.year, month.month, d),
+      ];
+      final pieces = layoutFeedDays(
+        days: monthDays,
+        isEmpty: (day) => _dayIsEmpty(day, entries, birthdays, slots),
+        mode: emptyMode,
+        openFolds: openFolds,
+      );
       slivers.add(
         SliverList(
           delegate: SliverChildBuilderDelegate((context, index) {
-            final day = DateTime(month.year, month.month, index + 1);
+            final piece = pieces[index];
+            if (piece is FeedEmptyFold) {
+              return _EmptyFold(
+                label: l10n.feedEmptyGroup(piece.count),
+                onTap: () => onOpenFold(piece.from),
+              );
+            }
+            final day = (piece as FeedSingleDay).day;
             final dayEntries = entries
                 .where((e) => CalendarPresence.eventOverlapsDay(e.event, day))
                 .toList();
@@ -482,11 +517,18 @@ class _FeedList extends StatelessWidget {
               onOpenEvent: onOpenEvent,
               onOpenBirthday: onOpenBirthday,
             );
-          }, childCount: days),
+          }, childCount: pieces.length),
         ),
       );
-      for (var d = 1; d <= days; d++) {
-        final day = DateTime(month.year, month.month, d);
+      for (final piece in pieces) {
+        if (piece is FeedEmptyFold) {
+          places.add(
+            FeedDayPlace(day: piece.from, offset: running, height: 22),
+          );
+          running += 22;
+          continue;
+        }
+        final day = (piece as FeedSingleDay).day;
         final count = entries
             .where(
               (e) =>
@@ -1048,6 +1090,50 @@ List<({int slot, PersonalEvent event})> _spansOn(
     out.add((slot: slots[event.id] ?? -1, event: event));
   }
   return out;
+}
+
+bool _dayIsEmpty(
+  DateTime day,
+  List<FeedEntry> entries,
+  List<Birthday> birthdays,
+  Map<String, int> slots,
+) {
+  final hasChip = entries.any(
+    (entry) =>
+        CalendarPresence.eventOverlapsDay(entry.event, day) &&
+        (entry.event.timed != null || !_multiDay(entry.event)),
+  );
+  if (hasChip || CalendarPresence.birthdaysOnDay(birthdays, day).isNotEmpty) {
+    return false;
+  }
+  return _spansOn(day, entries, slots).isEmpty;
+}
+
+class _EmptyFold extends StatelessWidget {
+  const _EmptyFold({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 22,
+      child: Align(
+        alignment: Alignment.centerLeft,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              color: Theme.of(context).vrijdagColors.inkSoft,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 bool _multiDay(PersonalEvent event) {

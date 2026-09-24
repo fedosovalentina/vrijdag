@@ -974,6 +974,36 @@ abstract class AppLocalizations {
   /// **'—'**
   String get weekDayEmpty;
 
+  /// Settings row for how an empty feed day is drawn.
+  ///
+  /// In nl, this message translates to:
+  /// **'Lege dagen'**
+  String get feedEmptyDays;
+
+  /// Empty day stays a short row.
+  ///
+  /// In nl, this message translates to:
+  /// **'Compact'**
+  String get feedEmptyCompact;
+
+  /// Three or more empty days fold into one row.
+  ///
+  /// In nl, this message translates to:
+  /// **'Ingeklapt'**
+  String get feedEmptyCollapsed;
+
+  /// Empty days are left out of the feed.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verborgen'**
+  String get feedEmptyHidden;
+
+  /// Folded run of empty days.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count} lege dagen'**
+  String feedEmptyGroup(int count);
+
   /// Settings list of labels the person created for events.
   ///
   /// In nl, this message translates to:

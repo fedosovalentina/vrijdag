@@ -79,6 +79,11 @@ class PosthogAnalytics implements Analytics {
         await Posthog().capture(eventName: 'birthday_created');
       case BirthdayDeleted():
         await Posthog().capture(eventName: 'birthday_deleted');
+      case FeedEmptyModeSet(:final mode):
+        await Posthog().capture(
+          eventName: 'feed_empty_mode',
+          properties: {'mode': mode},
+        );
       case CategorySaved(:final countBucket):
         await Posthog().capture(
           eventName: 'category_saved',
