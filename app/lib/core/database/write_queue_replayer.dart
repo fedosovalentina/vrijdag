@@ -28,12 +28,18 @@ class WriteQueueReplayer {
     try {
       final intents = await _queue.peekOrdered(limit: limit);
       for (final intent in intents) {
+        if (intent.attempts >= syncGiveUpAttempts) {
+          break;
+        }
         try {
           await _handler(intent);
           await _queue.remove(intent.id);
           succeeded++;
         } on Object catch (error) {
-          await _queue.markAttempt(intent.id, lastError: error.toString());
+          await _queue.markAttempt(
+            intent.id,
+            lastError: error.runtimeType.toString(),
+          );
           // Stop on first failure so later intents keep order.
           break;
         }

@@ -36,6 +36,21 @@ class MemoryWriteQueue implements WriteQueue {
   }
 
   @override
+  Future<void> resetAttempts(String id) async {
+    final index = _items.indexWhere((item) => item.id == id);
+    if (index < 0) {
+      return;
+    }
+    final current = _items[index];
+    _items[index] = SyncIntent(
+      id: current.id,
+      type: current.type,
+      payloadJson: current.payloadJson,
+      createdAt: current.createdAt,
+    );
+  }
+
+  @override
   Future<void> remove(String id) async {
     _items.removeWhere((item) => item.id == id);
   }

@@ -40,6 +40,18 @@ class DriftPersonalEventsCache {
     )..where((t) => t.id.equals(eventId))).go();
   }
 
+  Future<DateTime?> latestCachedAt(String userId) async {
+    final newest = _db.cachedPersonalEvents.cachedAt.max();
+    final query = _db.selectOnly(_db.cachedPersonalEvents)
+      ..addColumns([newest])
+      ..where(
+        _db.cachedPersonalEvents.userId.equals(userId) &
+            _db.cachedPersonalEvents.id.equals(categoriesRowId).not(),
+      );
+    final row = await query.getSingleOrNull();
+    return row?.read(newest);
+  }
+
   Future<List<PersonalEvent>> listForUser(String userId) async {
     final rows = await (_db.select(
       _db.cachedPersonalEvents,

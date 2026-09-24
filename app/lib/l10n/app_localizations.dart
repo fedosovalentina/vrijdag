@@ -530,6 +530,36 @@ abstract class AppLocalizations {
   /// **'{count, plural, one{{count} wijziging wacht op synchronisatie} other{{count} wijzigingen wachten op synchronisatie}}'**
   String syncPendingCount(int count);
 
+  /// Shown when a queued change has failed enough times to wait for an explicit retry.
+  ///
+  /// In nl, this message translates to:
+  /// **'Een wijziging lukt niet. Hij blijft op dit apparaat.'**
+  String get syncStuckBody;
+
+  /// Retries the oldest queued change. Does not discard it.
+  ///
+  /// In nl, this message translates to:
+  /// **'Opnieuw'**
+  String get syncRetry;
+
+  /// No description provided for @syncStaleMinutes.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count, plural, one{Bijgewerkt 1 minuut geleden} other{Bijgewerkt {count} minuten geleden}}'**
+  String syncStaleMinutes(int count);
+
+  /// No description provided for @syncStaleHours.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count, plural, one{Bijgewerkt 1 uur geleden} other{Bijgewerkt {count} uur geleden}}'**
+  String syncStaleHours(int count);
+
+  /// No description provided for @syncStaleDays.
+  ///
+  /// In nl, this message translates to:
+  /// **'{count, plural, one{Bijgewerkt 1 dag geleden} other{Bijgewerkt {count} dagen geleden}}'**
+  String syncStaleDays(int count);
+
   /// Explains that offline edits remain local until reconnect.
   ///
   /// In nl, this message translates to:

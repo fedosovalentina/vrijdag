@@ -89,6 +89,16 @@ class PosthogAnalytics implements Analytics {
           eventName: 'guests_saved',
           properties: {'count_bucket': countBucket},
         );
+      case SyncQueueFlushed(:final count):
+        await Posthog().capture(
+          eventName: 'sync_queue_flushed',
+          properties: {'count': count},
+        );
+      case SyncFailed(:final reason):
+        await Posthog().capture(
+          eventName: 'sync_failed',
+          properties: {'reason': reason},
+        );
       case EventShared(:final format):
         await Posthog().capture(
           eventName: 'event_shared',

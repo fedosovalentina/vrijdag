@@ -246,6 +246,46 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
+  String get syncStuckBody =>
+      'Een wijziging lukt niet. Hij blijft op dit apparaat.';
+
+  @override
+  String get syncRetry => 'Opnieuw';
+
+  @override
+  String syncStaleMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bijgewerkt $count minuten geleden',
+      one: 'Bijgewerkt 1 minuut geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncStaleHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bijgewerkt $count uur geleden',
+      one: 'Bijgewerkt 1 uur geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncStaleDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Bijgewerkt $count dagen geleden',
+      one: 'Bijgewerkt 1 dag geleden',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get errorsOfflineBody =>
       'Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.';
 

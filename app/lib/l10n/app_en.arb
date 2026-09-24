@@ -77,6 +77,20 @@
       "count": {"type": "int"}
     }
   },
+  "syncStuckBody": "One change is not going through. It stays on this device.",
+  "syncRetry": "Try again",
+  "syncStaleMinutes": "{count, plural, one{Updated 1 minute ago} other{Updated {count} minutes ago}}",
+  "@syncStaleMinutes": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "syncStaleHours": "{count, plural, one{Updated 1 hour ago} other{Updated {count} hours ago}}",
+  "@syncStaleHours": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "syncStaleDays": "{count, plural, one{Updated 1 day ago} other{Updated {count} days ago}}",
+  "@syncStaleDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "errorsOfflineBody": "You are offline. Changes stay on this device until the connection returns.",
   "designGalleryTitle": "Component gallery",
   "designGalleryLight": "Light",

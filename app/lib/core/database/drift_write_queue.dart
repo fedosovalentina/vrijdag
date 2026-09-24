@@ -72,6 +72,18 @@ class DriftWriteQueue implements WriteQueue {
   }
 
   @override
+  Future<void> resetAttempts(String id) {
+    return (_db.update(
+      _db.writeQueueEntries,
+    )..where((t) => t.id.equals(id))).write(
+      const WriteQueueEntriesCompanion(
+        attempts: Value(0),
+        lastError: Value(null),
+      ),
+    );
+  }
+
+  @override
   Future<void> remove(String id) {
     return (_db.delete(
       _db.writeQueueEntries,

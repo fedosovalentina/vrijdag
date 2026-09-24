@@ -48,4 +48,29 @@ void main() {
     expect(remaining.first.id, 'b');
     expect(remaining.first.attempts, 1);
   });
+
+  test('a change that failed five times waits for an explicit retry', () async {
+    final queue = MemoryWriteQueue();
+    await queue.enqueue(
+      SyncIntent(
+        id: 'stuck',
+        type: 'fail',
+        payloadJson: '{}',
+        createdAt: DateTime.utc(2026, 9, 3, 10),
+        attempts: syncGiveUpAttempts,
+      ),
+    );
+    final replayer = WriteQueueReplayer(
+      queue: queue,
+      handler: (_) async {
+        throw StateError('still down');
+      },
+    );
+    expect(await replayer.replayOnce(), 0);
+    expect((await queue.peekOrdered()).first.attempts, syncGiveUpAttempts);
+
+    await queue.resetAttempts('stuck');
+    expect(await replayer.replayOnce(), 0);
+    expect((await queue.peekOrdered()).first.attempts, 1);
+  });
 }

@@ -245,6 +245,46 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
+  String get syncStuckBody =>
+      'One change is not going through. It stays on this device.';
+
+  @override
+  String get syncRetry => 'Try again';
+
+  @override
+  String syncStaleMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count minutes ago',
+      one: 'Updated 1 minute ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncStaleHours(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count hours ago',
+      one: 'Updated 1 hour ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String syncStaleDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'Updated $count days ago',
+      one: 'Updated 1 day ago',
+    );
+    return '$_temp0';
+  }
+
+  @override
   String get errorsOfflineBody =>
       'You are offline. Changes stay on this device until the connection returns.';
 

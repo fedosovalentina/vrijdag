@@ -86,6 +86,19 @@ class GuestsSaved extends AnalyticsEvent {
   final String countBucket;
 }
 
+class SyncQueueFlushed extends AnalyticsEvent {
+  const SyncQueueFlushed({required this.count});
+
+  final int count;
+}
+
+class SyncFailed extends AnalyticsEvent {
+  const SyncFailed({required this.reason});
+
+  /// `stuck` — the queue is waiting for an explicit retry.
+  final String reason;
+}
+
 class EventShared extends AnalyticsEvent {
   const EventShared({required this.format});
 

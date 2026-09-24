@@ -301,6 +301,26 @@
       "count": {"type": "int"}
     }
   },
+  "syncStuckBody": "Een wijziging lukt niet. Hij blijft op dit apparaat.",
+  "@syncStuckBody": {
+    "description": "Shown when a queued change has failed enough times to wait for an explicit retry."
+  },
+  "syncRetry": "Opnieuw",
+  "@syncRetry": {
+    "description": "Retries the oldest queued change. Does not discard it."
+  },
+  "syncStaleMinutes": "{count, plural, one{Bijgewerkt 1 minuut geleden} other{Bijgewerkt {count} minuten geleden}}",
+  "@syncStaleMinutes": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "syncStaleHours": "{count, plural, one{Bijgewerkt 1 uur geleden} other{Bijgewerkt {count} uur geleden}}",
+  "@syncStaleHours": {
+    "placeholders": {"count": {"type": "int"}}
+  },
+  "syncStaleDays": "{count, plural, one{Bijgewerkt 1 dag geleden} other{Bijgewerkt {count} dagen geleden}}",
+  "@syncStaleDays": {
+    "placeholders": {"count": {"type": "int"}}
+  },
   "errorsOfflineBody": "Je bent offline. Wijzigingen blijven op dit apparaat tot de verbinding terug is.",
   "@errorsOfflineBody": {
     "description": "Explains that offline edits remain local until reconnect."

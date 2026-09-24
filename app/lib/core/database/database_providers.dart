@@ -1,6 +1,9 @@
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vrijdag/core/bootstrap/observability_bootstrap.dart';
+import 'package:vrijdag/core/analytics/analytics_event.dart';
 import 'package:vrijdag/core/database/app_database.dart';
+import 'package:vrijdag/core/supabase/supabase_client.dart';
 import 'package:vrijdag/core/database/drift_write_queue.dart';
 import 'package:vrijdag/core/database/sync_intent_applier.dart';
 import 'package:vrijdag/core/database/write_queue.dart';
@@ -24,6 +27,16 @@ final personalEventsCacheProvider = Provider<DriftPersonalEventsCache>((ref) {
 /// Pending write-queue size for the offline banner.
 final pendingWriteCountProvider = FutureProvider.autoDispose<int>((ref) {
   return ref.watch(writeQueueProvider).pendingCount();
+});
+
+/// True when the oldest queued change has failed often enough to wait
+/// for an explicit retry.
+final stuckWriteProvider = FutureProvider.autoDispose<bool>((ref) async {
+  final head = await ref.watch(writeQueueProvider).peekOrdered(limit: 1);
+  if (head.isEmpty) {
+    return false;
+  }
+  return head.first.attempts >= syncGiveUpAttempts;
 });
 
 final syncIntentApplierProvider = Provider<SyncIntentApplier>((ref) {
@@ -52,6 +65,17 @@ final isOnlineProvider = StreamProvider.autoDispose<bool>((ref) async* {
   }
 });
 
+/// Newest personal-event cache time for the signed-in user.
+final cacheFreshnessProvider = FutureProvider.autoDispose<DateTime?>((
+  ref,
+) async {
+  final id = supabaseClient?.auth.currentUser?.id;
+  if (id == null) {
+    return null;
+  }
+  return ref.watch(personalEventsCacheProvider).latestCachedAt(id);
+});
+
 bool _hasLink(List<ConnectivityResult> results) {
   return results.any((r) => r != ConnectivityResult.none);
 }
@@ -63,8 +87,20 @@ final writeQueueReplayControllerProvider = Provider<void>((ref) {
     final wasOffline = previous?.valueOrNull == false;
     final online = next.valueOrNull == true;
     if (online && (wasOffline || previous == null)) {
-      await replayer.replayOnce();
+      final flushed = await replayer.replayOnce();
+      if (flushed > 0) {
+        await ref
+            .read(analyticsProvider)
+            .track(SyncQueueFlushed(count: flushed));
+      }
+      final head = await ref.read(writeQueueProvider).peekOrdered(limit: 1);
+      if (head.isNotEmpty && head.first.attempts >= syncGiveUpAttempts) {
+        await ref
+            .read(analyticsProvider)
+            .track(const SyncFailed(reason: 'stuck'));
+      }
       ref.invalidate(pendingWriteCountProvider);
+      ref.invalidate(stuckWriteProvider);
     }
   });
 });
