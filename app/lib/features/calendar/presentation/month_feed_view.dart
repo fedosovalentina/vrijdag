@@ -10,6 +10,8 @@ import 'package:vrijdag/features/calendar/domain/calendar_presence.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_entry.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_frame.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_month_span.dart';
+import 'package:vrijdag/features/calendar/domain/feed/feed_name.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_row.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_scale.dart';
 import 'package:vrijdag/features/calendar/domain/feed/feed_slots.dart';
@@ -35,15 +37,34 @@ class MonthFeedView extends ConsumerStatefulWidget {
   ConsumerState<MonthFeedView> createState() => _MonthFeedViewState();
 }
 
-class _MonthFeedViewState extends ConsumerState<MonthFeedView> {
+class _MonthFeedViewState extends ConsumerState<MonthFeedView>
+    with SingleTickerProviderStateMixin {
   final _scroll = ScrollController();
   Timer? _clock;
   DateTime _now = DateTime.now();
   DateTime? _jumpedFor;
+  late final AnimationController _scaleMotion;
+  FeedScale? _scaleFrom;
+  FeedScale? _scaleTo;
+  FeedScale? _visualScale;
 
   @override
   void initState() {
     super.initState();
+    _scaleMotion =
+        AnimationController(
+          vsync: this,
+          duration: const Duration(milliseconds: 200),
+        )..addListener(() {
+          final from = _scaleFrom;
+          final to = _scaleTo;
+          if (from == null || to == null || !mounted) {
+            return;
+          }
+          setState(
+            () => _visualScale = _lerpScale(from, to, _scaleMotion.value),
+          );
+        });
     _clock = Timer.periodic(const Duration(minutes: 1), (_) {
       if (mounted) {
         setState(() => _now = DateTime.now());
@@ -55,9 +76,37 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView> {
   @override
   void dispose() {
     _clock?.cancel();
+    _scaleMotion.dispose();
     _scroll.removeListener(_onScroll);
     _scroll.dispose();
     super.dispose();
+  }
+
+  void _animateScale(FeedScale next) {
+    if (_scaleTo != null &&
+        _scaleTo!.startMinute == next.startMinute &&
+        _scaleTo!.endMinute == next.endMinute) {
+      return;
+    }
+    final from = _visualScale ?? next;
+    _scaleFrom = from;
+    _scaleTo = next;
+    if (from.startMinute == next.startMinute &&
+        from.endMinute == next.endMinute) {
+      _visualScale = next;
+      _scaleMotion.value = 1;
+      return;
+    }
+    _scaleMotion.duration = VrijdagMotion.resolve(
+      context,
+      const Duration(milliseconds: 200),
+    );
+    if (_scaleMotion.duration == Duration.zero) {
+      setState(() => _visualScale = next);
+      _scaleMotion.value = 1;
+      return;
+    }
+    _scaleMotion.forward(from: 0);
   }
 
   void _onScroll() {
@@ -111,11 +160,12 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView> {
           if (!mounted) {
             return;
           }
+          _animateScale(computed);
           ref
               .read(monthFeedWindowProvider.notifier)
               .adoptScale(computed, slots: used);
         });
-        final scale = window.scale ?? computed;
+        final scale = _visualScale ?? computed;
         final slotCount = window.slotCount < used ? used : window.slotCount;
         return _FeedList(
           scroll: _scroll,
@@ -423,7 +473,14 @@ class _DayRowState extends State<_DayRow> {
                       bottom: 0,
                       child: GestureDetector(
                         onTap: () => widget.onOpenEvent(span.event),
-                        child: ColoredBox(color: _slotColor(colors, span.slot)),
+                        child: ColoredBox(
+                          color: _slotColor(colors, span.slot),
+                          child: _SpanLabel(
+                            event: span.event,
+                            day: widget.day,
+                            color: colors.paper,
+                          ),
+                        ),
                       ),
                     ),
                 if (widget.birthdays.isNotEmpty && widget.chips.isNotEmpty)
@@ -446,52 +503,68 @@ class _DayRowState extends State<_DayRow> {
               opacity: past && !today ? 0.45 : 1,
               child: Padding(
                 padding: const EdgeInsets.only(left: 9, right: 8),
-                child: onlyBirthday
-                    ? _BirthdayLine(
-                        birthday: widget.birthdays.first,
-                        color: colors.gold,
-                        onTap: () =>
-                            widget.onOpenBirthday(widget.birthdays.first),
-                      )
-                    : widget.chips.isEmpty
-                    ? Center(child: Container(height: 1, color: colors.dust))
-                    : Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          for (final entry in shown)
-                            SizedBox(
-                              height: layout.chipHeight,
-                              child: _Chip(
-                                entry: entry,
-                                day: widget.day,
-                                scale: widget.scale,
-                                onTap: () => widget.onOpenEvent(entry.event),
-                              ),
-                            ),
-                          if (widget.chips.length > 3)
-                            GestureDetector(
-                              onTap: () =>
-                                  setState(() => _expanded = !_expanded),
-                              child: Text(
-                                _expanded
-                                    ? widget.lessLabel
-                                    : widget.moreLabel(widget.chips.length - 3),
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  color: colors.warmGrey,
+                child: Stack(
+                  children: [
+                    onlyBirthday
+                        ? _BirthdayLine(
+                            birthday: widget.birthdays.first,
+                            color: colors.gold,
+                            onTap: () =>
+                                widget.onOpenBirthday(widget.birthdays.first),
+                          )
+                        : widget.chips.isEmpty
+                        ? const _DashedEmpty()
+                        : Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              for (final entry in shown)
+                                SizedBox(
+                                  height: layout.chipHeight,
+                                  child: _Chip(
+                                    entry: entry,
+                                    day: widget.day,
+                                    scale: widget.scale,
+                                    locale: widget.locale,
+                                    onTap: () =>
+                                        widget.onOpenEvent(entry.event),
+                                  ),
                                 ),
-                              ),
-                            ),
-                          if (widget.dstLabel != null)
-                            Text(
-                              widget.dstLabel!,
-                              style: TextStyle(
-                                fontSize: 9,
-                                color: colors.warmGrey,
-                              ),
-                            ),
-                        ],
+                              if (widget.chips.length > 3)
+                                GestureDetector(
+                                  onTap: () =>
+                                      setState(() => _expanded = !_expanded),
+                                  child: Text(
+                                    _expanded
+                                        ? widget.lessLabel
+                                        : widget.moreLabel(
+                                            widget.chips.length - 3,
+                                          ),
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      color: colors.warmGrey,
+                                    ),
+                                  ),
+                                ),
+                              if (widget.dstLabel != null)
+                                Text(
+                                  widget.dstLabel!,
+                                  style: TextStyle(
+                                    fontSize: 9,
+                                    color: colors.warmGrey,
+                                  ),
+                                ),
+                            ],
+                          ),
+                    if (today)
+                      Positioned.fill(
+                        child: _NowMark(
+                          scale: widget.scale,
+                          now: widget.now,
+                          label: widget.l10nNow,
+                        ),
                       ),
+                  ],
+                ),
               ),
             ),
           ),
@@ -506,99 +579,24 @@ class _Chip extends StatelessWidget {
     required this.entry,
     required this.day,
     required this.scale,
+    required this.locale,
     required this.onTap,
   });
 
   final FeedEntry entry;
   final DateTime day;
   final FeedScale scale;
+  final Locale locale;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).vrijdagColors;
-    final event = entry.event;
-    if (event.isAllDay) {
-      return GestureDetector(
-        onTap: onTap,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            border: Border.all(color: colors.dust),
-            color: colors.banner,
-          ),
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                event.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: colors.ink),
-              ),
-            ),
-          ),
-        ),
-      );
-    }
-    final start = event.timed!.startsAt.toLocal();
-    final end = event.timed!.endsAt.toLocal();
-    final frame = FeedFrame.place(
+    return _FeedChipBody(
+      entry: entry,
+      day: day,
       scale: scale,
-      startMinute: _clippedStart(start, day),
-      endMinute: _clippedEnd(end, day),
-    );
-    if (frame.kind == FeedFrameKind.tick) {
-      return GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Row(
-          children: [
-            SizedBox(width: frame.left.clamp(0, 1) * 8),
-            Container(width: 2, height: 17, color: colors.warmGrey),
-            const SizedBox(width: 6),
-            Flexible(
-              child: Text(
-                event.title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 11, color: colors.ink),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-    final left = frame.left.clamp(0.0, 1.0);
-    final width = frame.kind == FeedFrameKind.bar
-        ? frame.width.clamp(0.02, 1 - left)
-        : frame.width;
-    return GestureDetector(
+      locale: locale,
       onTap: onTap,
-      child: Align(
-        alignment: Alignment.centerLeft,
-        child: FractionallySizedBox(
-          widthFactor: width.clamp(0.04, 1),
-          alignment: Alignment.centerLeft,
-          child: Container(
-            margin: EdgeInsets.only(left: left * 4),
-            padding: const EdgeInsets.symmetric(horizontal: 7),
-            alignment: Alignment.centerLeft,
-            decoration: BoxDecoration(
-              color: colors.banner,
-              border: entry.frequency == null
-                  ? null
-                  : Border(left: BorderSide(color: colors.warmGrey, width: 3)),
-            ),
-            child: Text(
-              event.title,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, color: colors.ink),
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
@@ -694,16 +692,38 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
               height: 16,
               child: Padding(
                 padding: EdgeInsets.only(left: spineX + 9),
-                child: Row(
-                  children: [
-                    for (final hour in hours)
-                      Expanded(
-                        child: Text(
-                          '$hour',
-                          style: TextStyle(fontSize: 9, color: colors.warmGrey),
-                        ),
-                      ),
-                  ],
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final labels = hours.length < 4
+                        ? [
+                            for (
+                              var minute = scale.startMinute;
+                              minute <= scale.endMinute;
+                              minute += 60
+                            )
+                              minute ~/ 60,
+                          ]
+                        : hours;
+                    final span = scale.spanMinutes;
+                    return Stack(
+                      children: [
+                        for (final hour in labels)
+                          Positioned(
+                            left:
+                                ((hour * 60 - scale.startMinute) / span) *
+                                constraints.maxWidth,
+                            bottom: 0,
+                            child: Text(
+                              '$hour',
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: colors.warmGrey,
+                              ),
+                            ),
+                          ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -836,4 +856,396 @@ String? _dstLabel(DateTime day, String plus, String minus) {
     return minus;
   }
   return null;
+}
+
+FeedScale _lerpScale(FeedScale from, FeedScale to, double t) {
+  final start = (from.startMinute + (to.startMinute - from.startMinute) * t)
+      .round();
+  final end = (from.endMinute + (to.endMinute - from.endMinute) * t).round();
+  return FeedScale(
+    startMinute: start,
+    endMinute: end <= start ? start + 60 : end,
+  );
+}
+
+class _FeedChipBody extends StatelessWidget {
+  const _FeedChipBody({
+    required this.entry,
+    required this.day,
+    required this.scale,
+    required this.locale,
+    required this.onTap,
+  });
+
+  final FeedEntry entry;
+  final DateTime day;
+  final FeedScale scale;
+  final Locale locale;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).vrijdagColors;
+    final event = entry.event;
+    if (event.isAllDay) {
+      return GestureDetector(
+        onTap: onTap,
+        child: CustomPaint(
+          painter: _HatchPainter(base: colors.banner, stripe: colors.dust),
+          child: Container(
+            alignment: Alignment.centerLeft,
+            padding: const EdgeInsets.symmetric(horizontal: 7),
+            decoration: BoxDecoration(border: Border.all(color: colors.dust)),
+            child: _WordTitle(
+              text: event.title,
+              style: TextStyle(fontSize: 11, color: colors.ink),
+            ),
+          ),
+        ),
+      );
+    }
+    final start = event.timed!.startsAt.toLocal();
+    final end = event.timed!.endsAt.toLocal();
+    final frame = FeedFrame.place(
+      scale: scale,
+      startMinute: _clippedStart(start, day),
+      endMinute: _clippedEnd(end, day),
+    );
+    final clock = DateFormat.Hm(locale.toLanguageTag());
+    final startLabel = clock.format(start);
+    final endLabel = clock.format(end);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final full = constraints.maxWidth;
+        final left = frame.left.clamp(0.0, 1.0) * full;
+        final bar = frame.width.clamp(0.0, 1.0) * full;
+        if (frame.kind == FeedFrameKind.tick) {
+          return GestureDetector(
+            onTap: onTap,
+            behavior: HitTestBehavior.opaque,
+            child: Stack(
+              children: [
+                Positioned(
+                  left: left,
+                  top: 0,
+                  bottom: 0,
+                  child: Container(width: 2, color: colors.warmGrey),
+                ),
+                Positioned(
+                  left: left + 8,
+                  right: 0,
+                  top: 0,
+                  bottom: 0,
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: _WordTitle(
+                          text: event.title,
+                          style: TextStyle(fontSize: 11, color: colors.ink),
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        startLabel,
+                        style: TextStyle(fontSize: 10, color: colors.warmGrey),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        final outside = frame.kind != FeedFrameKind.bar;
+        final edgeNote = frame.kind == FeedFrameKind.afterScale
+            ? '$startLabel →'
+            : frame.kind == FeedFrameKind.beforeScale
+            ? '← $endLabel'
+            : null;
+        return GestureDetector(
+          onTap: onTap,
+          child: Stack(
+            children: [
+              Positioned(
+                left: left,
+                width: bar < 1 ? 1 : bar,
+                top: 0,
+                bottom: 0,
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    color: colors.banner,
+                    border: entry.frequency == null
+                        ? null
+                        : Border(
+                            left: BorderSide(color: colors.warmGrey, width: 3),
+                          ),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 7),
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: outside
+                          ? Text(
+                              '${event.title}  $edgeNote',
+                              maxLines: 1,
+                              overflow: TextOverflow.clip,
+                              style: TextStyle(
+                                fontSize: 9,
+                                color: colors.warmGrey,
+                              ),
+                            )
+                          : _WordTitle(
+                              text: event.title,
+                              style: TextStyle(fontSize: 11, color: colors.ink),
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+              if (!outside && left > 36)
+                Positioned(
+                  left: 0,
+                  width: left - 4,
+                  top: 0,
+                  bottom: 0,
+                  child: Align(
+                    alignment: Alignment.centerRight,
+                    child: Text(
+                      startLabel,
+                      style: TextStyle(fontSize: 10, color: colors.warmGrey),
+                    ),
+                  ),
+                ),
+              if (!outside && left + bar < full - 36)
+                Positioned(
+                  left: left + bar + 4,
+                  top: 0,
+                  bottom: 0,
+                  child: Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      endLabel,
+                      style: TextStyle(fontSize: 10, color: colors.warmGrey),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _WordTitle extends StatelessWidget {
+  const _WordTitle({required this.text, required this.style});
+
+  final String text;
+  final TextStyle style;
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final fitted = fitFeedName(
+          text,
+          constraints.maxWidth,
+          (sample) => _textWidth(context, sample, style),
+        );
+        return Text(
+          fitted.text,
+          maxLines: 1,
+          overflow: TextOverflow.clip,
+          style: style,
+        );
+      },
+    );
+  }
+}
+
+double _textWidth(BuildContext context, String text, TextStyle style) {
+  final painter = TextPainter(
+    text: TextSpan(text: text, style: style),
+    textDirection: Directionality.of(context),
+    maxLines: 1,
+  )..layout();
+  return painter.width;
+}
+
+class _DashedEmpty extends StatelessWidget {
+  const _DashedEmpty();
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      painter: _DashPainter(color: Theme.of(context).vrijdagColors.dust),
+      child: const SizedBox(height: 22, width: double.infinity),
+    );
+  }
+}
+
+class _DashPainter extends CustomPainter {
+  const _DashPainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    final y = size.height / 2;
+    var x = 0.0;
+    while (x < size.width) {
+      canvas.drawLine(Offset(x, y), Offset(x + 4, y), paint);
+      x += 7;
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _DashPainter oldDelegate) =>
+      oldDelegate.color != color;
+}
+
+class _HatchPainter extends CustomPainter {
+  const _HatchPainter({required this.base, required this.stripe});
+
+  final Color base;
+  final Color stripe;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    canvas.drawRect(Offset.zero & size, Paint()..color = base);
+    final paint = Paint()
+      ..color = stripe
+      ..strokeWidth = 4;
+    for (var i = -size.height; i < size.width; i += 8) {
+      canvas.drawLine(
+        Offset(i, size.height),
+        Offset(i + size.height, 0),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _HatchPainter oldDelegate) =>
+      oldDelegate.base != base || oldDelegate.stripe != stripe;
+}
+
+class _NowMark extends StatelessWidget {
+  const _NowMark({required this.scale, required this.now, required this.label});
+
+  final FeedScale scale;
+  final DateTime now;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final minute = now.hour * 60 + now.minute;
+    if (minute < scale.startMinute || minute >= scale.endMinute) {
+      return const SizedBox.shrink();
+    }
+    final colors = Theme.of(context).vrijdagColors;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final left =
+            ((minute - scale.startMinute) / scale.spanMinutes) *
+            constraints.maxWidth;
+        return Stack(
+          children: [
+            Positioned(
+              left: left,
+              top: 0,
+              bottom: 0,
+              child: ColoredBox(
+                color: colors.gold,
+                child: const SizedBox(width: 1),
+              ),
+            ),
+            Positioned(
+              left: left + 4,
+              top: 0,
+              bottom: 0,
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: ColoredBox(
+                  color: colors.paper,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 2),
+                    child: Text(
+                      label,
+                      style: TextStyle(fontSize: 9, color: colors.gold),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _SpanLabel extends StatelessWidget {
+  const _SpanLabel({
+    required this.event,
+    required this.day,
+    required this.color,
+  });
+
+  final PersonalEvent event;
+  final DateTime day;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final text = _spanCaption(event, day);
+    if (text == null) {
+      return const SizedBox.shrink();
+    }
+    return ClipRect(
+      child: Center(
+        child: RotatedBox(
+          quarterTurns: 1,
+          child: Text(
+            text,
+            maxLines: 1,
+            overflow: TextOverflow.clip,
+            style: TextStyle(
+              fontSize: 9,
+              color: color,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String? _spanCaption(PersonalEvent event, DateTime day) {
+  final start = CalendarRange.dateOnly(event.allDay!.startDate);
+  final end = CalendarRange.dateOnly(event.allDay!.endDate);
+  final monthStart = DateTime(day.year, day.month, 1);
+  final monthEnd = DateTime(day.year, day.month + 1, 0);
+  final visibleStart = start.isBefore(monthStart) ? monthStart : start;
+  if (!_sameDay(visibleStart, day)) {
+    return null;
+  }
+  final caption = captionForMonth(
+    spanStart: start.millisecondsSinceEpoch,
+    spanEnd: end.millisecondsSinceEpoch,
+    monthStart: monthStart.millisecondsSinceEpoch,
+    monthEnd: monthEnd.millisecondsSinceEpoch,
+    startDayLabel: '${start.day}',
+    endDayLabel: '${end.day}',
+  );
+  return switch (caption.edge) {
+    FeedSpanEdge.inside => '${event.title} ${caption.dayLabel}',
+    FeedSpanEdge.continuesAfter => '${event.title} ${caption.dayLabel} →',
+    FeedSpanEdge.continuedFrom => '→ ${event.title}',
+    FeedSpanEdge.both => '${event.title} →',
+  };
 }
