@@ -31,14 +31,12 @@ import 'package:vrijdag/shared/widgets/quiet_state.dart';
 class MonthFeedView extends ConsumerStatefulWidget {
   const MonthFeedView({
     super.key,
-    required this.onOpenYear,
     required this.onOpenSearch,
     required this.onOpenDay,
     required this.onOpenEvent,
     required this.onOpenBirthday,
   });
 
-  final VoidCallback onOpenYear;
   final VoidCallback onOpenSearch;
   final ValueChanged<DateTime> onOpenDay;
   final ValueChanged<PersonalEvent> onOpenEvent;
@@ -331,7 +329,6 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               },
               now: _now,
               locale: locale,
-              onOpenYear: widget.onOpenYear,
               onOpenDay: widget.onOpenDay,
               highlight: _highlight,
               onOpenEvent: widget.onOpenEvent,
@@ -347,32 +344,16 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
             Positioned(
               top: 8,
               right: 12,
-              child: Row(
-                children: [
-                  GestureDetector(
-                    onTap: widget.onOpenSearch,
-                    child: Text(
-                      l10n.searchOpen,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).vrijdagColors.ink,
-                      ),
-                    ),
+              child: GestureDetector(
+                onTap: widget.onOpenSearch,
+                child: Text(
+                  l10n.searchOpen,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Theme.of(context).vrijdagColors.ink,
                   ),
-                  const SizedBox(width: 16),
-                  GestureDetector(
-                    onTap: widget.onOpenYear,
-                    child: Text(
-                      l10n.navYear,
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w500,
-                        color: Theme.of(context).vrijdagColors.ink,
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
             ),
             if (!_todayVisible)
@@ -431,7 +412,6 @@ class _FeedList extends StatelessWidget {
     required this.onOpenFold,
     required this.now,
     required this.locale,
-    required this.onOpenYear,
     required this.onOpenDay,
     required this.highlight,
     required this.onOpenEvent,
@@ -452,7 +432,6 @@ class _FeedList extends StatelessWidget {
   final ValueChanged<DateTime> onOpenFold;
   final DateTime now;
   final Locale locale;
-  final VoidCallback onOpenYear;
   final ValueChanged<DateTime> onOpenDay;
   final DateTime? highlight;
   final ValueChanged<PersonalEvent> onOpenEvent;
@@ -489,7 +468,6 @@ class _FeedList extends StatelessWidget {
             scale: scale,
             spineX: spineX,
             topGap: m == 0 ? 0 : 8,
-            onOpenYear: onOpenYear,
           ),
         ),
       );
@@ -951,7 +929,6 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.scale,
     required this.spineX,
     required this.topGap,
-    required this.onOpenYear,
   });
 
   final DateTime month;
@@ -959,7 +936,6 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
   final FeedScale scale;
   final double spineX;
   final double topGap;
-  final VoidCallback onOpenYear;
 
   @override
   double get minExtent => 46 + topGap;
@@ -992,21 +968,13 @@ class _MonthHeaderDelegate extends SliverPersistentHeaderDelegate {
           children: [
             Row(
               children: [
-                GestureDetector(
-                  onHorizontalDragEnd: (details) {
-                    final velocity = details.primaryVelocity;
-                    if (velocity != null && velocity.abs() > 200) {
-                      onOpenYear();
-                    }
-                  },
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      letterSpacing: 0.2,
-                      color: colors.ink,
-                    ),
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 0.2,
+                    color: colors.ink,
                   ),
                 ),
               ],

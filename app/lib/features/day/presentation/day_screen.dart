@@ -30,7 +30,7 @@ import 'package:vrijdag/shared/widgets/quiet_state.dart';
 import 'package:vrijdag/shared/widgets/stale_badge.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
-/// Signed-in calendar home: Day / List / Year (DEC-030).
+/// Signed-in home: Day ↔ List ↔ Year by swipe (DEC-031).
 class DayScreen extends ConsumerStatefulWidget {
   const DayScreen({super.key});
 
@@ -39,18 +39,36 @@ class DayScreen extends ConsumerStatefulWidget {
 }
 
 class _DayScreenState extends ConsumerState<DayScreen> {
+  static const _shellDay = 0;
+  static const _shellList = 1;
+  static const _shellYear = 2;
+  static const _shellCount = 3;
+
+  /// Large enough to swipe both ways; modulo maps to the three shells.
+  static const _pageOrigin = 3000;
+
   var _openedTracked = false;
+  late final PageController _pages;
+  var _shell = _shellDay;
 
   @override
   void initState() {
     super.initState();
+    _pages = PageController(initialPage: _pageOrigin + _shellDay);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
       }
       _ensureProfile();
       _trackTodayOpened();
+      _applyShell(_shellDay);
     });
+  }
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    super.dispose();
   }
 
   Future<void> _ensureProfile() async {
@@ -140,140 +158,151 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final date = CalendarRange.dateOnly(day);
     ref.read(monthFeedJumpProvider.notifier).state = date;
     _setAnchor(date);
-    _setScale(CalendarScale.month);
+    _goToShell(_shellList);
     final bucket = '${date.year}-${date.month.toString().padLeft(2, '0')}';
     ref.read(analyticsProvider).track(FeedJump(target: target, bucket: bucket));
   }
 
   void _goToToday() {
     final today = CalendarRange.dateOnly(DateTime.now());
-    final scale = ref.read(calendarScaleProvider);
     _setAnchor(today);
-    switch (scale) {
-      case CalendarScale.day:
-        break;
-      case CalendarScale.week:
-        // Week chrome removed (DEC-030); treat as list.
-        _setScale(CalendarScale.month);
-        ref.read(monthFeedJumpProvider.notifier).state = today;
-      case CalendarScale.month:
-        ref.read(monthFeedJumpProvider.notifier).state = today;
-      case CalendarScale.year:
-        break;
+    if (_shell == _shellList) {
+      ref.read(monthFeedJumpProvider.notifier).state = today;
     }
+    _goToShell(_shellDay);
     final bucket = '${today.year}-${today.month.toString().padLeft(2, '0')}';
     ref
         .read(analyticsProvider)
         .track(FeedJump(target: 'today', bucket: bucket));
   }
 
-  void _setScale(CalendarScale value) {
-    // Week is no longer in chrome (DEC-030).
-    final next = value == CalendarScale.week ? CalendarScale.month : value;
-    ref.read(calendarScaleProvider.notifier).state = next;
+  void _goToShell(int shell) {
+    if (!_pages.hasClients) {
+      _applyShell(shell);
+      return;
+    }
+    final current = _pages.page?.round() ?? _pageOrigin;
+    final currentShell = current % _shellCount;
+    var delta = shell - currentShell;
+    if (delta > 1) {
+      delta -= _shellCount;
+    } else if (delta < -1) {
+      delta += _shellCount;
+    }
+    final target = current + delta;
+    _pages.animateToPage(
+      target,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
-  void _shiftWithinScale(int direction) {
-    final scale = ref.read(calendarScaleProvider);
-    final anchor = ref.read(calendarAnchorProvider);
-    switch (scale) {
-      case CalendarScale.day:
-        _setAnchor(anchor.add(Duration(days: direction)));
-      case CalendarScale.week:
-        _setAnchor(anchor.add(Duration(days: 7 * direction)));
-      case CalendarScale.month:
-        _setAnchor(_shiftMonth(anchor, direction));
-      case CalendarScale.year:
-        _setAnchor(DateTime(anchor.year + direction, anchor.month, anchor.day));
+  void _applyShell(int shell) {
+    setState(() => _shell = shell);
+    final today = CalendarRange.dateOnly(DateTime.now());
+    switch (shell) {
+      case _shellDay:
+        _setAnchor(today);
+        ref.read(calendarScaleProvider.notifier).state = CalendarScale.day;
+      case _shellList:
+        ref.read(calendarScaleProvider.notifier).state = CalendarScale.month;
+      case _shellYear:
+        ref.read(calendarScaleProvider.notifier).state = CalendarScale.year;
+        final anchor = ref.read(calendarAnchorProvider);
+        if (anchor.year != today.year) {
+          _setAnchor(DateTime(today.year, today.month, today.day));
+        }
     }
   }
 
-  static DateTime _shiftMonth(DateTime anchor, int direction) {
-    final first = DateTime(anchor.year, anchor.month + direction, 1);
-    final last = DateTime(first.year, first.month + 1, 0).day;
-    final day = anchor.day > last ? last : anchor.day;
-    return DateTime(first.year, first.month, day);
+  Widget _dayPage(BuildContext context) {
+    final l10n = context.l10n;
+    final locale = Localizations.localeOf(context);
+    final today = CalendarRange.dateOnly(DateTime.now());
+    final eventsAsync = ref.watch(dayEventsProvider);
+    final birthdaysAsync = ref.watch(birthdaysListProvider);
+    return _DayBody(
+      day: today,
+      locale: locale,
+      l10n: l10n,
+      eventsAsync: eventsAsync,
+      birthdaysAsync: birthdaysAsync,
+      onOpenEditor: _openEditor,
+      onBirthdayTap: (birthday) async {
+        await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => BirthdayEditorScreen(existing: birthday),
+          ),
+        );
+        ref.invalidate(birthdaysListProvider);
+      },
+      onHourTap: (hour) {
+        _openEditor(
+          initialStartLocal: DateTime(today.year, today.month, today.day, hour),
+        );
+      },
+    );
   }
 
-  void _selectWeekday(int weekday) {
-    final anchor = ref.read(calendarAnchorProvider);
-    final start = CalendarRange.startOfWeek(anchor);
-    _setAnchor(start.add(Duration(days: weekday - DateTime.monday)));
-  }
-
-  List<CalendarZoomItem> _zoomItems({
-    required CalendarScale scale,
-    required DateTime day,
-    required AppLocalizations l10n,
-    required Locale locale,
-  }) {
-    switch (scale) {
-      case CalendarScale.day:
-        final labels = [
-          l10n.zoomMonday,
-          l10n.zoomTuesday,
-          l10n.zoomWednesday,
-          l10n.zoomThursday,
-          l10n.zoomFriday,
-          l10n.zoomSaturday,
-          l10n.zoomSunday,
-        ];
-        return [
-          for (var i = 0; i < 7; i++)
-            CalendarZoomItem(
-              label: labels[i],
-              selected: day.weekday == DateTime.monday + i,
-              onTap: () => _selectWeekday(DateTime.monday + i),
+  Widget _listPage(BuildContext context) {
+    return MonthFeedView(
+      onOpenSearch: () {
+        Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) => EventSearchScreen(
+              onOpenEvent: (event) => _openEditor(existing: event),
             ),
-        ];
-      case CalendarScale.week:
-      case CalendarScale.month:
-      case CalendarScale.year:
-        // List and Year carry their own headers; Week is unused (DEC-030).
-        return const [];
-    }
+          ),
+        );
+      },
+      onOpenDay: (day) {
+        final date = CalendarRange.dateOnly(day);
+        _setAnchor(date);
+        ref.read(monthFeedJumpProvider.notifier).state = date;
+        Navigator.of(context).push<void>(
+          MaterialPageRoute(
+            builder: (_) => DayFocusScreen(
+              day: date,
+              onOpenEvent: (event) => _openEditor(existing: event),
+            ),
+          ),
+        );
+      },
+      onOpenEvent: (event) => _openEditor(existing: event),
+      onOpenBirthday: (birthday) async {
+        await Navigator.of(context).push<bool>(
+          MaterialPageRoute(
+            builder: (_) => BirthdayEditorScreen(existing: birthday),
+          ),
+        );
+        ref.invalidate(birthdaysListProvider);
+      },
+    );
   }
 
-  String _zoomSemantic(CalendarScale scale, AppLocalizations l10n) {
-    return switch (scale) {
-      CalendarScale.day => l10n.navZoomWeekdays,
-      CalendarScale.week || CalendarScale.month => l10n.navList,
-      CalendarScale.year => l10n.navYear,
-    };
+  Widget _yearPage() {
+    return YearView(
+      onSelectMonth: (value) => _jumpFeed(value, target: 'month'),
+      onSelectDay: (value) => _jumpFeed(value, target: 'day'),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     ref.watch(writeQueueReplayControllerProvider);
 
-    final l10n = context.l10n;
-    final locale = Localizations.localeOf(context);
-    final scale = ref.watch(calendarScaleProvider);
-    final anchor = ref.watch(calendarAnchorProvider);
-    final day = CalendarRange.dateOnly(anchor);
     final today = CalendarRange.dateOnly(DateTime.now());
-    final viewingToday = day == today;
-    final eventsAsync = ref.watch(dayEventsProvider);
-    final birthdaysAsync = ref.watch(birthdaysListProvider);
+    final onDayShell = _shell == _shellDay;
 
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            CalendarNav(
-              scale: scale,
-              zoomSemanticLabel: _zoomSemantic(scale, l10n),
-              zoomItems: _zoomItems(
-                scale: scale,
-                day: day,
-                l10n: l10n,
-                locale: locale,
-              ),
-              onScaleSelected: _setScale,
+            CalendarChrome(
               onToday: _goToToday,
               todayDayOfMonth: today.day,
-              onTodayActive: viewingToday && scale == CalendarScale.day,
+              onTodayActive: onDayShell,
               onNew: () => _openEditor(),
               onSettings: () {
                 Navigator.of(context).push<void>(
@@ -282,91 +311,19 @@ class _DayScreenState extends ConsumerState<DayScreen> {
               },
             ),
             Expanded(
-              child: GestureDetector(
-                onHorizontalDragEnd: (details) {
-                  if (scale == CalendarScale.month) {
-                    return;
-                  }
-                  final v = details.primaryVelocity;
-                  if (v == null) {
-                    return;
-                  }
-                  if (v < -200) {
-                    _shiftWithinScale(1);
-                  } else if (v > 200) {
-                    _shiftWithinScale(-1);
-                  }
+              child: PageView.builder(
+                controller: _pages,
+                // Nested vertical scroll in List / Year; allow cross-axis swipe.
+                allowImplicitScrolling: false,
+                onPageChanged: (index) {
+                  _applyShell(index % _shellCount);
                 },
-                child: switch (scale) {
-                  CalendarScale.day => _DayBody(
-                    day: day,
-                    locale: locale,
-                    l10n: l10n,
-                    eventsAsync: eventsAsync,
-                    birthdaysAsync: birthdaysAsync,
-                    onOpenEditor: _openEditor,
-                    onBirthdayTap: (birthday) async {
-                      await Navigator.of(context).push<bool>(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              BirthdayEditorScreen(existing: birthday),
-                        ),
-                      );
-                      ref.invalidate(birthdaysListProvider);
-                    },
-                    onHourTap: (hour) {
-                      _openEditor(
-                        initialStartLocal: DateTime(
-                          day.year,
-                          day.month,
-                          day.day,
-                          hour,
-                        ),
-                      );
-                    },
-                  ),
-                  // Week chrome removed (DEC-030); show the continuous list.
-                  CalendarScale.week || CalendarScale.month => MonthFeedView(
-                    onOpenYear: () => _setScale(CalendarScale.year),
-                    onOpenSearch: () {
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          builder: (_) => EventSearchScreen(
-                            onOpenEvent: (event) =>
-                                _openEditor(existing: event),
-                          ),
-                        ),
-                      );
-                    },
-                    onOpenDay: (day) {
-                      final date = CalendarRange.dateOnly(day);
-                      _setAnchor(date);
-                      ref.read(monthFeedJumpProvider.notifier).state = date;
-                      Navigator.of(context).push<void>(
-                        MaterialPageRoute(
-                          builder: (_) => DayFocusScreen(
-                            day: date,
-                            onOpenEvent: (event) =>
-                                _openEditor(existing: event),
-                          ),
-                        ),
-                      );
-                    },
-                    onOpenEvent: (event) => _openEditor(existing: event),
-                    onOpenBirthday: (birthday) async {
-                      await Navigator.of(context).push<bool>(
-                        MaterialPageRoute(
-                          builder: (_) =>
-                              BirthdayEditorScreen(existing: birthday),
-                        ),
-                      );
-                      ref.invalidate(birthdaysListProvider);
-                    },
-                  ),
-                  CalendarScale.year => YearView(
-                    onSelectMonth: (value) => _jumpFeed(value, target: 'month'),
-                    onSelectDay: (value) => _jumpFeed(value, target: 'day'),
-                  ),
+                itemBuilder: (context, index) {
+                  return switch (index % _shellCount) {
+                    _shellDay => _dayPage(context),
+                    _shellList => _listPage(context),
+                    _ => _yearPage(),
+                  };
                 },
               ),
             ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vrijdag/app.dart';
 import 'package:vrijdag/core/analytics/noop_analytics.dart';
@@ -84,7 +83,7 @@ void main() {
     expect(find.text('Send sign-in link'), findsOneWidget);
   });
 
-  testWidgets('signed in shows Day home, not F-001 scaffold', (tester) async {
+  testWidgets('signed in shows Day shell without scale tabs', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: overrides(
@@ -101,28 +100,31 @@ void main() {
     expect(find.textContaining('F-001'), findsNothing);
     expect(find.text('Nieuw'), findsOneWidget);
     expect(find.text('Instellingen'), findsOneWidget);
-    expect(find.text('Dag'), findsOneWidget);
+    // Scale jump removed (DEC-031).
+    expect(find.text('Dag'), findsNothing);
+    expect(find.text('Lijst'), findsNothing);
+    expect(find.text('Week'), findsNothing);
+    expect(find.text('Maand'), findsNothing);
     expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
-    // Quiet Day spine numerals.
     expect(find.text('08'), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
     expect(find.text('18'), findsOneWidget);
+    expect(find.text('${DateTime.now().day}'), findsWidgets);
 
-    await tester.tap(find.text('Lijst'));
+    // Swipe to List shell.
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
     await tester.pumpAndSettle();
-    // Continuous event list (former Month feed).
-    final monthLabel = DateFormat.MMMM(
-      'nl',
-    ).format(DateTime.now()).toLowerCase();
-    expect(find.textContaining(monthLabel), findsWidgets);
+    expect(find.text('Geen afspraken vandaag.'), findsNothing);
 
-    await tester.tap(find.text('Jaar').first);
+    // Swipe to Year shell.
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
     await tester.pumpAndSettle();
     expect(find.text('overzicht'), findsOneWidget);
-    expect(find.text('afspraak'), findsOneWidget);
 
-    // Today circle shows today's day-of-month in chrome on every scale.
-    expect(find.text('${DateTime.now().day}'), findsWidgets);
+    // Swipe onward — circular back toward Day.
+    await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
+    await tester.pumpAndSettle();
+    expect(find.text('Geen afspraken vandaag.'), findsOneWidget);
   });
 
   testWidgets('signed in Day quiet copy works in English', (tester) async {
@@ -140,8 +142,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('No events today.'), findsOneWidget);
-    expect(find.text('Day'), findsOneWidget);
-    expect(find.text('List'), findsOneWidget);
-    expect(find.text('Year'), findsOneWidget);
+    expect(find.text('New'), findsOneWidget);
+    expect(find.text('Settings'), findsOneWidget);
   });
 }
