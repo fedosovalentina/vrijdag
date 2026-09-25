@@ -434,11 +434,15 @@
   },
   "navWeek": "Week",
   "@navWeek": {
-    "description": "Scale jump: Week view."
+    "description": "Legacy label; Week scale removed from chrome (DEC-030)."
   },
   "navMonth": "Maand",
   "@navMonth": {
-    "description": "Scale jump: Month view."
+    "description": "Legacy label; Month scale renamed to List in chrome (DEC-030)."
+  },
+  "navList": "Lijst",
+  "@navList": {
+    "description": "Scale jump: continuous event list (Month feed). DEC-030."
   },
   "navYear": "Jaar",
   "@navYear": {
@@ -455,6 +459,10 @@
   "chromeSettings": "Instellingen",
   "@chromeSettings": {
     "description": "Utility row: open Settings."
+  },
+  "chromeBackToToday": "Terug naar vandaag",
+  "@chromeBackToToday": {
+    "description": "Circular control that returns Day, List, or Year to today (DEC-030)."
   },
   "navZoomWeekdays": "Dagen van de week",
   "@navZoomWeekdays": {

@@ -376,6 +376,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get navMonth => 'Maand';
 
   @override
+  String get navList => 'Lijst';
+
+  @override
   String get navYear => 'Jaar';
 
   @override
@@ -386,6 +389,9 @@ class AppLocalizationsNl extends AppLocalizations {
 
   @override
   String get chromeSettings => 'Instellingen';
+
+  @override
+  String get chromeBackToToday => 'Terug naar vandaag';
 
   @override
   String get navZoomWeekdays => 'Dagen van de week';

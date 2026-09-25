@@ -16,7 +16,7 @@ class CalendarZoomItem {
   final VoidCallback? onTap;
 }
 
-/// Zoom strip + scale jump + Nieuw / Instellingen (Task 02 / DEC-025).
+/// Zoom strip + scale jump + today circle + Nieuw / Instellingen (DEC-030).
 class CalendarNav extends StatelessWidget {
   const CalendarNav({
     super.key,
@@ -24,6 +24,9 @@ class CalendarNav extends StatelessWidget {
     required this.zoomItems,
     required this.zoomSemanticLabel,
     required this.onScaleSelected,
+    required this.onToday,
+    required this.todayDayOfMonth,
+    required this.onTodayActive,
     required this.onNew,
     required this.onSettings,
   });
@@ -32,6 +35,9 @@ class CalendarNav extends StatelessWidget {
   final List<CalendarZoomItem> zoomItems;
   final String zoomSemanticLabel;
   final ValueChanged<CalendarScale> onScaleSelected;
+  final VoidCallback onToday;
+  final int todayDayOfMonth;
+  final bool onTodayActive;
   final VoidCallback onNew;
   final VoidCallback onSettings;
 
@@ -107,12 +113,7 @@ class CalendarNav extends StatelessWidget {
                       onTap: () => onScaleSelected(CalendarScale.day),
                     ),
                     _ScaleCell(
-                      label: context.l10n.navWeek,
-                      selected: scale == CalendarScale.week,
-                      onTap: () => onScaleSelected(CalendarScale.week),
-                    ),
-                    _ScaleCell(
-                      label: context.l10n.navMonth,
+                      label: context.l10n.navList,
                       selected: scale == CalendarScale.month,
                       onTap: () => onScaleSelected(CalendarScale.month),
                     ),
@@ -121,7 +122,6 @@ class CalendarNav extends StatelessWidget {
                       selected: scale == CalendarScale.year,
                       onTap: () => onScaleSelected(CalendarScale.year),
                     ),
-                    _ScaleCell(label: context.l10n.navSeason, selected: false),
                   ],
                 ),
               ),
@@ -138,8 +138,14 @@ class CalendarNav extends StatelessWidget {
                   horizontal: VrijdagSpacing.sm,
                 ),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
                   children: [
+                    _TodayCircle(
+                      dayOfMonth: todayDayOfMonth,
+                      active: onTodayActive,
+                      onTap: onToday,
+                      semanticLabel: context.l10n.chromeBackToToday,
+                    ),
+                    const Spacer(),
                     TextButton(
                       onPressed: onNew,
                       style: TextButton.styleFrom(
@@ -181,6 +187,58 @@ class CalendarNav extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TodayCircle extends StatelessWidget {
+  const _TodayCircle({
+    required this.dayOfMonth,
+    required this.active,
+    required this.onTap,
+    required this.semanticLabel,
+  });
+
+  final int dayOfMonth;
+  final bool active;
+  final VoidCallback onTap;
+  final String semanticLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).vrijdagColors;
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: SizedBox(
+          width: 44,
+          height: 44,
+          child: Center(
+            child: Container(
+              width: 28,
+              height: 28,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: active ? colors.ink : colors.paper,
+                border: Border.all(color: colors.ink, width: 1.5),
+              ),
+              child: Text(
+                '$dayOfMonth',
+                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                  color: active ? colors.paper : colors.ink,
+                ),
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

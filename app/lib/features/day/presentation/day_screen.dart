@@ -18,7 +18,6 @@ import 'package:vrijdag/features/calendar/presentation/day_focus_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/event_search_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/month_feed_view.dart';
-import 'package:vrijdag/features/calendar/presentation/week_view.dart';
 import 'package:vrijdag/features/calendar/presentation/year_view.dart';
 import 'package:vrijdag/features/settings/presentation/settings_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
@@ -31,7 +30,7 @@ import 'package:vrijdag/shared/widgets/quiet_state.dart';
 import 'package:vrijdag/shared/widgets/stale_badge.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
-/// Signed-in calendar home: Day / Week / Month / Year (F-007 / F-008).
+/// Signed-in calendar home: Day / List / Year (DEC-030).
 class DayScreen extends ConsumerStatefulWidget {
   const DayScreen({super.key});
 
@@ -146,8 +145,32 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     ref.read(analyticsProvider).track(FeedJump(target: target, bucket: bucket));
   }
 
+  void _goToToday() {
+    final today = CalendarRange.dateOnly(DateTime.now());
+    final scale = ref.read(calendarScaleProvider);
+    _setAnchor(today);
+    switch (scale) {
+      case CalendarScale.day:
+        break;
+      case CalendarScale.week:
+        // Week chrome removed (DEC-030); treat as list.
+        _setScale(CalendarScale.month);
+        ref.read(monthFeedJumpProvider.notifier).state = today;
+      case CalendarScale.month:
+        ref.read(monthFeedJumpProvider.notifier).state = today;
+      case CalendarScale.year:
+        break;
+    }
+    final bucket = '${today.year}-${today.month.toString().padLeft(2, '0')}';
+    ref
+        .read(analyticsProvider)
+        .track(FeedJump(target: 'today', bucket: bucket));
+  }
+
   void _setScale(CalendarScale value) {
-    ref.read(calendarScaleProvider.notifier).state = value;
+    // Week is no longer in chrome (DEC-030).
+    final next = value == CalendarScale.week ? CalendarScale.month : value;
+    ref.read(calendarScaleProvider.notifier).state = next;
   }
 
   void _shiftWithinScale(int direction) {
@@ -170,21 +193,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final last = DateTime(first.year, first.month + 1, 0).day;
     final day = anchor.day > last ? last : anchor.day;
     return DateTime(first.year, first.month, day);
-  }
-
-  static int _yearForSeasonMonth(int month, DateTime anchor) {
-    final season = CalendarRange.seasonMonths(anchor.month);
-    final crossesYear = season.contains(12) && season.contains(1);
-    if (!crossesYear) {
-      return anchor.year;
-    }
-    if (month == 12) {
-      return anchor.month == 12 ? anchor.year : anchor.year - 1;
-    }
-    if (month <= 2) {
-      return anchor.month == 12 ? anchor.year + 1 : anchor.year;
-    }
-    return anchor.year;
   }
 
   void _selectWeekday(int weekday) {
@@ -219,47 +227,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
             ),
         ];
       case CalendarScale.week:
-        final weeks = CalendarRange.isoWeeksInMonth(day.year, day.month);
-        final current = CalendarRange.isoWeek(day);
-        return [
-          for (final week in weeks)
-            CalendarZoomItem(
-              label: '$week',
-              selected: week == current,
-              onTap: () {
-                // Jump to Monday of that ISO week inside this month's window.
-                var cursor = CalendarRange.startOfWeek(
-                  DateTime(day.year, day.month, 1),
-                );
-                for (var i = 0; i < 6; i++) {
-                  if (CalendarRange.isoWeek(cursor) == week) {
-                    _setAnchor(cursor);
-                    return;
-                  }
-                  cursor = cursor.add(const Duration(days: 7));
-                }
-              },
-            ),
-        ];
       case CalendarScale.month:
-        final months = CalendarRange.seasonMonths(day.month);
-        return [
-          for (final month in months)
-            CalendarZoomItem(
-              label: SpokenDate.monthShort(
-                DateTime(_yearForSeasonMonth(month, day), month, 1),
-                locale,
-              ),
-              selected: month == day.month,
-              onTap: () {
-                final year = _yearForSeasonMonth(month, day);
-                final last = DateTime(year, month + 1, 0).day;
-                final clamped = day.day > last ? last : day.day;
-                _setAnchor(DateTime(year, month, clamped));
-              },
-            ),
-        ];
       case CalendarScale.year:
+        // List and Year carry their own headers; Week is unused (DEC-030).
         return const [];
     }
   }
@@ -267,9 +237,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   String _zoomSemantic(CalendarScale scale, AppLocalizations l10n) {
     return switch (scale) {
       CalendarScale.day => l10n.navZoomWeekdays,
-      CalendarScale.week => l10n.navZoomWeeks,
-      CalendarScale.month => l10n.navZoomMonths,
-      CalendarScale.year => l10n.navScaleJump,
+      CalendarScale.week || CalendarScale.month => l10n.navList,
+      CalendarScale.year => l10n.navYear,
     };
   }
 
@@ -282,6 +251,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final scale = ref.watch(calendarScaleProvider);
     final anchor = ref.watch(calendarAnchorProvider);
     final day = CalendarRange.dateOnly(anchor);
+    final today = CalendarRange.dateOnly(DateTime.now());
+    final viewingToday = day == today;
     final eventsAsync = ref.watch(dayEventsProvider);
     final birthdaysAsync = ref.watch(birthdaysListProvider);
 
@@ -300,6 +271,9 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                 locale: locale,
               ),
               onScaleSelected: _setScale,
+              onToday: _goToToday,
+              todayDayOfMonth: today.day,
+              onTodayActive: viewingToday && scale == CalendarScale.day,
               onNew: () => _openEditor(),
               onSettings: () {
                 Navigator.of(context).push<void>(
@@ -351,14 +325,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
                       );
                     },
                   ),
-                  CalendarScale.week => WeekView(
-                    onOpenEvent: (event) => _openEditor(existing: event),
-                    onSelectDay: (value) {
-                      _setAnchor(value);
-                      _setScale(CalendarScale.day);
-                    },
-                  ),
-                  CalendarScale.month => MonthFeedView(
+                  // Week chrome removed (DEC-030); show the continuous list.
+                  CalendarScale.week || CalendarScale.month => MonthFeedView(
                     onOpenYear: () => _setScale(CalendarScale.year),
                     onOpenSearch: () {
                       Navigator.of(context).push<void>(

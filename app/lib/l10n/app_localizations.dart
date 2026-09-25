@@ -722,17 +722,23 @@ abstract class AppLocalizations {
   /// **'Dag'**
   String get navDay;
 
-  /// Scale jump: Week view.
+  /// Legacy label; Week scale removed from chrome (DEC-030).
   ///
   /// In nl, this message translates to:
   /// **'Week'**
   String get navWeek;
 
-  /// Scale jump: Month view.
+  /// Legacy label; Month scale renamed to List in chrome (DEC-030).
   ///
   /// In nl, this message translates to:
   /// **'Maand'**
   String get navMonth;
+
+  /// Scale jump: continuous event list (Month feed). DEC-030.
+  ///
+  /// In nl, this message translates to:
+  /// **'Lijst'**
+  String get navList;
 
   /// Scale jump: Year view.
   ///
@@ -757,6 +763,12 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Instellingen'**
   String get chromeSettings;
+
+  /// Circular control that returns Day, List, or Year to today (DEC-030).
+  ///
+  /// In nl, this message translates to:
+  /// **'Terug naar vandaag'**
+  String get chromeBackToToday;
 
   /// Accessibility label for the weekday zoom strip on Day.
   ///

@@ -379,14 +379,32 @@ class _MonthFeedViewState extends ConsumerState<MonthFeedView>
               Positioned(
                 right: 12,
                 bottom: 12,
-                child: GestureDetector(
-                  onTap: _home,
-                  child: Text(
-                    l10n.feedBackToToday,
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                      color: Theme.of(context).vrijdagColors.ink,
+                child: Semantics(
+                  button: true,
+                  label: l10n.chromeBackToToday,
+                  child: GestureDetector(
+                    onTap: _home,
+                    child: Container(
+                      width: 44,
+                      height: 44,
+                      alignment: Alignment.center,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Theme.of(context).vrijdagColors.paper,
+                        border: Border.all(
+                          color: Theme.of(context).vrijdagColors.ink,
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Text(
+                        '${_now.day}',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          fontFeatures: const [FontFeature.tabularFigures()],
+                          color: Theme.of(context).vrijdagColors.ink,
+                        ),
+                      ),
                     ),
                   ),
                 ),

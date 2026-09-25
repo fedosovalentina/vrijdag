@@ -108,13 +108,9 @@ void main() {
     expect(find.text('12'), findsOneWidget);
     expect(find.text('18'), findsOneWidget);
 
-    await tester.tap(find.text('Week'));
+    await tester.tap(find.text('Lijst'));
     await tester.pumpAndSettle();
-    expect(find.text('—'), findsWidgets);
-
-    await tester.tap(find.text('Maand'));
-    await tester.pumpAndSettle();
-    // Month feed: spoken month header (replaces the old grid legend).
+    // Continuous event list (former Month feed).
     final monthLabel = DateFormat.MMMM(
       'nl',
     ).format(DateTime.now()).toLowerCase();
@@ -124,6 +120,9 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('overzicht'), findsOneWidget);
     expect(find.text('afspraak'), findsOneWidget);
+
+    // Today circle shows today's day-of-month in chrome on every scale.
+    expect(find.text('${DateTime.now().day}'), findsWidgets);
   });
 
   testWidgets('signed in Day quiet copy works in English', (tester) async {
@@ -142,5 +141,7 @@ void main() {
 
     expect(find.text('No events today.'), findsOneWidget);
     expect(find.text('Day'), findsOneWidget);
+    expect(find.text('List'), findsOneWidget);
+    expect(find.text('Year'), findsOneWidget);
   });
 }
