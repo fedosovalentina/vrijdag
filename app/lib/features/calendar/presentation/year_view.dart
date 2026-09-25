@@ -4,6 +4,7 @@ import 'package:vrijdag/core/localization/l10n.dart';
 import 'package:vrijdag/features/birthdays/domain/birthday.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
 import 'package:vrijdag/features/calendar/domain/calendar_presence.dart';
+import 'package:vrijdag/features/calendar/domain/calendar_range.dart';
 import 'package:vrijdag/features/calendar/domain/personal_event.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_legend.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
@@ -14,7 +15,9 @@ import 'package:vrijdag/shared/widgets/date_header.dart';
 import 'package:vrijdag/shared/widgets/quiet_state.dart';
 import 'package:vrijdag/shared/widgets/sync_pending_banner.dart';
 
-/// 3×4 month map with presence ticks (Task 02 Year). Not mini-calendars.
+/// Year as twelve mini month grids. Today is circled; presence is quiet.
+///
+/// Product override of Task 02 “ticks only” Year map (dogfood 2026-09-25).
 class YearView extends ConsumerWidget {
   const YearView({
     super.key,
@@ -31,6 +34,7 @@ class YearView extends ConsumerWidget {
     final locale = Localizations.localeOf(context);
     final anchor = ref.watch(calendarAnchorProvider);
     final year = anchor.year;
+    final today = CalendarRange.dateOnly(DateTime.now());
     final eventsAsync = ref.watch(visibleEventsProvider);
     final birthdaysAsync = ref.watch(birthdaysListProvider);
 
@@ -42,6 +46,15 @@ class YearView extends ConsumerWidget {
           data: (items) => items,
           orElse: () => const <Birthday>[],
         );
+        final weekdayLabels = [
+          l10n.zoomMonday,
+          l10n.zoomTuesday,
+          l10n.zoomWednesday,
+          l10n.zoomThursday,
+          l10n.zoomFriday,
+          l10n.zoomSaturday,
+          l10n.zoomSunday,
+        ];
 
         return SingleChildScrollView(
           child: Column(
@@ -52,85 +65,38 @@ class YearView extends ConsumerWidget {
               const CalendarLegend(),
               Padding(
                 padding: const EdgeInsets.fromLTRB(
-                  10,
-                  4,
-                  10,
+                  VrijdagSpacing.sm,
+                  VrijdagSpacing.xs,
+                  VrijdagSpacing.sm,
                   VrijdagSpacing.page,
                 ),
-                child: GridView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: 12,
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 3,
-                    mainAxisSpacing: 4,
-                    crossAxisSpacing: 6,
-                    mainAxisExtent: 72,
-                  ),
-                  itemBuilder: (context, index) {
-                    final month = index + 1;
-                    final monthDate = DateTime(year, month, 1);
-                    final ticks = _ticksForMonth(
-                      year: year,
-                      month: month,
-                      events: events,
-                      birthdays: birthdays,
-                    );
-                    final colors = Theme.of(context).vrijdagColors;
-                    return Material(
-                      color: colors.paper,
-                      borderRadius: BorderRadius.circular(VrijdagRadii.control),
-                      child: Padding(
-                        padding: const EdgeInsets.fromLTRB(8, 10, 8, 12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            GestureDetector(
-                              onTap: () => onSelectMonth(monthDate),
-                              child: Text(
-                                SpokenDate.monthShort(monthDate, locale),
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: colors.ink,
-                                    ),
-                              ),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final gap = VrijdagSpacing.sm;
+                    final cellWidth = (constraints.maxWidth - gap * 2) / 3;
+                    // Title + weekday row + up to 6 week rows.
+                    const cellHeight = 148.0;
+                    return Wrap(
+                      spacing: gap,
+                      runSpacing: gap,
+                      children: [
+                        for (var month = 1; month <= 12; month++)
+                          SizedBox(
+                            width: cellWidth,
+                            height: cellHeight,
+                            child: _MiniMonth(
+                              year: year,
+                              month: month,
+                              locale: locale,
+                              weekdayLabels: weekdayLabels,
+                              today: today,
+                              events: events,
+                              birthdays: birthdays,
+                              onSelectMonth: onSelectMonth,
+                              onSelectDay: onSelectDay,
                             ),
-                            const SizedBox(height: VrijdagSpacing.xs),
-                            Wrap(
-                              spacing: 4,
-                              runSpacing: 4,
-                              children: [
-                                for (final tick in ticks)
-                                  GestureDetector(
-                                    onTap: () => onSelectDay(tick.day),
-                                    child: tick.isBirthday
-                                        ? Container(
-                                            width: 5,
-                                            height: 5,
-                                            decoration: BoxDecoration(
-                                              shape: BoxShape.circle,
-                                              border: Border.all(
-                                                color: colors.rust,
-                                                width: 1.5,
-                                              ),
-                                            ),
-                                          )
-                                        : Container(
-                                            width: 6,
-                                            height: 6,
-                                            decoration: BoxDecoration(
-                                              color: colors.ink,
-                                              shape: BoxShape.circle,
-                                            ),
-                                          ),
-                                  ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                      ],
                     );
                   },
                 ),
@@ -141,35 +107,163 @@ class YearView extends ConsumerWidget {
       },
     );
   }
+}
 
-  static List<_YearTick> _ticksForMonth({
-    required int year,
-    required int month,
-    required List<PersonalEvent> events,
-    required List<Birthday> birthdays,
-  }) {
+class _MiniMonth extends StatelessWidget {
+  const _MiniMonth({
+    required this.year,
+    required this.month,
+    required this.locale,
+    required this.weekdayLabels,
+    required this.today,
+    required this.events,
+    required this.birthdays,
+    required this.onSelectMonth,
+    required this.onSelectDay,
+  });
+
+  final int year;
+  final int month;
+  final Locale locale;
+  final List<String> weekdayLabels;
+  final DateTime today;
+  final List<PersonalEvent> events;
+  final List<Birthday> birthdays;
+  final ValueChanged<DateTime> onSelectMonth;
+  final ValueChanged<DateTime> onSelectDay;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).vrijdagColors;
+    final monthDate = DateTime(year, month, 1);
     final daysInMonth = DateTime(year, month + 1, 0).day;
-    final ticks = <_YearTick>[];
-    for (var d = 1; d <= daysInMonth; d++) {
-      final day = DateTime(year, month, d);
-      final bday = CalendarPresence.dayHasBirthday(birthdays, day);
-      final hasEvent = CalendarPresence.dayHasEvent(events, day);
-      if (bday) {
-        ticks.add(_YearTick(day: day, isBirthday: true));
-      } else if (hasEvent) {
-        ticks.add(_YearTick(day: day, isBirthday: false));
-      }
-      if (ticks.length >= 10) {
-        break;
-      }
-    }
-    return ticks;
+    final leading = monthDate.weekday - DateTime.monday;
+    final cells = <DateTime?>[
+      for (var i = 0; i < leading; i++) null,
+      for (var d = 1; d <= daysInMonth; d++) DateTime(year, month, d),
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        GestureDetector(
+          onTap: () => onSelectMonth(monthDate),
+          behavior: HitTestBehavior.opaque,
+          child: Padding(
+            padding: const EdgeInsets.only(bottom: 4),
+            child: Text(
+              SpokenDate.monthShort(monthDate, locale),
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: colors.ink,
+              ),
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            for (final label in weekdayLabels)
+              Expanded(
+                child: Text(
+                  label,
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    fontSize: 8,
+                    color: colors.warmGrey,
+                  ),
+                ),
+              ),
+          ],
+        ),
+        const SizedBox(height: 2),
+        Expanded(
+          child: GridView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: cells.length,
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 7,
+              mainAxisExtent: 16,
+            ),
+            itemBuilder: (context, index) {
+              final day = cells[index];
+              if (day == null) {
+                return const SizedBox.shrink();
+              }
+              final isToday =
+                  day.year == today.year &&
+                  day.month == today.month &&
+                  day.day == today.day;
+              final hasBirthday = CalendarPresence.dayHasBirthday(
+                birthdays,
+                day,
+              );
+              final hasEvent = CalendarPresence.dayHasEvent(events, day);
+              return InkWell(
+                onTap: () => onSelectDay(day),
+                customBorder: const CircleBorder(),
+                child: Center(
+                  child: _DayCell(
+                    day: day.day,
+                    isToday: isToday,
+                    hasEvent: hasEvent,
+                    hasBirthday: hasBirthday,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }
 
-class _YearTick {
-  const _YearTick({required this.day, required this.isBirthday});
+class _DayCell extends StatelessWidget {
+  const _DayCell({
+    required this.day,
+    required this.isToday,
+    required this.hasEvent,
+    required this.hasBirthday,
+  });
 
-  final DateTime day;
-  final bool isBirthday;
+  final int day;
+  final bool isToday;
+  final bool hasEvent;
+  final bool hasBirthday;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).vrijdagColors;
+    final ink = hasBirthday
+        ? colors.rust
+        : hasEvent
+        ? colors.ink
+        : colors.inkSoft;
+
+    return SizedBox(
+      width: 16,
+      height: 16,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          border: isToday ? Border.all(color: colors.ink, width: 1.25) : null,
+        ),
+        child: Center(
+          child: Text(
+            '$day',
+            style: Theme.of(context).textTheme.bodySmall?.copyWith(
+              fontSize: 9,
+              height: 1,
+              fontWeight: isToday || hasEvent || hasBirthday
+                  ? FontWeight.w600
+                  : FontWeight.w400,
+              fontFeatures: const [FontFeature.tabularFigures()],
+              color: ink,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
 }
