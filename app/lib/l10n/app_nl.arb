@@ -519,10 +519,6 @@
       "week": {"type": "int"}
     }
   },
-  "yearOverview": "overzicht",
-  "@yearOverview": {
-    "description": "Eyebrow above the year number on Year."
-  },
   "yearLegendEvent": "afspraak",
   "@yearLegendEvent": {
     "description": "Year map legend: filled tick is a personal event."

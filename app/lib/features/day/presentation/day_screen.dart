@@ -41,10 +41,6 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   static const _shellDay = 0;
   static const _shellList = 1;
   static const _shellYear = 2;
-  static const _shellCount = 3;
-
-  /// Large enough to swipe both ways; modulo maps to the three shells.
-  static const _pageOrigin = 3000;
 
   var _openedTracked = false;
   late final PageController _pages;
@@ -53,7 +49,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   @override
   void initState() {
     super.initState();
-    _pages = PageController(initialPage: _pageOrigin + _shellDay);
+    _pages = PageController(initialPage: _shellDay);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) {
         return;
@@ -143,6 +139,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     ref.invalidate(dayEventsProvider);
     ref.invalidate(todaysEventsProvider);
     ref.invalidate(visibleEventsProvider);
+    ref.invalidate(yearEventsProvider);
     ref.invalidate(monthFeedEventsProvider);
     ref.invalidate(pendingWriteCountProvider);
   }
@@ -165,10 +162,16 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   void _goToToday() {
     final today = CalendarRange.dateOnly(DateTime.now());
     _setAnchor(today);
-    if (_shell == _shellList) {
-      ref.read(monthFeedJumpProvider.notifier).state = today;
+    // Forget Year’s 5-minute memory and put List / Year on today.
+    ref.read(yearShellMemoryProvider.notifier).state = null;
+    ref.read(yearJumpToProvider.notifier).state = today.year;
+    ref.read(monthFeedJumpProvider.notifier).state = today;
+
+    // Stay on List or Year and jump there; otherwise open Day.
+    if (_shell != _shellList && _shell != _shellYear) {
+      _goToShell(_shellDay);
     }
-    _goToShell(_shellDay);
+
     final bucket = '${today.year}-${today.month.toString().padLeft(2, '0')}';
     ref
         .read(analyticsProvider)
@@ -180,37 +183,40 @@ class _DayScreenState extends ConsumerState<DayScreen> {
       _applyShell(shell);
       return;
     }
-    final current = _pages.page?.round() ?? _pageOrigin;
-    final currentShell = current % _shellCount;
-    var delta = shell - currentShell;
-    if (delta > 1) {
-      delta -= _shellCount;
-    } else if (delta < -1) {
-      delta += _shellCount;
+    if (shell == _shell) {
+      _applyShell(shell);
+      return;
     }
-    final target = current + delta;
     _pages.animateToPage(
-      target,
+      shell,
       duration: const Duration(milliseconds: 280),
       curve: Curves.easeOutCubic,
     );
   }
 
   void _applyShell(int shell) {
-    setState(() => _shell = shell);
+    if (_shell != shell) {
+      setState(() => _shell = shell);
+    }
     final today = CalendarRange.dateOnly(DateTime.now());
     switch (shell) {
       case _shellDay:
-        _setAnchor(today);
-        ref.read(calendarScaleProvider.notifier).state = CalendarScale.day;
-      case _shellList:
-        ref.read(calendarScaleProvider.notifier).state = CalendarScale.month;
-      case _shellYear:
-        ref.read(calendarScaleProvider.notifier).state = CalendarScale.year;
         final anchor = ref.read(calendarAnchorProvider);
-        if (anchor.year != today.year) {
-          _setAnchor(DateTime(today.year, today.month, today.day));
+        if (CalendarRange.dateOnly(anchor) != today) {
+          _setAnchor(today);
         }
+        if (ref.read(calendarScaleProvider) != CalendarScale.day) {
+          ref.read(calendarScaleProvider.notifier).state = CalendarScale.day;
+        }
+      case _shellList:
+        if (ref.read(calendarScaleProvider) != CalendarScale.month) {
+          ref.read(calendarScaleProvider.notifier).state = CalendarScale.month;
+        }
+      case _shellYear:
+        if (ref.read(calendarScaleProvider) != CalendarScale.year) {
+          ref.read(calendarScaleProvider.notifier).state = CalendarScale.year;
+        }
+      // Year position is owned by YearView (5-minute memory / today jump).
     }
   }
 
@@ -218,7 +224,8 @@ class _DayScreenState extends ConsumerState<DayScreen> {
     final l10n = context.l10n;
     final locale = Localizations.localeOf(context);
     final today = CalendarRange.dateOnly(DateTime.now());
-    final eventsAsync = ref.watch(dayEventsProvider);
+    // Independent of calendarScale / anchor so shell swipes do not flash reload.
+    final eventsAsync = ref.watch(todaysEventsProvider);
     final birthdaysAsync = ref.watch(birthdaysListProvider);
     return _DayBody(
       day: today,
@@ -271,6 +278,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
 
   Widget _yearPage() {
     return YearView(
+      isActive: _shell == _shellYear,
       onSelectMonth: (value) => _jumpFeed(value, target: 'month'),
       onSelectDay: (value) => _jumpFeed(value, target: 'day'),
     );
@@ -282,6 +290,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
 
     final today = CalendarRange.dateOnly(DateTime.now());
     final onDayShell = _shell == _shellDay;
+    final locale = Localizations.localeOf(context);
 
     return Scaffold(
       body: SafeArea(
@@ -290,7 +299,7 @@ class _DayScreenState extends ConsumerState<DayScreen> {
           children: [
             CalendarChrome(
               onToday: _goToToday,
-              todayDayOfMonth: today.day,
+              todayLabel: SpokenDate.dayMonth(today, locale),
               onTodayActive: onDayShell,
               onNew: () => _openEditor(),
               onSettings: () {
@@ -300,26 +309,63 @@ class _DayScreenState extends ConsumerState<DayScreen> {
               },
             ),
             Expanded(
-              child: PageView.builder(
-                controller: _pages,
-                // Nested vertical scroll in List / Year; allow cross-axis swipe.
-                allowImplicitScrolling: false,
-                onPageChanged: (index) {
-                  _applyShell(index % _shellCount);
+              child: NotificationListener<OverscrollNotification>(
+                onNotification: (notification) {
+                  // Circular shells: Year → Day, Day → Year.
+                  if (notification.metrics.axis != Axis.horizontal) {
+                    return false;
+                  }
+                  if (_shell == _shellYear && notification.overscroll > 0) {
+                    _goToShell(_shellDay);
+                    return true;
+                  }
+                  if (_shell == _shellDay && notification.overscroll < 0) {
+                    _goToShell(_shellYear);
+                    return true;
+                  }
+                  return false;
                 },
-                itemBuilder: (context, index) {
-                  return switch (index % _shellCount) {
-                    _shellDay => _dayPage(context),
-                    _shellList => _listPage(context),
-                    _ => _yearPage(),
-                  };
-                },
+                child: PageView(
+                  controller: _pages,
+                  // All three shells stay mounted via [_KeepAliveShell]; no need
+                  // to prebuild neighbors (which also made List auto-scroll).
+                  allowImplicitScrolling: false,
+                  onPageChanged: _applyShell,
+                  children: [
+                    _KeepAliveShell(child: _dayPage(context)),
+                    _KeepAliveShell(child: _listPage(context)),
+                    _KeepAliveShell(child: _yearPage()),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+/// Keeps Day / List / Year mounted so shell swipes do not dispose providers
+/// and flash a loading spinner.
+class _KeepAliveShell extends StatefulWidget {
+  const _KeepAliveShell({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_KeepAliveShell> createState() => _KeepAliveShellState();
+}
+
+class _KeepAliveShellState extends State<_KeepAliveShell>
+    with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return widget.child;
   }
 }
 
@@ -364,6 +410,8 @@ class _DayBody extends StatelessWidget {
     );
 
     return eventsAsync.when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => QuietState(message: l10n.calendarLoadFailed),
       data: (events) {

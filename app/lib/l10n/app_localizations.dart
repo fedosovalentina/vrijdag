@@ -848,12 +848,6 @@ abstract class AppLocalizations {
   /// **'week {week}'**
   String weekHeading(int week);
 
-  /// Eyebrow above the year number on Year.
-  ///
-  /// In nl, this message translates to:
-  /// **'overzicht'**
-  String get yearOverview;
-
   /// Year map legend: filled tick is a personal event.
   ///
   /// In nl, this message translates to:

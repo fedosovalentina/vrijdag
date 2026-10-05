@@ -435,9 +435,6 @@ class AppLocalizationsNl extends AppLocalizations {
   }
 
   @override
-  String get yearOverview => 'overzicht';
-
-  @override
   String get yearLegendEvent => 'afspraak';
 
   @override

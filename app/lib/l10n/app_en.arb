@@ -149,7 +149,6 @@
       "week": {"type": "int"}
     }
   },
-  "yearOverview": "overview",
   "yearLegendEvent": "event",
   "yearLegendBirthday": "birthday",
   "seasonSpring": "spring",

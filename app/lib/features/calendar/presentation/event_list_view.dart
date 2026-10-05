@@ -96,14 +96,30 @@ class _EventListViewState extends ConsumerState<EventListView> {
       }
       final ctx = _keyFor(today).currentContext;
       if (ctx != null) {
-        Scrollable.ensureVisible(
-          ctx,
-          alignment: 0.15,
-          duration: const Duration(milliseconds: 280),
-          curve: Curves.easeOutCubic,
-        );
+        _revealInThisList(ctx, alignment: 0.15);
       }
     });
+  }
+
+  /// Scroll only this list — never parent [PageView] shells.
+  ///
+  /// [Scrollable.ensureVisible] walks every enclosing scrollable and will
+  /// swipe Day → List when the list mounts while kept alive off-screen.
+  void _revealInThisList(BuildContext ctx, {required double alignment}) {
+    final renderObject = ctx.findRenderObject();
+    if (renderObject == null) {
+      return;
+    }
+    final scrollable = Scrollable.maybeOf(ctx);
+    if (scrollable == null) {
+      return;
+    }
+    scrollable.position.ensureVisible(
+      renderObject,
+      alignment: alignment,
+      duration: const Duration(milliseconds: 280),
+      curve: Curves.easeOutCubic,
+    );
   }
 
   @override
@@ -120,24 +136,22 @@ class _EventListViewState extends ConsumerState<EventListView> {
       if (next == null) {
         return;
       }
+      ref.read(monthFeedWindowProvider.notifier).growTo(next);
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (!mounted) {
           return;
         }
         final ctx = _keyFor(next).currentContext;
         if (ctx != null) {
-          Scrollable.ensureVisible(
-            ctx,
-            alignment: 0.15,
-            duration: const Duration(milliseconds: 280),
-            curve: Curves.easeOutCubic,
-          );
+          _revealInThisList(ctx, alignment: 0.15);
         }
         ref.read(monthFeedJumpProvider.notifier).state = null;
       });
     });
 
     return eventsAsync.when(
+      skipLoadingOnReload: true,
+      skipLoadingOnRefresh: true,
       loading: () => const Center(child: CircularProgressIndicator()),
       error: (_, _) => QuietState(message: l10n.calendarLoadFailed),
       data: (entries) {

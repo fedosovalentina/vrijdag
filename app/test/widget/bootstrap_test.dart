@@ -16,6 +16,7 @@ import 'package:vrijdag/features/auth/presentation/auth_providers.dart';
 import 'package:vrijdag/features/birthdays/presentation/birthday_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/onboarding/presentation/onboarding_providers.dart';
+import 'package:vrijdag/shared/formatters/spoken_date.dart';
 
 import '../support/fake_auth_repository.dart';
 import '../support/memory_birthdays_repository.dart';
@@ -109,7 +110,11 @@ void main() {
     expect(find.text('08'), findsOneWidget);
     expect(find.text('12'), findsOneWidget);
     expect(find.text('18'), findsOneWidget);
-    expect(find.text('${DateTime.now().day}'), findsWidgets);
+    // Chrome today control: spoken day+month, no year.
+    expect(
+      find.text(SpokenDate.dayMonth(DateTime.now(), const Locale('nl'))),
+      findsWidgets,
+    );
 
     // Swipe to List shell.
     await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
@@ -119,7 +124,8 @@ void main() {
     // Swipe to Year shell.
     await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);
     await tester.pumpAndSettle();
-    expect(find.text('overzicht'), findsOneWidget);
+    expect(find.text('overzicht'), findsNothing);
+    expect(find.text('${DateTime.now().year}'), findsOneWidget);
 
     // Swipe onward — circular back toward Day.
     await tester.fling(find.byType(PageView), const Offset(-400, 0), 1000);

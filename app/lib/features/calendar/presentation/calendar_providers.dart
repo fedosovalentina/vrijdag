@@ -60,6 +60,18 @@ final visibleEventsProvider = FutureProvider.autoDispose<List<PersonalEvent>>((
   );
 });
 
+/// Events for one calendar year — keyed by year so the Year shell can scroll
+/// across years without tying to [calendarScaleProvider].
+final yearEventsProvider = FutureProvider.autoDispose
+    .family<List<PersonalEvent>, int>((ref, year) async {
+      final from = DateTime(year, 1, 1).toUtc();
+      final to = DateTime(year + 1, 1, 1).toUtc();
+      final masters = await ref
+          .watch(personalEventsRepositoryProvider)
+          .listOverlapping(from: from, to: to);
+      return RecurrenceMaterializer.materialize(masters, from: from, to: to);
+    });
+
 /// Events overlapping "today" in the device local calendar day.
 final todaysEventsProvider = FutureProvider.autoDispose<List<PersonalEvent>>((
   ref,
@@ -167,8 +179,26 @@ class MonthFeedWindowNotifier extends Notifier<MonthFeedWindow> {
   }
 }
 
-/// Day the month feed should scroll to after the year map closes.
+/// Day the month feed / List shell should scroll to.
 final monthFeedJumpProvider = StateProvider<DateTime?>((ref) => null);
+
+/// How long the Year shell remembers the last viewed year after leaving.
+const yearShellMemoryTtl = Duration(minutes: 5);
+
+/// Last year the person looked at on Year, stamped when they left the shell.
+class YearShellMemory {
+  const YearShellMemory({required this.year, required this.leftAt});
+
+  final int year;
+  final DateTime leftAt;
+
+  bool get isFresh => DateTime.now().difference(leftAt) < yearShellMemoryTtl;
+}
+
+final yearShellMemoryProvider = StateProvider<YearShellMemory?>((ref) => null);
+
+/// One-shot year the Year shell should reveal (chrome “today”, etc.).
+final yearJumpToProvider = StateProvider<int?>((ref) => null);
 
 const reminderDefaultPrefsKey = 'reminder_default_minutes';
 
