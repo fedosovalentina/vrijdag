@@ -153,6 +153,9 @@ class AppLocalizationsNl extends AppLocalizations {
   String get calendarEmptyToday => 'Geen afspraken vandaag.';
 
   @override
+  String get listEmpty => 'Nog geen afspraken in deze periode.';
+
+  @override
   String get calendarNewEvent => 'Nieuwe afspraak';
 
   @override

@@ -186,6 +186,10 @@
   "@calendarEmptyToday": {
     "description": "Empty state when there are no personal events today."
   },
+  "listEmpty": "Nog geen afspraken in deze periode.",
+  "@listEmpty": {
+    "description": "Empty state for the continuous event list shell."
+  },
   "calendarNewEvent": "Nieuwe afspraak",
   "@calendarNewEvent": {
     "description": "Button / screen title to create a timed event."

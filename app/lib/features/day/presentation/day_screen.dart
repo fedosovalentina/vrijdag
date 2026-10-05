@@ -16,8 +16,7 @@ import 'package:vrijdag/features/calendar/presentation/calendar_nav.dart';
 import 'package:vrijdag/features/calendar/presentation/calendar_providers.dart';
 import 'package:vrijdag/features/calendar/presentation/day_focus_screen.dart';
 import 'package:vrijdag/features/calendar/presentation/event_editor_screen.dart';
-import 'package:vrijdag/features/calendar/presentation/event_search_screen.dart';
-import 'package:vrijdag/features/calendar/presentation/month_feed_view.dart';
+import 'package:vrijdag/features/calendar/presentation/event_list_view.dart';
 import 'package:vrijdag/features/calendar/presentation/year_view.dart';
 import 'package:vrijdag/features/settings/presentation/settings_screen.dart';
 import 'package:vrijdag/l10n/app_localizations.dart';
@@ -245,20 +244,10 @@ class _DayScreenState extends ConsumerState<DayScreen> {
   }
 
   Widget _listPage(BuildContext context) {
-    return MonthFeedView(
-      onOpenSearch: () {
-        Navigator.of(context).push<void>(
-          MaterialPageRoute(
-            builder: (_) => EventSearchScreen(
-              onOpenEvent: (event) => _openEditor(existing: event),
-            ),
-          ),
-        );
-      },
-      onOpenDay: (day) {
+    return EventListView(
+      onSelectDay: (day) {
         final date = CalendarRange.dateOnly(day);
         _setAnchor(date);
-        ref.read(monthFeedJumpProvider.notifier).state = date;
         Navigator.of(context).push<void>(
           MaterialPageRoute(
             builder: (_) => DayFocusScreen(

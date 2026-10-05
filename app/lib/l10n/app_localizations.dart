@@ -362,6 +362,12 @@ abstract class AppLocalizations {
   /// **'Geen afspraken vandaag.'**
   String get calendarEmptyToday;
 
+  /// Empty state for the continuous event list shell.
+  ///
+  /// In nl, this message translates to:
+  /// **'Nog geen afspraken in deze periode.'**
+  String get listEmpty;
+
   /// Button / screen title to create a timed event.
   ///
   /// In nl, this message translates to:

@@ -153,6 +153,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get calendarEmptyToday => 'No events today.';
 
   @override
+  String get listEmpty => 'No events in this period.';
+
+  @override
   String get calendarNewEvent => 'New event';
 
   @override

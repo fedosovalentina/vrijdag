@@ -44,6 +44,7 @@
   "authSignOutPendingContinue": "Sign out anyway",
   "calendarTodayTitle": "Today",
   "calendarEmptyToday": "No events today.",
+  "listEmpty": "No events in this period.",
   "calendarNewEvent": "New event",
   "calendarEditEvent": "Edit event",
   "calendarTitleLabel": "Title",
